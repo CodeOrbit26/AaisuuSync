@@ -1,0 +1,23 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.layout-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.layout-content {
+  flex: 1;
+  padding: 28px 36px 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 72px);
+  margin-left: 8px;
+  scroll-behavior: smooth;
+}

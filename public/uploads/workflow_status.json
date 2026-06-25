@@ -1,0 +1,266 @@
+{
+  "status": "completed",
+  "stage": "final_output",
+  "logs": [
+    {
+      "timestamp": "3:01:38 PM",
+      "message": "[SYSTEM] POST /api/generate-viral-reel request received.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:38 PM",
+      "message": "[INPUT] Specific song override: None (Random song selection)",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:38 PM",
+      "message": "[SYSTEM] Active category filter option configured: \"Random (lofi / chill)\"",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:38 PM",
+      "message": "[GEMINI] Dispatching Song Recommendation query (Prompt 1).",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:39 PM",
+      "message": "[DATABASE] Parsing song recommendations from LLM response.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:39 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 16 logged records.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:39 PM",
+      "message": "[DATABASE] Skipping \"Tauba Tauba\" (exists in global blocklist).",
+      "type": "warn"
+    },
+    {
+      "timestamp": "3:01:39 PM",
+      "message": "[DATABASE] Skipping \"Bandook\" (exists in global blocklist).",
+      "type": "warn"
+    },
+    {
+      "timestamp": "3:01:39 PM",
+      "message": "[DATABASE] Skipping \"Choli Ke Peeche (Crew)\" (exists in global blocklist).",
+      "type": "warn"
+    },
+    {
+      "timestamp": "3:01:39 PM",
+      "message": "[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...",
+      "type": "warn"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[DATABASE] Parsing song recommendations from LLM response.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 16 logged records.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[DATABASE] Candidate \"Gajban Pani Ne Chali\" is brand new. Verification passed.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[GEMINI] Suggestion complete: \"Gajban Pani Ne Chali\"",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[SYSTEM] Drop time start: 35s. YouTube Search: \"Gajban Pani Ne Chali official video\"",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[SHELL] Executing yt-dlp to locate and download audio.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:41 PM",
+      "message": "[CMD] /Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp \"ytsearch1:Gajban Pani Ne Chali official video short\" -x --audio-format mp3 -o \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1781688701056.mp3\"",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:51 PM",
+      "message": "[SYSTEM] yt-dlp finished download successfully.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:01:51 PM",
+      "message": "[SHELL] Executing ffmpeg to trim 15s clip starting at 35s.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:51 PM",
+      "message": "[CMD] ffmpeg -y -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1781688701056.mp3\" -ss 35 -t 15 -c copy \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1781688701056.mp3\"",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:51 PM",
+      "message": "[SYSTEM] Audio trimmed and validated. File size: 260445 bytes.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:01:51 PM",
+      "message": "[GEMINI] Sending trimmed audio for transcription & timestamping (Prompt 2).",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:55 PM",
+      "message": "[GEMINI] Audio transcript returned successfully.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:01:55 PM",
+      "message": "[PARSER] Slicing transcript line breaks and validating LRC timestamps.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:55 PM",
+      "message": "[GEMINI] Generating Viral Hashtags (Prompt 3).",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:56 PM",
+      "message": "[GEMINI] Viral hashtags generated successfully.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:01:56 PM",
+      "message": "[VISUAL] Mapping 12 lyric cues to typographic layers.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:56 PM",
+      "message": "[STYLE] Setting layout: 1080x1920 Portait. Styling: 'Caveat' Font, weight 500, HSL Pink accents, 15px gap.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:56 PM",
+      "message": "[ASSET] Retrieving Google Fonts 'Caveat' styles. Background color constraint: Solid black (#000000).",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:56 PM",
+      "message": "[PUPPETEER] Launching headless browser for canvas frame generation.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:57 PM",
+      "message": "[PUPPETEER] Navigating viewport to canvas. Halting for fonts loading...",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:58 PM",
+      "message": "[PUPPETEER] Custom font confirmed loaded. Capturing 150 frames...",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:01:58 PM",
+      "message": "[PUPPETEER] Captured frame 1/150",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:00 PM",
+      "message": "[PUPPETEER] Captured frame 31/150",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:02 PM",
+      "message": "[PUPPETEER] Captured frame 61/150",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:04 PM",
+      "message": "[PUPPETEER] Captured frame 91/150",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:06 PM",
+      "message": "[PUPPETEER] Captured frame 121/150",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:08 PM",
+      "message": "[PUPPETEER] Captured frame 150/150",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:08 PM",
+      "message": "[PUPPETEER] Headless browser closed. Canvas composition complete.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:02:08 PM",
+      "message": "[SHELL] Initializing ffmpeg rendering pipeline to stitch screenshots and trimmed audio.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:08 PM",
+      "message": "[CMD] ffmpeg -y -framerate 10 -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/frames_1781688701056/frame_%03d.jpg\" -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1781688701056.mp3\" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1781688701056.mp4\"",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:09 PM",
+      "message": "[GEMINI] Analyzing completed reel composition to generate strictly high-reach viral hashtags.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:10 PM",
+      "message": "[GEMINI] High-reach viral hashtags successfully compiled.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:02:10 PM",
+      "message": "[FFMPEG] Stitching completed successfully.",
+      "type": "success"
+    },
+    {
+      "timestamp": "3:02:10 PM",
+      "message": "[SYSTEM] Rendering metrics: 1080x1920, 10 FPS, H.264 video, AAC audio.",
+      "type": "info"
+    },
+    {
+      "timestamp": "3:02:10 PM",
+      "message": "[SUCCESS] Reel generated successfully in 31.0s!",
+      "type": "success"
+    }
+  ],
+  "executionData": {
+    "startTime": 1781688698362,
+    "promptSource": "None",
+    "vibe": "Random (lofi / chill)",
+    "apiKeysValidated": true,
+    "songName": "Gajban Pani Ne Chali",
+    "youtubeSearchQuery": "Gajban Pani Ne Chali official video",
+    "viralHookStartTime": 35,
+    "syncedLyrics": "[00:00.31] Ya gajban\n[00:01.37] Pani ne\n[00:02.13] Chali\n[00:03.22] Ya gajban\n[00:04.14] Pani ne\n[00:05.10] Chali\n[00:06.18] Ya gajban\n[00:07.12] Pani ne\n[00:08.20] Chali\n[00:09.30] Gajban pani\n[00:10.15] ne chali\n[00:14.30] ✨🤍💫💕",
+    "prompt3": "You are an Instagram Reels virality expert. Based on the selected song name \"Gajban Pani Ne Chali\" and the lyrics snippet:\n\"[00:00.31] Ya gajban\n[00:01.37] Pani ne\n[00:02.13] Chali\n[00:03.22] Ya gajban\n[00:04.14] Pani ne\n[00:05.10] Chali\n[00:06.18] Ya gajban\n[00:07.12] Pani ne\n[00:08.20] Chali\n[00:09.30] Gajban pani\n[00:10.15] ne chali\n[00:14.30] ✨🤍💫💕\"\nGenerate a list of 8-10 highly targeted viral hashtags. You MUST find and extract relevant keywords, emotions, themes, and song specific terms directly from the song name \"[SONG_NAME]\" and the lyrics \"[LYRICS]\" (the reel composition) to include in the hashtags, combined with standard high-reach aesthetic tags (e.g. #explorepage, #viralreels, #feelitreelit, #trendingreels).\nReturn JSON format exactly like this:\n{\n  \"viralHashtags\": \"string\"\n}",
+    "viralHashtags": "#gajban #gajbanpaninechali #haryanvisong #haryanvidance #desivibes #trendingreels #feelitreelit #explorepage #viralreels #aestheticreels",
+    "viralReachHashtags": "#trendingreels #viralreels #foryoupage #reelsinstagram #aesthetic",
+    "youtubeCmd": "/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp \"ytsearch1:Gajban Pani Ne Chali official video short\" -x --audio-format mp3 -o \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1781688701056.mp3\"",
+    "trimCmd": "ffmpeg -y -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1781688701056.mp3\" -ss 35 -t 15 -c copy \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1781688701056.mp3\"",
+    "puppeteerHtml": "\n                      <html>\n                        <head>\n                          <link href=\"https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap\" rel=\"stylesheet\">\n                          <style>\n                            .lyric-line {\n                              color: #f094c4;\n                              font-size: 70px;\n                              font-weight: 500;\n                              letter-spacing: 0.05em;\n                              line-height: 1.25;\n                              white-space: nowrap;\n                              opacity: 1;\n                              transition: transform 0.3s ease;\n                            }\n                            /* Optional active state if needed later */\n                            .lyric-line.active {\n                              /* Currently identical to match preview perfectly */\n                            }\n                          </style>\n                        </head>\n                        <body style=\"background: black; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'Caveat', cursive; overflow: hidden; text-transform: uppercase;\">\n                          <div id=\"container\" style=\"display: flex; flex-direction: column; align-items: center; gap: 15px; text-align: center; width: 100%;\">\n                          </div>\n                          <script>\n                            const lyrics = [{\"time\":0.31,\"text\":\"Ya gajban\"},{\"time\":1.37,\"text\":\"Pani ne\"},{\"time\":2.13,\"text\":\"Chali\"},{\"time\":3.22,\"text\":\"Ya gajban\"},{\"time\":4.14,\"text\":\"Pani ne\"},{\"time\":5.1,\"text\":\"Chali\"},{\"time\":6.18,\"text\":\"Ya gajban\"},{\"time\":7.12,\"text\":\"Pani ne\"},{\"time\":8.2,\"text\":\"Chali\"},{\"time\":9.3,\"text\":\"Gajban pani\"},{\"time\":10.15,\"text\":\"ne chali\"},{\"time\":14.3,\"text\":\"✨🤍💫💕\"}];\n                            const container = document.getElementById('container');\n                            \n                            lyrics.forEach((l, i) => {\n                              const div = document.createElement('div');\n                              div.className = 'lyric-line';\n                              div.id = 'line-' + i;\n                              div.innerText = l.text;\n                              container.appendChild(div);\n                            });\n\n                            function updateTime(t) {\n                              let activeIndex = 0;\n                              for (let i = lyrics.length - 1; i >= 0; i--) {\n                                if (t >= lyrics[i].time) {\n                                  activeIndex = i;\n                                  break;\n                                }\n                              }\n                              lyrics.forEach((l, i) => {\n                                const el = document.getElementById('line-' + i);\n                                if (i === activeIndex) {\n                                  el.classList.add('active');\n                                } else {\n                                  el.classList.remove('active');\n                                }\n                              });\n                            }\n                          </script>\n                        </body>\n                      </html>\n                    ",
+    "ffmpegCmd": "ffmpeg -y -framerate 10 -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/frames_1781688701056/frame_%03d.jpg\" -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1781688701056.mp3\" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1781688701056.mp4\"",
+    "resolution": "1080x1920",
+    "fps": 10,
+    "bitrate": "Adaptive",
+    "format": "mp4",
+    "renderingProgress": 150,
+    "renderingTotal": 150,
+    "videoUrl": "/uploads/viral_reel_1781688701056.mp4",
+    "audioUrl": "/uploads/viral_reel_trimmed_1781688701056.mp3",
+    "prompt1": "You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now with a **chatpati / upbeat** vibe (ONLY Hindi or Haryanvi, NO English). For each song, give me the song name, the exact YouTube search query to find the best short/audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }\nReturn JSON format exactly like this: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }",
+    "dbTotalSongs": 16,
+    "prompt2": "Listen to this 15-second audio clip. Transcribe the lyrics exactly as they are sung in the audio.\nCRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.\nReturn the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].\nIMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫\n\nReturn JSON format exactly like this: { \"syncedLyrics\": \"string\" }",
+    "totalElapsedTime": "31.0s"
+  },
+  "updatedAt": 1781688730403
+}
