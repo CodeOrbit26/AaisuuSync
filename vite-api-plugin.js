@@ -643,8 +643,12 @@ export function viteApiPlugin() {
     name: 'aaisu-mobile-api-server',
     configureServer(server) {
       startBackgroundTasks();
-      server.middlewares.use(async (req, res, next) => {
-        // Enable CORS
+      server.middlewares.use(apiMiddleware);
+    }
+  };
+}
+
+export async function apiMiddleware(req, res, next) {
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -2824,9 +2828,6 @@ Return the result in strict JSON format:
         } else {
           next();
         }
-      });
-    }
-  };
 }
 
 async function runAgentCommentingInternal(username, comments, maxReels, behavior) {
