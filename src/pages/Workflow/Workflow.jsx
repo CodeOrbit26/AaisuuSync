@@ -604,7 +604,7 @@ function updateTime(t) {
                     {currentData.videoUrl || statusData.status === 'completed' ? (
                       <video 
                         className="workflow-output-video" 
-                        src={currentData.videoUrl || "/uploads/viral_reel_trimmed.mp4"} 
+                        src={window.resolveUrl(currentData.videoUrl || "/uploads/viral_reel_trimmed.mp4")} 
                         controls
                         autoPlay
                         loop

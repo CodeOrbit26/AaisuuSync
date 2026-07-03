@@ -20,6 +20,25 @@ export default function MobileSync() {
   const [serverStatus, setServerStatus] = useState({ online: false, localIp: '127.0.0.1', isHostMode: false });
   const [syncData, setSyncData] = useState({ approvals: [], uploads: [] });
   const [pollingActive, setPollingActive] = useState(true);
+
+  const [backendUrl, setBackendUrl] = useState(() => {
+    return localStorage.getItem('aaisu_backend_url') || '';
+  });
+
+  const handleBackendUrlChange = (e) => {
+    const val = e.target.value;
+    setBackendUrl(val);
+    if (val.trim()) {
+      localStorage.setItem('aaisu_backend_url', val.trim());
+    } else {
+      localStorage.removeItem('aaisu_backend_url');
+    }
+  };
+
+  const handleClearBackendUrl = () => {
+    setBackendUrl('');
+    localStorage.removeItem('aaisu_backend_url');
+  };
   
   // New Approval Request Form State
   const [newTitle, setNewTitle] = useState('');
@@ -230,6 +249,40 @@ export default function MobileSync() {
                 <span className="detail-label">App Scheme Protocol</span>
                 <code>aaisu-sync://</code>
               </div>
+              <div className="detail-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px', marginTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '12px' }}>
+                <span className="detail-label">Remote Backend Server URL</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={backendUrl}
+                    onChange={handleBackendUrlChange}
+                    placeholder="e.g. http://192.168.1.10:5173"
+                    style={{
+                      flex: 1,
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '6px',
+                      color: 'var(--text-primary)',
+                      padding: '6px 10px',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                    }}
+                  />
+                  {backendUrl && (
+                    <button 
+                      onClick={handleClearBackendUrl}
+                      className="copy-btn" 
+                      title="Reset to local"
+                      style={{ padding: '0 8px', height: '32px' }}
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Set this when accessing this UI from Vercel. Leave blank to default to relative paths.
+                </span>
+              </div>
             </div>
 
             {!serverStatus.isHostMode && (
@@ -310,7 +363,7 @@ export default function MobileSync() {
                 syncData.approvals.map((appr) => (
                   <div key={appr.id} className={`approval-item accent-border-${appr.status === 'approved' ? 'success' : appr.status === 'rejected' ? 'danger' : 'indigo'}`}>
                     <div className="approval-item-media">
-                      <img src={appr.mediaUrl} alt={appr.title} />
+                      <img src={window.resolveUrl(appr.mediaUrl)} alt={appr.title} />
                       <div className={`status-tag ${appr.status}`}>
                         {appr.status.toUpperCase()}
                       </div>
@@ -364,7 +417,7 @@ export default function MobileSync() {
                   <div key={upload.id} className="upload-grid-item" onClick={() => setPreviewImage(upload)}>
                     <div className="upload-media-preview">
                       {upload.fileType.startsWith('image/') ? (
-                        <img src={upload.url} alt={upload.originalName} />
+                        <img src={window.resolveUrl(upload.url)} alt={upload.originalName} />
                       ) : (
                         <div className="video-placeholder">
                           <HiOutlineExternalLink style={{ fontSize: '2rem', color: 'var(--cyan)' }} />
@@ -402,11 +455,11 @@ export default function MobileSync() {
             </button>
             <div className="modal-body-content">
               {previewImage.fileType.startsWith('image/') ? (
-                <img src={previewImage.url} alt={previewImage.originalName} className="modal-full-image" />
+                <img src={window.resolveUrl(previewImage.url)} alt={previewImage.originalName} className="modal-full-image" />
               ) : (
                 <div className="video-player-placeholder">
-                  <p>Video Player (Raw File Available at: <code>{previewImage.url}</code>)</p>
-                  <a href={previewImage.url} target="_blank" rel="noreferrer" className="gradient-btn" style={{ display: 'inline-flex', gap: '8px' }}>
+                  <p>Video Player (Raw File Available at: <code>{window.resolveUrl(previewImage.url)}</code>)</p>
+                  <a href={window.resolveUrl(previewImage.url)} target="_blank" rel="noreferrer" className="gradient-btn" style={{ display: 'inline-flex', gap: '8px' }}>
                     Open Video in New Tab <HiOutlineExternalLink />
                   </a>
                 </div>
@@ -416,7 +469,7 @@ export default function MobileSync() {
                   <h3>{previewImage.originalName}</h3>
                   <p>Uploaded {new Date(previewImage.uploadedAt).toLocaleString()} · {formatBytes(previewImage.sizeBytes)}</p>
                 </div>
-                <a href={previewImage.url} download={previewImage.originalName} className="copy-btn" style={{ background: 'var(--bg-elevated)', padding: '10px 14px' }}>
+                <a href={window.resolveUrl(previewImage.url)} download={previewImage.originalName} className="copy-btn" style={{ background: 'var(--bg-elevated)', padding: '10px 14px' }}>
                   Download Raw File
                 </a>
               </div>

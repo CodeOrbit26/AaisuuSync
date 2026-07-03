@@ -1080,7 +1080,7 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                     <div className="pipeline-play-screen">
                       <audio 
                         ref={audioRef}
-                        src={playingReel.audioUrl || "/uploads/kitab_song_trimmed.mp3"}
+                        src={window.resolveUrl(playingReel.audioUrl || "/uploads/kitab_song_trimmed.mp3")}
                         onTimeUpdate={handleTimeUpdate}
                         onLoadedMetadata={handleLoadedMetadata}
                         onPlay={() => setIsPlaying(true)}
