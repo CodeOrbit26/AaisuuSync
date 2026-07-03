@@ -667,6 +667,18 @@ export async function apiMiddleware(req, res, next) {
           let body = '';
           req.on('data', chunk => { body += chunk; });
           req.on('end', async () => {
+            // Send heartbeat spaces every 25 seconds to prevent Render's 100s idle timeout
+            res.setHeader('Content-Type', 'application/json');
+            const heartbeat = setInterval(() => {
+              res.write(' ');
+            }, 25000);
+            
+            const originalEnd = res.end;
+            res.end = function(...args) {
+              clearInterval(heartbeat);
+              originalEnd.apply(res, args);
+            };
+
             const startTime = Date.now();
             try {
               const parsed = JSON.parse(body);
