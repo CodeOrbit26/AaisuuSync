@@ -207,22 +207,35 @@ function scheduleNextRunIfEnabled() {
   }
 }
 
-// Periodically simulate comment likes trickle
-setInterval(() => {
-  try {
-    if (fs.existsSync(AGENT_CONFIG_PATH)) {
-      const config = JSON.parse(fs.readFileSync(AGENT_CONFIG_PATH, 'utf8'));
-      if (config.totalCommentsSent > 0) {
-        if (Math.random() < 0.3) {
-          const newLikes = Math.floor(Math.random() * 2) + 1;
-          config.totalCommentLikes = (config.totalCommentLikes || 0) + newLikes;
-          igAgentState.totalCommentLikes = config.totalCommentLikes;
-          fs.writeFileSync(AGENT_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+let backgroundTasksStarted = false;
+export function startBackgroundTasks() {
+  if (backgroundTasksStarted) return;
+  backgroundTasksStarted = true;
+
+  // Periodically simulate comment likes trickle
+  setInterval(() => {
+    try {
+      if (fs.existsSync(AGENT_CONFIG_PATH)) {
+        const config = JSON.parse(fs.readFileSync(AGENT_CONFIG_PATH, 'utf8'));
+        if (config.totalCommentsSent > 0) {
+          if (Math.random() < 0.3) {
+            const newLikes = Math.floor(Math.random() * 2) + 1;
+            config.totalCommentLikes = (config.totalCommentLikes || 0) + newLikes;
+            igAgentState.totalCommentLikes = config.totalCommentLikes;
+            fs.writeFileSync(AGENT_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+          }
         }
       }
-    }
-  } catch (e) {}
-}, 45000);
+    } catch (e) {}
+  }, 45000);
+
+  // Start schedule checks on startup
+  setTimeout(() => {
+    console.log('[Instagram Agent] Initializing startup scheduler check...');
+    scheduleNextRunIfEnabled();
+  }, 2000);
+}
+
 
 // Force kill any stale background processes of "Chrome for Testing"
 function killStaleChromeProcesses() {
@@ -629,6 +642,7 @@ export function viteApiPlugin() {
   return {
     name: 'aaisu-mobile-api-server',
     configureServer(server) {
+      startBackgroundTasks();
       server.middlewares.use(async (req, res, next) => {
         // Enable CORS
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3380,8 +3394,4 @@ async function runAgentCommentingInternal(username, comments, maxReels, behavior
   }
 }
 
-// Start schedule checks on startup
-setTimeout(() => {
-  console.log('[Instagram Agent] Initializing startup scheduler check...');
-  scheduleNextRunIfEnabled();
-}, 2000);
+
