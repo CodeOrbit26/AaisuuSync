@@ -10,6 +10,14 @@ app.use(cors());
 // Serve static uploads
 app.use('/uploads', express.static('public/uploads'));
 
+// Friendly health check endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'AaisuuSync Backend API is running successfully on Render! 🚀'
+  });
+});
+
 // Run API middleware for all other requests
 app.use(apiMiddleware);
 
