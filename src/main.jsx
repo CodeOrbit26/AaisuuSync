@@ -9,7 +9,7 @@ import './index.css';
 const originalFetch = window.fetch;
 window.fetch = function (input, init) {
   if (typeof input === 'string' && input.startsWith('/api/')) {
-    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || '';
+    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || 'https://aaisuusync.onrender.com';
     input = `${base.replace(/\/$/, '')}${input}`;
   }
   return originalFetch(input, init);
@@ -19,7 +19,7 @@ window.fetch = function (input, init) {
 window.resolveUrl = (url) => {
   if (!url) return '';
   if (typeof url === 'string' && (url.startsWith('/uploads/') || url.startsWith('/api/'))) {
-    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || '';
+    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || 'https://aaisuusync.onrender.com';
     return `${base.replace(/\/$/, '')}${url}`;
   }
   return url;
