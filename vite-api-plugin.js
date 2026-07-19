@@ -18,6 +18,27 @@ try {
   }
 } catch (e) {}
 
+// Load local .env into process.env if available
+try {
+  const envPath = path.join(process.cwd(), '.env');
+  if (fs.existsSync(envPath)) {
+    const envLines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const line of envLines) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let val = (match[2] || '').trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (!process.env[key] && val) {
+          process.env[key] = val;
+        }
+      }
+    }
+  }
+} catch (e) {}
+
 const WORKFLOW_STATUS_PATH = path.join(process.cwd(), 'public', 'uploads', 'workflow_status.json');
 
 function updateWorkflowStatus(data) {
@@ -680,15 +701,12 @@ export async function apiMiddleware(req, res, next) {
               
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
-              const oldKeys = [
-                'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA',
-                'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg'
-              ];
+              const envKey = process.env.GEMINI_API_KEY || '';
               const API_KEYS = [
                 clientKey,
                 cachedKey,
-                "AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g"
-              ].filter(k => k && !oldKeys.includes(k));
+                envKey
+              ].filter(k => k && k !== 'your_gemini_api_key_here');
 
               let viralHashtags = '#aesthetic #lyrics #reels #explorepage #feelitreelit #trendingreels #hindisongs #lofi';
 
@@ -1466,15 +1484,12 @@ Return JSON format exactly like this:
 
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
-              const oldKeys = [
-                'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA',
-                'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg'
-              ];
+              const envKey = process.env.GEMINI_API_KEY || '';
               const API_KEYS = [
                 apiKey,
                 cachedKey,
-                "AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g"
-              ].filter(k => k && !oldKeys.includes(k));
+                envKey
+              ].filter(k => k && k !== 'your_gemini_api_key_here');
 
               if (API_KEYS.length === 0) {
                 updateWorkflowStatus({

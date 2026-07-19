@@ -25,16 +25,8 @@ export function AppProvider({ children }) {
 
   const [apiKeys, setApiKeys] = useState(() => {
     const saved = localStorage.getItem('aaisu_api_keys_v2');
-    const defaultKeys = { gemini: 'AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g', pexels: '', ytStudioKey: '', chatgpt: '', claude: '', flowai: '' };
+    const defaultKeys = { gemini: '', pexels: '', ytStudioKey: '', chatgpt: '', claude: '', flowai: '' };
     const loadedKeys = saved ? { ...defaultKeys, ...JSON.parse(saved) } : defaultKeys;
-    const oldKeys = [
-      'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA',
-      'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg'
-    ];
-    if (!loadedKeys.gemini || oldKeys.includes(loadedKeys.gemini)) {
-      loadedKeys.gemini = 'AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g';
-      localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(loadedKeys));
-    }
     return loadedKeys;
   });
 
