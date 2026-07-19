@@ -785,36 +785,19 @@ export async function apiMiddleware(req, res, next) {
                 }
               });
 
-              // Universal direct fetch helper - auto-detects OAuth vs AI Studio keys and retries with Bearer header if needed
-              const geminiDirectCall = async (apiKey, modelName, contents, generationConfig = {}, useBearer = false) => {
-                const isOAuth = useBearer || apiKey.startsWith('AQ.') || apiKey.startsWith('ya29.');
-                const url = isOAuth
-                  ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
-                  : `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-                
-                const headers = { 'Content-Type': 'application/json' };
-                if (isOAuth) {
-                  headers['Authorization'] = `Bearer ${apiKey}`;
-                } else {
-                  headers['x-goog-api-key'] = apiKey;
-                }
-
+              // Clean direct fetch helper - passes API key via URL parameter ?key=
+              const geminiDirectCall = async (apiKey, modelName, contents, generationConfig = {}) => {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
                 const body = { contents, generationConfig };
                 const resp = await fetch(url, {
                   method: 'POST',
-                  headers,
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(body)
                 });
-
                 if (!resp.ok) {
                   const errBody = await resp.text();
-                  if (!useBearer && (errBody.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || errBody.includes('Expected OAuth 2'))) {
-                    console.log('[Gemini Auth] Retrying API request with Bearer authorization header...');
-                    return geminiDirectCall(apiKey, modelName, contents, generationConfig, true);
-                  }
                   throw new Error(`[${resp.status}] ${errBody}`);
                 }
-
                 const data = await resp.json();
                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                   return { response: { text: () => data.candidates[0].content.parts.map(p => p.text).join('') } };
@@ -1625,36 +1608,19 @@ Return JSON format exactly like this:
                 return;
               }
 
-              // Direct fetch helper for screenshot analysis with universal auth fallback
-              const geminiDirectCallScreenshot = async (apiKey, modelName, contents, generationConfig = {}, useBearer = false) => {
-                const isOAuth = useBearer || apiKey.startsWith('AQ.') || apiKey.startsWith('ya29.');
-                const url = isOAuth
-                  ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
-                  : `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-                
-                const headers = { 'Content-Type': 'application/json' };
-                if (isOAuth) {
-                  headers['Authorization'] = `Bearer ${apiKey}`;
-                } else {
-                  headers['x-goog-api-key'] = apiKey;
-                }
-
+              // Direct fetch helper for screenshot analysis
+              const geminiDirectCallScreenshot = async (apiKey, modelName, contents, generationConfig = {}) => {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
                 const body = { contents, generationConfig };
                 const resp = await fetch(url, {
                   method: 'POST',
-                  headers,
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(body)
                 });
-
                 if (!resp.ok) {
                   const errBody = await resp.text();
-                  if (!useBearer && (errBody.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || errBody.includes('Expected OAuth 2'))) {
-                    console.log('[Gemini Screenshot Auth] Retrying API request with Bearer authorization header...');
-                    return geminiDirectCallScreenshot(apiKey, modelName, contents, generationConfig, true);
-                  }
                   throw new Error(`[${resp.status}] ${errBody}`);
                 }
-
                 const data = await resp.json();
                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                   return { response: { text: () => data.candidates[0].content.parts.map(p => p.text).join('') } };
