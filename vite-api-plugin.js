@@ -9,6 +9,12 @@ import ffmpegStatic from 'ffmpeg-static';
 import ytdl from '@distube/ytdl-core';
 import yts from 'yt-search';
 
+const renderCacheDir = '/opt/render/project/src/.cache/puppeteer';
+const localCacheDir = path.join(process.cwd(), '.cache', 'puppeteer');
+if (!process.env.PUPPETEER_CACHE_DIR) {
+  process.env.PUPPETEER_CACHE_DIR = fs.existsSync('/opt/render/project/src') ? renderCacheDir : localCacheDir;
+}
+
 try {
   if (dns && typeof dns.setDefaultResultOrder === 'function') {
     dns.setDefaultResultOrder('ipv4first');
@@ -1270,7 +1276,40 @@ Return JSON format exactly like this:
                       ]
                     });
 
-                    const browser = await puppeteer.launch({
+                    const getExecutablePath = () => {
+                      const possiblePaths = [
+                        '/usr/bin/google-chrome',
+                        '/usr/bin/chromium-browser',
+                        '/usr/bin/chromium',
+                        '/opt/render/.cache/puppeteer',
+                        '/opt/render/project/src/.cache/puppeteer',
+                        path.join(process.cwd(), '.cache', 'puppeteer')
+                      ];
+                      for (const baseDir of possiblePaths) {
+                        if (fs.existsSync(baseDir) && !baseDir.includes('puppeteer')) {
+                          return baseDir;
+                        }
+                        if (fs.existsSync(baseDir)) {
+                          const chromeDirs = ['chrome', 'chromium'];
+                          for (const cDir of chromeDirs) {
+                            const sub = path.join(baseDir, cDir);
+                            if (fs.existsSync(sub)) {
+                              try {
+                                const versions = fs.readdirSync(sub);
+                                for (const ver of versions) {
+                                  const binaryPath = path.join(sub, ver, 'chrome-linux64', 'chrome');
+                                  if (fs.existsSync(binaryPath)) return binaryPath;
+                                }
+                              } catch (e) {}
+                            }
+                          }
+                        }
+                      }
+                      return null;
+                    };
+
+                    const chromeExecPath = getExecutablePath();
+                    const launchOpts = {
                       headless: true,
                       args: [
                         '--no-sandbox',
@@ -1278,7 +1317,13 @@ Return JSON format exactly like this:
                         '--disable-dev-shm-usage',
                         '--disable-gpu'
                       ]
-                    });
+                    };
+                    if (chromeExecPath) {
+                      console.log('[Puppeteer] Found Chrome executable at:', chromeExecPath);
+                      launchOpts.executablePath = chromeExecPath;
+                    }
+
+                    const browser = await puppeteer.launch(launchOpts);
                     const page = await browser.newPage();
                     await page.setViewport({ width: 1080, height: 1920 });
 
