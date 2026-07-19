@@ -729,28 +729,45 @@ export async function apiMiddleware(req, res, next) {
                 }
               });
 
-              const { GoogleGenerativeAI } = await import('@google/generative-ai');
+              // Direct fetch helper - bypasses deprecated SDK that mishandles AQ. prefix keys
+              const geminiDirectCall = async (apiKey, modelName, contents, generationConfig = {}) => {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const body = { contents, generationConfig };
+                const resp = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(body)
+                });
+                if (!resp.ok) {
+                  const errBody = await resp.text();
+                  throw new Error(`[${resp.status}] ${errBody}`);
+                }
+                const data = await resp.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                  return { response: { text: () => data.candidates[0].content.parts.map(p => p.text).join('') } };
+                }
+                throw new Error('No candidates returned from Gemini API');
+              };
 
               // Helper to automatically retry on 503 errors and rotate keys on 429 errors
               const generateWithFallback = async (prompt, inlineData = null) => {
-                const config = { generationConfig: { responseMimeType: "application/json", temperature: 1.0 } };
+                const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 
                 let retries = 3;
                 let currentKeyIndex = 0;
                 let rateLimitRetries = 0;
 
+                const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
+
                 while (currentKeyIndex < API_KEYS.length) {
                   try {
-                    const genAI = new GoogleGenerativeAI(API_KEYS[currentKeyIndex]);
-                    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite", ...config });
-                    return await model.generateContent(inlineData ? [prompt, inlineData] : prompt);
+                    return await geminiDirectCall(API_KEYS[currentKeyIndex], "gemini-3.1-flash-lite", contents, generationConfig);
                   } catch (e) {
                     if (e.message.includes('429')) {
                       updateWorkflowStatus({
                         logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} hit 429 rate limit. Rotating...`, type: 'warn' }]
                       });
                       console.log(`[Gemini] Key ${currentKeyIndex + 1}/${API_KEYS.length} hit quota/rate limit: ${e.message}`);
-                      // Try to find "retry in X.Xs" or default to 10s if we're going to retry
                       const match = e.message.match(/retry in ([\d\.]+)s/);
                       const waitTimeMs = match ? parseFloat(match[1]) * 1000 + 1000 : 10000;
 
@@ -1469,7 +1486,25 @@ Return JSON format exactly like this:
                 return;
               }
 
-              const { GoogleGenerativeAI } = await import('@google/generative-ai');
+              // Direct fetch helper for screenshot analysis
+              const geminiDirectCallScreenshot = async (apiKey, modelName, contents, generationConfig = {}) => {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const body = { contents, generationConfig };
+                const resp = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(body)
+                });
+                if (!resp.ok) {
+                  const errBody = await resp.text();
+                  throw new Error(`[${resp.status}] ${errBody}`);
+                }
+                const data = await resp.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                  return { response: { text: () => data.candidates[0].content.parts.map(p => p.text).join('') } };
+                }
+                throw new Error('No candidates returned from Gemini API');
+              };
               
               let resultText = '';
               let success = false;
@@ -1480,17 +1515,12 @@ Return JSON format exactly like this:
               for (const key of API_KEYS) {
                 if (success) break;
                 
-                const genAI = new GoogleGenerativeAI(key);
                 for (const modelName of modelsToTry) {
                   try {
                     updateWorkflowStatus({
                       logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Attempting analysis with model: ${modelName}`, type: 'info' }]
                     });
                     console.log(`[Analyze Screenshot] Attempting analysis with model: ${modelName}`);
-                    const model = genAI.getGenerativeModel({ 
-                      model: modelName,
-                      generationConfig: { responseMimeType: "application/json", temperature: 0.2 } 
-                    });
 
                     const prompt = `Analyze this screenshot of a music app, social media player, or lyric sheet.
 Identify the song name and artist that is playing or displayed.
@@ -1501,17 +1531,14 @@ Return the result in strict JSON format:
   "lyrics": "Extracted lyrics text here (or empty string if none are found)"
 }`;
 
-                    const content = [
-                      prompt,
-                      {
-                        inlineData: {
-                          data: base64Data,
-                          mimeType: mimeType
-                        }
-                      }
-                    ];
+                    const contents = [{
+                      parts: [
+                        { text: prompt },
+                        { inlineData: { data: base64Data, mimeType: mimeType } }
+                      ]
+                    }];
 
-                    const response = await model.generateContent(content);
+                    const response = await geminiDirectCallScreenshot(key, modelName, contents, { responseMimeType: "application/json", temperature: 0.2 });
                     resultText = response.response.text();
                     success = true;
                     console.log(`[Analyze Screenshot] Success using model ${modelName}`);
