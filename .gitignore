@@ -25,3 +25,8 @@ dist-ssr
 *.sw?
 chrome-profile*
 .cache
+
+# Prevent API key leaks
+test_*.js
+test-server.js
+mobile_sync_store.json
