@@ -1077,7 +1077,7 @@ Please identify the exact start time (in seconds) in the song where these specif
               const fallbackCmds = [
                 searchCmd,
                 `python3 -m yt_dlp "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`,
-                `npx yt-dlp-exec "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`
+                `npx -y yt-dlp-exec "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`
               ];
 
               const runDownloadWithFallback = (cmds, index = 0) => {
