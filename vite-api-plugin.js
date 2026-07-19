@@ -737,15 +737,11 @@ export async function apiMiddleware(req, res, next) {
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
               const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
-              const isInvalidKey = (k) => !k || k === 'your_gemini_api_key_here' || k.startsWith('AQ.') || k.startsWith('ya29.');
-              const rawKeys = [envKey, clientKey, cachedKey].filter(Boolean);
-              const hasOAuthToken = rawKeys.some(k => k.startsWith('AQ.') || k.startsWith('ya29.'));
-              const API_KEYS = rawKeys.filter(k => !isInvalidKey(k));
+              const isInvalidKey = (k) => !k || k === 'your_gemini_api_key_here';
+              const API_KEYS = [envKey, clientKey, cachedKey].filter(k => !isInvalidKey(k));
 
               if (API_KEYS.length === 0) {
-                const errMsg = hasOAuthToken
-                  ? "Invalid key type: An OAuth access token (starting with 'AQ.') was provided. Google Generative Language API requires an AI Studio API Key starting with 'AIzaSy'. Please generate a free key at https://aistudio.google.com/app/apikey and set GEMINI_API_KEY in Render settings."
-                  : "No valid Gemini API Key configured in Render Environment Variables or Client Settings. Please set GEMINI_API_KEY in Render settings.";
+                const errMsg = "No valid Gemini API Key configured in Render Environment Variables or Client Settings. Please set GEMINI_API_KEY in Render settings.";
                 updateWorkflowStatus({
                   status: 'failed',
                   logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[ERROR] ${errMsg}`, type: 'error' }]
