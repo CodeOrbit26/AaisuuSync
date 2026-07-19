@@ -680,12 +680,15 @@ export async function apiMiddleware(req, res, next) {
               
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
-              const oldKey = 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA';
+              const oldKeys = [
+                'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA',
+                'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg'
+              ];
               const API_KEYS = [
                 clientKey,
                 cachedKey,
-                "AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg"
-              ].filter(k => k && k !== oldKey);
+                "AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g"
+              ].filter(k => k && !oldKeys.includes(k));
 
               let viralHashtags = '#aesthetic #lyrics #reels #explorepage #feelitreelit #trendingreels #hindisongs #lofi';
 
@@ -1446,12 +1449,15 @@ Return JSON format exactly like this:
 
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
-              const oldKey = 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA';
+              const oldKeys = [
+                'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA',
+                'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg'
+              ];
               const API_KEYS = [
                 apiKey,
                 cachedKey,
-                "AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg"
-              ].filter(k => k && k !== oldKey);
+                "AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g"
+              ].filter(k => k && !oldKeys.includes(k));
 
               if (API_KEYS.length === 0) {
                 updateWorkflowStatus({

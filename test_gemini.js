@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const apiKey = 'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg'; // The default API key in AppContext.jsx
+const apiKey = 'AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g'; // The default API key in AppContext.jsx
 const genAI = new GoogleGenerativeAI(apiKey);
 
 async function run() {
