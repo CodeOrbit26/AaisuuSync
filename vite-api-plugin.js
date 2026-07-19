@@ -1327,8 +1327,15 @@ Return JSON format exactly like this:
                       }
                     });
 
-                    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-                    await page.evaluateHandle('document.fonts.ready');
+                    await page.setContent(htmlContent, { waitUntil: 'domcontentloaded', timeout: 60000 });
+                    try {
+                      await Promise.race([
+                        page.evaluateHandle('document.fonts.ready'),
+                        new Promise(resolve => setTimeout(resolve, 3000))
+                      ]);
+                    } catch (e) {
+                      console.warn('[Puppeteer] Font load wait warning:', e.message);
+                    }
 
                     const fps = 10;
                     const duration = 15;
