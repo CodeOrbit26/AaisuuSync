@@ -684,6 +684,36 @@ export async function apiMiddleware(req, res, next) {
         const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
         const pathname = parsedUrl.pathname;
 
+        if (pathname === '/api/debug-key' && req.method === 'GET') {
+          const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+          res.setHeader('Content-Type', 'application/json');
+          if (!envKey) {
+            res.statusCode = 200;
+            res.end(JSON.stringify({ status: 'missing', message: 'process.env.GEMINI_API_KEY is NOT set or empty on Render.' }));
+            return;
+          }
+          try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${envKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: "hi" }] }] })
+            });
+            const bodyText = await resp.text();
+            res.statusCode = 200;
+            res.end(JSON.stringify({
+              status: resp.ok ? 'valid' : 'invalid',
+              httpCode: resp.status,
+              keyPrefix: envKey.substring(0, 8) + '...' + envKey.slice(-4),
+              keyLength: envKey.length,
+              googleResponse: resp.ok ? 'SUCCESS' : bodyText
+            }));
+          } catch (err) {
+            res.statusCode = 500;
+            res.end(JSON.stringify({ status: 'error', error: err.message }));
+          }
+          return;
+        }
+
         if (pathname === '/api/generate-viral-reel' && req.method === 'POST') {
           let body = '';
           req.on('data', chunk => { body += chunk; });
