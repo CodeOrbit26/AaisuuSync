@@ -5,6 +5,7 @@ import { exec } from 'child_process';
 import puppeteer from 'puppeteer';
 import dns from 'dns';
 import { setDefaultAutoSelectFamily } from 'net';
+import ffmpegStatic from 'ffmpeg-static';
 
 try {
   if (dns && typeof dns.setDefaultResultOrder === 'function') {
@@ -1067,7 +1068,9 @@ Please identify the exact start time (in seconds) in the song where these specif
               ];
               const ytDlpPath = possiblePaths.find(p => fs.existsSync(p)) || 'yt-dlp';
               
-              const flags = `-x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
+              const ffmpegOpt = ffmpegStatic ? `--ffmpeg-location "${ffmpegStatic}"` : '';
+              const ffmpegBin = ffmpegStatic || 'ffmpeg';
+              const flags = `-x --audio-format mp3 ${ffmpegOpt} --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
               const query = `"ytsearch1:${selectedSong.youtubeSearchQuery} short"`;
               const searchCmd = `${ytDlpPath} ${query} ${flags}`;
               
@@ -1114,7 +1117,7 @@ Please identify the exact start time (in seconds) in the song where these specif
                   
                   // Trimming the audio to the hook time using ffmpeg
                 const trimmedPath = path.join(UPLOADS_DIR, `viral_reel_trimmed_${uniqueId}.mp3`);
-                const trimCmd = `ffmpeg -y -i "${outputPath}" -ss ${selectedSong.viralHookStartTime} -t 15 -c copy "${trimmedPath}"`;
+                const trimCmd = `"${ffmpegBin}" -y -i "${outputPath}" -ss ${selectedSong.viralHookStartTime} -t 15 -c copy "${trimmedPath}"`;
                 
                 updateWorkflowStatus({
                   logs: [
@@ -1127,7 +1130,7 @@ Please identify the exact start time (in seconds) in the song where these specif
                   }
                 });
 
-                exec(trimCmd, async (trimErr) => {
+                exec(trimCmd, async (trimErr, trimStdout, trimStderr) => {
                   if (trimErr) {
                     updateWorkflowStatus({
                       status: 'failed',
@@ -1141,7 +1144,7 @@ Please identify the exact start time (in seconds) in the song where these specif
                   // Fallback: If trimmed file is essentially empty (e.g., < 5000 bytes), the hook time was out of bounds.
                   // Re-trim from the beginning.
                   if (fs.existsSync(trimmedPath) && fs.statSync(trimmedPath).size < 5000) {
-                    const fallbackTrimCmd = `ffmpeg -y -i "${outputPath}" -ss 0 -t 15 -c copy "${trimmedPath}"`;
+                    const fallbackTrimCmd = `"${ffmpegBin}" -y -i "${outputPath}" -ss 0 -t 15 -c copy "${trimmedPath}"`;
                     updateWorkflowStatus({
                       logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM-WARNING] Trimmed file too small. Hook out-of-bounds? Re-trimming from 0s.`, type: 'warn' }]
                     });
