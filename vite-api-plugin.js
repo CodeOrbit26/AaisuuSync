@@ -739,12 +739,8 @@ export async function apiMiddleware(req, res, next) {
                   resolution: '1080x1920',
                   fps: 10,
                   bitrate: 'Adaptive',
-                  format: 'mp4',
-                  renderingProgress: 0,
-                  renderingTotal: 150,
-                  videoUrl: '',
-                  audioUrl: ''
-                }
+                  { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Processing request with ${API_KEYS.length} available API keys...`, type: 'info' }
+                ]
               });
 
               // Direct fetch helper - bypasses deprecated SDK that mishandles AQ. prefix keys
@@ -767,7 +763,7 @@ export async function apiMiddleware(req, res, next) {
                 throw new Error('No candidates returned from Gemini API');
               };
 
-              // Helper to automatically retry on 503 errors and rotate keys on 429 errors
+              // Helper to automatically retry on 503 errors and rotate keys on 429/401/403 errors
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 
@@ -781,7 +777,14 @@ export async function apiMiddleware(req, res, next) {
                   try {
                     return await geminiDirectCall(API_KEYS[currentKeyIndex], "gemini-3.1-flash-lite", contents, generationConfig);
                   } catch (e) {
-                    if (e.message.includes('429')) {
+                    if (e.message.includes('401') || e.message.includes('403') || e.message.includes('UNAUTHENTICATED') || e.message.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED')) {
+                      updateWorkflowStatus({
+                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} invalid/unauthorized. Rotating to next key...`, type: 'warn' }]
+                      });
+                      console.log(`[Gemini] Key index ${currentKeyIndex} unauthorized: ${e.message}. Rotating...`);
+                      currentKeyIndex++;
+                      if (currentKeyIndex >= API_KEYS.length) throw e;
+                    } else if (e.message.includes('429')) {
                       updateWorkflowStatus({
                         logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} hit 429 rate limit. Rotating...`, type: 'warn' }]
                       });
@@ -1486,9 +1489,9 @@ Return JSON format exactly like this:
               const cachedKey = store.lastGeminiKey;
               const envKey = process.env.GEMINI_API_KEY || '';
               const API_KEYS = [
+                envKey,
                 apiKey,
-                cachedKey,
-                envKey
+                cachedKey
               ].filter(k => k && k !== 'your_gemini_api_key_here');
 
               if (API_KEYS.length === 0) {
