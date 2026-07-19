@@ -6,6 +6,8 @@ import puppeteer from 'puppeteer';
 import dns from 'dns';
 import { setDefaultAutoSelectFamily } from 'net';
 import ffmpegStatic from 'ffmpeg-static';
+import ytdl from '@distube/ytdl-core';
+import yts from 'yt-search';
 
 try {
   if (dns && typeof dns.setDefaultResultOrder === 'function') {
@@ -1076,52 +1078,20 @@ Please identify the exact start time (in seconds) in the song where these specif
               
               updateWorkflowStatus({
                 logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[SHELL] Executing yt-dlp to locate and download audio (bin: ${ytDlpPath}).`, type: 'info' },
-                  { timestamp: new Date().toLocaleTimeString(), message: `[CMD] ${searchCmd}`, type: 'info' }
+                  { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO] Downloading audio stream natively via Node.js for "${selectedSong.youtubeSearchQuery}"...`, type: 'info' }
                 ],
                 executionData: {
                   youtubeCmd: searchCmd
                 }
               });
 
-              const fallbackCmds = [
-                searchCmd,
-                `export PATH=$PATH:$HOME/.local/bin:/opt/render/.local/bin && yt-dlp ${query} ${flags}`,
-                `python3 -m pip install --user yt-dlp && python3 -m yt_dlp ${query} ${flags}`,
-                `npx -y --package=yt-dlp-exec yt-dlp ${query} ${flags}`
-              ];
-
-              const runDownloadWithFallback = (cmds, index = 0) => {
-                const cmd = cmds[index];
-                exec(cmd, (err, stdout, stderr) => {
-                  if (err) {
-                    console.warn(`[yt-dlp] Command failed (${cmd}):`, err.message);
-                    if (index + 1 < cmds.length) {
-                      updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[SHELL-RETRY] Primary yt-dlp failed, trying fallback runner...`, type: 'warn' }]
-                      });
-                      runDownloadWithFallback(cmds, index + 1);
-                    } else {
-                      updateWorkflowStatus({
-                        status: 'failed',
-                        logs: [
-                          { timestamp: new Date().toLocaleTimeString(), message: `[ERROR] yt-dlp download failed: ${err.message}`, type: 'error' },
-                          { timestamp: new Date().toLocaleTimeString(), message: `[STDERR] ${stderr || err.message}`, type: 'error' }
-                        ]
-                      });
-                      res.statusCode = 500;
-                      res.end(JSON.stringify({ error: 'Failed to download audio', details: stderr || err.message }));
-                    }
-                    return;
-                  }
-                  
-                  // Trimming the audio to the hook time using ffmpeg
+              const proceedToTrim = () => {
                 const trimmedPath = path.join(UPLOADS_DIR, `viral_reel_trimmed_${uniqueId}.mp3`);
                 const trimCmd = `"${ffmpegBin}" -y -i "${outputPath}" -ss ${selectedSong.viralHookStartTime} -t 15 -c copy "${trimmedPath}"`;
                 
                 updateWorkflowStatus({
                   logs: [
-                    { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] yt-dlp finished download successfully.`, type: 'success' },
+                    { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Audio stream downloaded successfully.`, type: 'success' },
                     { timestamp: new Date().toLocaleTimeString(), message: `[SHELL] Executing ffmpeg to trim 15s clip starting at ${selectedSong.viralHookStartTime}s.`, type: 'info' },
                     { timestamp: new Date().toLocaleTimeString(), message: `[CMD] ${trimCmd}`, type: 'info' }
                   ],
@@ -1510,10 +1480,70 @@ Return JSON format exactly like this:
                     res.end(JSON.stringify({ error: 'Audio transcription failed: ' + audioErr.message }));
                   }
                 });
+              };
+
+            const fallbackCmds = [
+              searchCmd,
+              `export PATH=$PATH:$HOME/.local/bin:/opt/render/.local/bin && yt-dlp ${query} ${flags}`,
+              `python3 -m pip install --user yt-dlp && python3 -m yt_dlp ${query} ${flags}`,
+              `npx -y --package=yt-dlp-exec yt-dlp ${query} ${flags}`
+            ];
+
+            const runDownloadWithFallback = (cmds, index = 0) => {
+              const cmd = cmds[index];
+              exec(cmd, (err, stdout, stderr) => {
+                if (err) {
+                  console.warn(`[yt-dlp] Command failed (${cmd}):`, err.message);
+                  if (index + 1 < cmds.length) {
+                    updateWorkflowStatus({
+                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[SHELL-RETRY] Primary yt-dlp failed, trying fallback runner...`, type: 'warn' }]
+                    });
+                    runDownloadWithFallback(cmds, index + 1);
+                  } else {
+                    updateWorkflowStatus({
+                      status: 'failed',
+                      logs: [
+                        { timestamp: new Date().toLocaleTimeString(), message: `[ERROR] Audio download failed: ${err.message}`, type: 'error' },
+                        { timestamp: new Date().toLocaleTimeString(), message: `[STDERR] ${stderr || err.message}`, type: 'error' }
+                      ]
+                    });
+                    res.statusCode = 500;
+                    res.end(JSON.stringify({ error: 'Failed to download audio', details: stderr || err.message }));
+                  }
+                  return;
+                }
+                proceedToTrim();
               });
             };
-            
-            runDownloadWithFallback(fallbackCmds, 0);
+
+            // Primary Download Engine: Native Node.js yts + ytdl-core
+            try {
+              console.log(`[Native Audio] Searching YouTube for: "${selectedSong.youtubeSearchQuery} short"...`);
+              const searchRes = await yts(`${selectedSong.youtubeSearchQuery} short`);
+              const video = (searchRes.videos && searchRes.videos[0]) || null;
+              if (!video) throw new Error(`No YouTube video found for: ${selectedSong.youtubeSearchQuery}`);
+              
+              console.log(`[Native Audio] Downloading "${video.title}" (${video.url})...`);
+              const stream = ytdl(video.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 });
+              const writeStream = fs.createWriteStream(outputPath);
+              stream.pipe(writeStream);
+              
+              writeStream.on('finish', () => {
+                console.log('[Native Audio] Download completed natively!');
+                proceedToTrim();
+              });
+              writeStream.on('error', (streamErr) => {
+                console.warn('[Native Audio] Write stream error, falling back to CLI:', streamErr.message);
+                runDownloadWithFallback(fallbackCmds, 0);
+              });
+              stream.on('error', (streamErr) => {
+                console.warn('[Native Audio] YTDL stream error, falling back to CLI:', streamErr.message);
+                runDownloadWithFallback(fallbackCmds, 0);
+              });
+            } catch (nativeErr) {
+              console.warn('[Native Audio] Search/init failed, falling back to CLI:', nativeErr.message);
+              runDownloadWithFallback(fallbackCmds, 0);
+            }
             } catch (e) {
               updateWorkflowStatus({
                 status: 'failed',
