@@ -1272,7 +1272,7 @@ Return JSON format exactly like this:
                       ]
                     });
 
-                    const browser = await puppeteer.launch({
+                    const launchOptions = {
                       headless: true,
                       args: [
                         '--no-sandbox',
@@ -1280,7 +1280,11 @@ Return JSON format exactly like this:
                         '--disable-dev-shm-usage',
                         '--disable-gpu'
                       ]
-                    });
+                    };
+                    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+                      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+                    }
+                    const browser = await puppeteer.launch(launchOptions);
                     const page = await browser.newPage();
                     await page.setViewport({ width: 1080, height: 1920 });
 

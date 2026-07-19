@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "postinstall": "npx puppeteer browsers install chrome || true",
-    "build": "pip3 install yt-dlp || pip install yt-dlp || true; vite build",
+    "postinstall": "PUPPETEER_CACHE_DIR=$PWD/.cache/puppeteer npx puppeteer browsers install chrome || true",
+    "build": "PUPPETEER_CACHE_DIR=$PWD/.cache/puppeteer npx puppeteer browsers install chrome && echo '=== Chrome installed ===' && ls -R $PWD/.cache/puppeteer/ 2>/dev/null | head -30; pip3 install yt-dlp || pip install yt-dlp || true; vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.js"
