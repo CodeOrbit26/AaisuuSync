@@ -1070,6 +1070,9 @@ Please identify the exact start time (in seconds) in the song where these specif
               ];
               const ytDlpPath = possiblePaths.find(p => fs.existsSync(p)) || 'yt-dlp';
               
+              if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
+                try { fs.chmodSync(ffmpegStatic, 0o755); } catch (e) {}
+              }
               const ffmpegOpt = ffmpegStatic ? `--ffmpeg-location "${ffmpegStatic}"` : '';
               const ffmpegBin = ffmpegStatic || 'ffmpeg';
               const flags = `-x --audio-format mp3 ${ffmpegOpt} --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
