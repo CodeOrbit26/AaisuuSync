@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "export PUPPETEER_CACHE_DIR=/opt/render/project/src/.cache/puppeteer; pip3 install yt-dlp || pip install yt-dlp || true; npx puppeteer browsers install chrome && vite build",
+    "postinstall": "npx puppeteer browsers install chrome || true",
+    "build": "pip3 install yt-dlp || pip install yt-dlp || true; vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.js"
