@@ -771,8 +771,12 @@ export async function apiMiddleware(req, res, next) {
                   resolution: '1080x1920',
                   fps: 10,
                   bitrate: 'Adaptive',
-                  { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Processing request with ${API_KEYS.length} available API keys...`, type: 'info' }
-                ]
+                  format: 'mp4',
+                  renderingProgress: 0,
+                  renderingTotal: 150,
+                  videoUrl: '',
+                  audioUrl: ''
+                }
               });
 
               // Direct fetch helper - bypasses deprecated SDK that mishandles AQ. prefix keys
