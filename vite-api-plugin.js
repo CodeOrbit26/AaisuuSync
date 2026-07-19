@@ -822,53 +822,26 @@ export async function apiMiddleware(req, res, next) {
                 throw new Error('No candidates returned from Gemini API');
               };
 
-              // Helper to automatically retry on 503 errors and rotate keys on 429/401/403 errors
+              // Helper to automatically retry across models (gemini-2.0-flash, gemini-1.5-flash) and API keys
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
-                
-                let retries = 3;
-                let currentKeyIndex = 0;
-                let rateLimitRetries = 0;
-
                 const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
+                const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"];
+                let lastErr = null;
 
-                while (currentKeyIndex < API_KEYS.length) {
-                  try {
-                    return await geminiDirectCall(API_KEYS[currentKeyIndex], "gemini-3.1-flash-lite", contents, generationConfig);
-                  } catch (e) {
-                    if (e.message.includes('401') || e.message.includes('403') || e.message.includes('UNAUTHENTICATED') || e.message.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || e.message.includes('API_KEY_SERVICE_BLOCKED')) {
-                      updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} invalid/blocked. Rotating to next key...`, type: 'warn' }]
-                      });
-                      console.log(`[Gemini] Key index ${currentKeyIndex} unauthorized: ${e.message}. Rotating...`);
+                for (const modelName of modelsToTry) {
+                  let currentKeyIndex = 0;
+                  while (currentKeyIndex < API_KEYS.length) {
+                    try {
+                      return await geminiDirectCall(API_KEYS[currentKeyIndex], modelName, contents, generationConfig);
+                    } catch (e) {
+                      lastErr = e;
+                      console.warn(`[Gemini] Key #${currentKeyIndex + 1} with model ${modelName} failed: ${e.message}`);
                       currentKeyIndex++;
-                      if (currentKeyIndex >= API_KEYS.length) throw e;
-                    } else if (e.message.includes('429')) {
-                      updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} hit 429 rate limit. Rotating...`, type: 'warn' }]
-                      });
-                      console.log(`[Gemini] Key ${currentKeyIndex + 1}/${API_KEYS.length} hit quota/rate limit: ${e.message}`);
-                      const match = e.message.match(/retry in ([\d\.]+)s/);
-                      const waitTimeMs = match ? parseFloat(match[1]) * 1000 + 1000 : 10000;
-
-                      if (currentKeyIndex === API_KEYS.length - 1 && rateLimitRetries < 3) {
-                        rateLimitRetries++;
-                        console.log(`[Gemini] Waiting ${waitTimeMs}ms before retrying (Attempt ${rateLimitRetries}/3)...`);
-                        await new Promise(resolve => setTimeout(resolve, waitTimeMs));
-                      } else {
-                        currentKeyIndex++;
-                        if (currentKeyIndex >= API_KEYS.length) throw new Error("All provided API keys exhausted their quotas.");
-                      }
-                    } else if (e.message.includes('503') || e.message.includes('unavailable')) {
-                      retries--;
-                      if (retries === 0) throw e;
-                      console.log('[Gemini] Model busy, retrying in 3 seconds...');
-                      await new Promise(resolve => setTimeout(resolve, 3000));
-                    } else {
-                      throw e;
                     }
                   }
                 }
+                throw lastErr || new Error("All Gemini API keys and models exhausted. Please verify your GEMINI_API_KEY in Render settings.");
               };
 
               let vibeText = 'Random Selection';
