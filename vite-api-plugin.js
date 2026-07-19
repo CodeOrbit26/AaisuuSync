@@ -701,12 +701,14 @@ export async function apiMiddleware(req, res, next) {
               
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
-              const envKey = process.env.GEMINI_API_KEY || '';
+              const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
               const API_KEYS = [
+                envKey,
                 clientKey,
-                cachedKey,
-                envKey
+                cachedKey
               ].filter(k => k && k !== 'your_gemini_api_key_here');
+
+              const keyInfo = API_KEYS.map((k, idx) => `Key #${idx+1} (${k === envKey ? 'RENDER_ENV' : 'CLIENT'}): ${k.substring(0, 8)}...${k.slice(-4)}`).join(', ');
 
               let viralHashtags = '#aesthetic #lyrics #reels #explorepage #feelitreelit #trendingreels #hindisongs #lofi';
 
@@ -716,7 +718,7 @@ export async function apiMiddleware(req, res, next) {
                 stage: 'input_processing',
                 clearLogs: !screenshotLyrics,
                 logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: '[SYSTEM] POST /api/generate-viral-reel request received.', type: 'info' },
+                  { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] POST /api/generate-viral-reel request received using keys: ${keyInfo || 'NONE'}`, type: 'info' },
                   screenshotLyrics ? { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Using lyrics extracted from screenshot: "${screenshotLyrics.substring(0, 60)}..."`, type: 'success' } : null,
                   { timestamp: new Date().toLocaleTimeString(), message: `[INPUT] Specific song override: ${promptSource || 'None (Random song selection)'}`, type: 'info' }
                 ].filter(Boolean),
