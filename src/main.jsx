@@ -5,11 +5,19 @@ import App from './App.jsx';
 import { AppProvider } from './context/AppContext.jsx';
 import './index.css';
 
+if (import.meta.env.DEV) {
+  const savedUrl = localStorage.getItem('aaisu_backend_url');
+  if (savedUrl && savedUrl.includes('onrender.com')) {
+    localStorage.removeItem('aaisu_backend_url');
+  }
+}
+
 // Intercept fetch calls to rewrite /api/ endpoints to dynamic backend base URL if configured
 const originalFetch = window.fetch;
 window.fetch = function (input, init) {
   if (typeof input === 'string' && input.startsWith('/api/')) {
-    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || 'https://aaisuusync.onrender.com';
+    const defaultBase = import.meta.env.DEV ? '' : 'https://aaisuusync.onrender.com';
+    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || defaultBase;
     input = `${base.replace(/\/$/, '')}${input}`;
   }
   return originalFetch(input, init);
@@ -19,7 +27,8 @@ window.fetch = function (input, init) {
 window.resolveUrl = (url) => {
   if (!url) return '';
   if (typeof url === 'string' && (url.startsWith('/uploads/') || url.startsWith('/api/'))) {
-    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || 'https://aaisuusync.onrender.com';
+    const defaultBase = import.meta.env.DEV ? '' : 'https://aaisuusync.onrender.com';
+    const base = localStorage.getItem('aaisu_backend_url') || import.meta.env.VITE_API_URL || defaultBase;
     return `${base.replace(/\/$/, '')}${url}`;
   }
   return url;

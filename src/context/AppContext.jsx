@@ -23,12 +23,15 @@ export function AppProvider({ children }) {
     ],
   });
 
-  // Persistent API Keys
   const [apiKeys, setApiKeys] = useState(() => {
     const saved = localStorage.getItem('aaisu_api_keys_v2');
-    const defaultKeys = { gemini: 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA', pexels: '', ytStudioKey: '', chatgpt: '', claude: '', flowai: '' };
+    const defaultKeys = { gemini: 'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg', pexels: '', ytStudioKey: '', chatgpt: '', claude: '', flowai: '' };
     const loadedKeys = saved ? { ...defaultKeys, ...JSON.parse(saved) } : defaultKeys;
-    if (!loadedKeys.gemini) loadedKeys.gemini = 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA';
+    const oldKey = 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA';
+    if (!loadedKeys.gemini || loadedKeys.gemini === oldKey) {
+      loadedKeys.gemini = 'AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg';
+      localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(loadedKeys));
+    }
     return loadedKeys;
   });
 

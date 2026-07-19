@@ -680,12 +680,12 @@ export async function apiMiddleware(req, res, next) {
               
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
-              
+              const oldKey = 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA';
               const API_KEYS = [
                 clientKey,
                 cachedKey,
-                "AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA"
-              ].filter(Boolean);
+                "AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg"
+              ].filter(k => k && k !== oldKey);
 
               let viralHashtags = '#aesthetic #lyrics #reels #explorepage #feelitreelit #trendingreels #hindisongs #lofi';
 
@@ -978,7 +978,10 @@ Please identify the exact start time (in seconds) in the song where these specif
               const uniqueId = Date.now();
               const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
               const outputPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp3`);
-              const searchCmd = `/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`;
+              const ytDlpPath = fs.existsSync('/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp')
+                ? '/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp'
+                : 'yt-dlp';
+              const searchCmd = `${ytDlpPath} "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`;
               
               updateWorkflowStatus({
                 logs: [
@@ -1443,11 +1446,12 @@ Return JSON format exactly like this:
 
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
+              const oldKey = 'AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA';
               const API_KEYS = [
                 apiKey,
                 cachedKey,
-                "AQ.Ab8RN6KPEdywRNCWjpYmscPUWyDSI2V7wG5o8eNzs4hucBqgzA"
-              ].filter(Boolean);
+                "AQ.Ab8RN6LVG1UBt0ARe0Iyvm0lwzkj4jFqIc2a8FuVDNZGkEJxOg"
+              ].filter(k => k && k !== oldKey);
 
               if (API_KEYS.length === 0) {
                 updateWorkflowStatus({
