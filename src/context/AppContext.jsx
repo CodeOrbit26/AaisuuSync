@@ -27,6 +27,10 @@ export function AppProvider({ children }) {
     const saved = localStorage.getItem('aaisu_api_keys_v2');
     const defaultKeys = { gemini: '', pexels: '', ytStudioKey: '', chatgpt: '', claude: '', flowai: '' };
     const loadedKeys = saved ? { ...defaultKeys, ...JSON.parse(saved) } : defaultKeys;
+    if (loadedKeys.gemini && (loadedKeys.gemini.includes('AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g') || loadedKeys.gemini === 'your_gemini_api_key_here')) {
+      loadedKeys.gemini = '';
+      try { localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(loadedKeys)); } catch (e) {}
+    }
     return loadedKeys;
   });
 

@@ -737,11 +737,12 @@ export async function apiMiddleware(req, res, next) {
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
               const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+              const isRevokedKey = (k) => !k || k === 'your_gemini_api_key_here' || k.includes('AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g');
               const API_KEYS = [
                 envKey,
                 clientKey,
                 cachedKey
-              ].filter(k => k && k !== 'your_gemini_api_key_here');
+              ].filter(k => !isRevokedKey(k));
 
               const keyInfo = API_KEYS.map((k, idx) => `Key #${idx+1} (${k === envKey ? 'RENDER_ENV' : 'CLIENT'}): ${k.substring(0, 8)}...${k.slice(-4)}`).join(', ');
 
@@ -835,9 +836,9 @@ export async function apiMiddleware(req, res, next) {
                   try {
                     return await geminiDirectCall(API_KEYS[currentKeyIndex], "gemini-3.1-flash-lite", contents, generationConfig);
                   } catch (e) {
-                    if (e.message.includes('401') || e.message.includes('403') || e.message.includes('UNAUTHENTICATED') || e.message.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED')) {
+                    if (e.message.includes('401') || e.message.includes('403') || e.message.includes('UNAUTHENTICATED') || e.message.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || e.message.includes('API_KEY_SERVICE_BLOCKED')) {
                       updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} invalid/unauthorized. Rotating to next key...`, type: 'warn' }]
+                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Key index ${currentKeyIndex} invalid/blocked. Rotating to next key...`, type: 'warn' }]
                       });
                       console.log(`[Gemini] Key index ${currentKeyIndex} unauthorized: ${e.message}. Rotating...`);
                       currentKeyIndex++;
@@ -1634,11 +1635,12 @@ Return JSON format exactly like this:
               const store = readStore();
               const cachedKey = store.lastGeminiKey;
               const envKey = process.env.GEMINI_API_KEY || '';
+              const isRevokedKey = (k) => !k || k === 'your_gemini_api_key_here' || k.includes('AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g');
               const API_KEYS = [
                 envKey,
                 apiKey,
                 cachedKey
-              ].filter(k => k && k !== 'your_gemini_api_key_here');
+              ].filter(k => !isRevokedKey(k));
 
               if (API_KEYS.length === 0) {
                 updateWorkflowStatus({
