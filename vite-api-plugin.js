@@ -1054,11 +1054,15 @@ Please identify the exact start time (in seconds) in the song where these specif
               // 2. yt-dlp to download and trim
               const uniqueId = Date.now();
               const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+              if (!fs.existsSync(UPLOADS_DIR)) {
+                fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+              }
               const outputPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp3`);
               const ytDlpPath = fs.existsSync('/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp')
                 ? '/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp'
-                : 'yt-dlp';
-              const searchCmd = `${ytDlpPath} "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`;
+                : (fs.existsSync('/usr/local/bin/yt-dlp') ? '/usr/local/bin/yt-dlp' : 'yt-dlp');
+              
+              const searchCmd = `${ytDlpPath} "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
               
               updateWorkflowStatus({
                 logs: [
@@ -1070,21 +1074,37 @@ Please identify the exact start time (in seconds) in the song where these specif
                 }
               });
 
-              exec(searchCmd, (err, stdout, stderr) => {
-                if (err) {
-                  updateWorkflowStatus({
-                    status: 'failed',
-                    logs: [
-                      { timestamp: new Date().toLocaleTimeString(), message: `[ERROR] yt-dlp download failed: ${err.message}`, type: 'error' },
-                      { timestamp: new Date().toLocaleTimeString(), message: `[STDERR] ${stderr}`, type: 'error' }
-                    ]
-                  });
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ error: 'Failed to download audio', details: stderr }));
-                  return;
-                }
-                
-                // Trimming the audio to the hook time using ffmpeg
+              const fallbackCmds = [
+                searchCmd,
+                `python3 -m yt_dlp "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`,
+                `npx yt-dlp-exec "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`
+              ];
+
+              const runDownloadWithFallback = (cmds, index = 0) => {
+                const cmd = cmds[index];
+                exec(cmd, (err, stdout, stderr) => {
+                  if (err) {
+                    console.warn(`[yt-dlp] Command failed (${cmd}):`, err.message);
+                    if (index + 1 < cmds.length) {
+                      updateWorkflowStatus({
+                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[SHELL-RETRY] Primary yt-dlp failed, trying fallback runner...`, type: 'warn' }]
+                      });
+                      runDownloadWithFallback(cmds, index + 1);
+                    } else {
+                      updateWorkflowStatus({
+                        status: 'failed',
+                        logs: [
+                          { timestamp: new Date().toLocaleTimeString(), message: `[ERROR] yt-dlp download failed: ${err.message}`, type: 'error' },
+                          { timestamp: new Date().toLocaleTimeString(), message: `[STDERR] ${stderr || err.message}`, type: 'error' }
+                        ]
+                      });
+                      res.statusCode = 500;
+                      res.end(JSON.stringify({ error: 'Failed to download audio', details: stderr || err.message }));
+                    }
+                    return;
+                  }
+                  
+                  // Trimming the audio to the hook time using ffmpeg
                 const trimmedPath = path.join(UPLOADS_DIR, `viral_reel_trimmed_${uniqueId}.mp3`);
                 const trimCmd = `ffmpeg -y -i "${outputPath}" -ss ${selectedSong.viralHookStartTime} -t 15 -c copy "${trimmedPath}"`;
                 
@@ -1480,6 +1500,9 @@ Return JSON format exactly like this:
                   }
                 });
               });
+            };
+            
+            runDownloadWithFallback(fallbackCmds, 0);
             } catch (e) {
               updateWorkflowStatus({
                 status: 'failed',
