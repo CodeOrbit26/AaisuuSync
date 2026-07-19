@@ -1058,15 +1058,22 @@ Please identify the exact start time (in seconds) in the song where these specif
                 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
               }
               const outputPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp3`);
-              const ytDlpPath = fs.existsSync('/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp')
-                ? '/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp'
-                : (fs.existsSync('/usr/local/bin/yt-dlp') ? '/usr/local/bin/yt-dlp' : 'yt-dlp');
+              const possiblePaths = [
+                path.join(os.homedir(), '.local', 'bin', 'yt-dlp'),
+                '/opt/render/.local/bin/yt-dlp',
+                '/usr/local/bin/yt-dlp',
+                '/usr/bin/yt-dlp',
+                '/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp'
+              ];
+              const ytDlpPath = possiblePaths.find(p => fs.existsSync(p)) || 'yt-dlp';
               
-              const searchCmd = `${ytDlpPath} "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
+              const flags = `-x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
+              const query = `"ytsearch1:${selectedSong.youtubeSearchQuery} short"`;
+              const searchCmd = `${ytDlpPath} ${query} ${flags}`;
               
               updateWorkflowStatus({
                 logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[SHELL] Executing yt-dlp to locate and download audio.`, type: 'info' },
+                  { timestamp: new Date().toLocaleTimeString(), message: `[SHELL] Executing yt-dlp to locate and download audio (bin: ${ytDlpPath}).`, type: 'info' },
                   { timestamp: new Date().toLocaleTimeString(), message: `[CMD] ${searchCmd}`, type: 'info' }
                 ],
                 executionData: {
@@ -1076,8 +1083,9 @@ Please identify the exact start time (in seconds) in the song where these specif
 
               const fallbackCmds = [
                 searchCmd,
-                `python3 -m yt_dlp "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`,
-                `npx -y yt-dlp-exec "ytsearch1:${selectedSong.youtubeSearchQuery} short" -x --audio-format mp3 -o "${outputPath}"`
+                `export PATH=$PATH:$HOME/.local/bin:/opt/render/.local/bin && yt-dlp ${query} ${flags}`,
+                `python3 -m pip install --user yt-dlp && python3 -m yt_dlp ${query} ${flags}`,
+                `npx -y --package=yt-dlp-exec yt-dlp ${query} ${flags}`
               ];
 
               const runDownloadWithFallback = (cmds, index = 0) => {
