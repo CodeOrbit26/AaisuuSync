@@ -1236,25 +1236,12 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                       responseData2 = {};
                     }
 
-                    // Guarantee exact song-to-lyric alignment with millisecond vocal sync
-                    const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
-                    let exactLyrics = `[00:00.00] Saiyaan rehte Jamna Paar\n[00:03.00] Unki lambi motor car\n[00:06.00] Baithi saj dhaj ke\n[00:09.00] Lene aao na sarkaar\n[00:12.00] Saiyaan rehte Jamna Paar\n[00:14.50] 🤍💫🍷`;
-
-                    if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] Oh le liya kudi ne dil sadda\n[00:03.30] Haale thoda saaf jeha ni lagda irada\n[00:06.50] Gutt bahli lambi ni rakhi ae mutiyar ne\n[00:09.70] Haye dikhda paranda naiyon dikhda prada\n[00:14.50] 🤍💫🍷`;
-                    } else if (sName.includes('kitab') || sName.includes('female')) {
-                      exactLyrics = `[00:00.00] Tanne mai likhu raja dil ka\n[00:03.00] Tane mai mera pyar likhungi\n[00:06.00] Je likhne mai bethgi tane\n[00:09.00] To pakka mai kitab likhungi\n[00:12.00] Re duniya te ladke\n[00:14.50] 🤍💫🍷`;
-                    } else if (sName.includes('gypsy')) {
-                      exactLyrics = `[00:00.00] Balam mera gypsy chalave\n[00:02.50] Poore seher mein roab dikhave\n[00:05.00] Meri chundar resham ki\n[00:07.50] Hawa mein udd udd jaave\n[00:10.00] Dil ki baat sun le balam\n[00:12.50] Tera pyaar mainu bhaave\n[00:14.50] ✨🤍💫`;
-                    } else if (sName.includes('dhakad')) {
-                      exactLyrics = `[00:00.00] Dhakad chora aaya re\n[00:03.00] Gaon mein shor machaaya re\n[00:06.00] Yaara da yaar sadaa\n[00:09.00] Kadi na darr ke aaya re\n[00:12.00] Haryanvi swag sadaa\n[00:14.50] 🤙🔥✨`;
-                    } else if (sName.includes('achyutam') || sName.includes('radhe')) {
-                      exactLyrics = `[00:00.00] Achyutam keshavam krishna damodaram\n[00:03.00] Rama narayanam janaki vallabham\n[00:06.00] Kaun kehte hai bhagwan aate nahi\n[00:09.00] Tum meera ke jaise bulate nahi\n[00:11.80] Jai shri krishna radhe radhe\n[00:14.50] 🙏✨🚩`;
-                    }
-
-                    // Enforce curated exact lyrics whenever known song is selected or LLM response is generic/missing
-                    if (sName.includes('tauba') || sName.includes('kitab') || sName.includes('gypsy') || sName.includes('dhakad') || sName.includes('achyutam') || sName.includes('radhe') || sName.includes('jamna') || !responseData2.syncedLyrics || responseData2.syncedLyrics.includes("Tere bina dil lagda nahi")) {
-                      responseData2.syncedLyrics = exactLyrics;
+                    // Validate Gemini syncedLyrics response
+                    const isValidLrc = responseData2.syncedLyrics && typeof responseData2.syncedLyrics === 'string' && responseData2.syncedLyrics.includes('[') && !responseData2.syncedLyrics.includes("Tere bina dil lagda nahi");
+                    
+                    if (!isValidLrc) {
+                      const songTitle = selectedSong?.songName || promptSource || 'Song';
+                      responseData2.syncedLyrics = `[00:00.00] ${songTitle} - Verse 1\n[00:03.00] Feel the rhythm and beat\n[00:06.00] Whispers in the quiet night\n[00:09.00] Memories floating by\n[00:12.00] Forever in my heart\n[00:14.50] ✨🤍💫`;
                     }
                     
                     updateWorkflowStatus({
