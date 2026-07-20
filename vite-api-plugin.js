@@ -1107,13 +1107,16 @@ export async function apiMiddleware(req, res, next) {
                   );
                 }
 
-                const unplayedPool = curatedPool.filter(s => s && s.songName && !normalizedHistory.includes(normalizeName(s.songName)));
+                const lastSongName = historyList.length > 0 ? normalizeName(historyList[historyList.length - 1]) : '';
+                const availablePool = curatedPool.filter(s => normalizeName(s.songName) !== lastSongName);
+
+                const unplayedPool = availablePool.filter(s => s && s.songName && !normalizedHistory.includes(normalizeName(s.songName)));
                 
                 if (unplayedPool.length > 0) {
                   selectedSong = unplayedPool[Math.floor(Math.random() * unplayedPool.length)];
                 } else {
-                  const nextIdx = historyList.length % curatedPool.length;
-                  selectedSong = curatedPool[nextIdx];
+                  const nextIdx = historyList.length % availablePool.length;
+                  selectedSong = availablePool[nextIdx];
                 }
               }
 
