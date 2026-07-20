@@ -1588,12 +1588,15 @@ Return JSON format exactly like this:
               try {
                 if (fs.existsSync(targetPresetPath)) {
                   fs.copyFileSync(targetPresetPath, outputPath);
+                  if (selectedSong) selectedSong.viralHookStartTime = 0;
                 } else {
                   const defaultAudioPath = path.join(process.cwd(), 'public', 'uploads', 'default_viral_audio.mp3');
                   if (fs.existsSync(defaultAudioPath)) {
                     fs.copyFileSync(defaultAudioPath, outputPath);
+                    if (selectedSong) selectedSong.viralHookStartTime = 0;
                   } else {
                     fs.writeFileSync(outputPath, Buffer.alloc(50000));
+                    if (selectedSong) selectedSong.viralHookStartTime = 0;
                   }
                 }
               } catch (err) {
