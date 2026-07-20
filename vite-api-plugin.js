@@ -812,7 +812,7 @@ export async function apiMiddleware(req, res, next) {
                 throw new Error('No candidates returned from Gemini API');
               };
 
-              // Helper to automatically retry across models (gemini-2.0-flash, gemini-1.5-flash) and API keys
+              // Helper to automatically retry across models (gemini-2.0-flash, gemini-1.5-flash) and API keys with 429 rate-limit backoff
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
@@ -822,13 +822,28 @@ export async function apiMiddleware(req, res, next) {
                 for (const modelName of modelsToTry) {
                   let currentKeyIndex = 0;
                   while (currentKeyIndex < API_KEYS.length) {
-                    try {
-                      return await geminiDirectCall(API_KEYS[currentKeyIndex], modelName, contents, generationConfig);
-                    } catch (e) {
-                      lastErr = e;
-                      console.warn(`[Gemini] Key #${currentKeyIndex + 1} with model ${modelName} failed: ${e.message}`);
-                      currentKeyIndex++;
+                    let attempts = 0;
+                    while (attempts < 3) {
+                      try {
+                        return await geminiDirectCall(API_KEYS[currentKeyIndex], modelName, contents, generationConfig);
+                      } catch (e) {
+                        lastErr = e;
+                        if (e.message.includes('429') || e.message.includes('Quota exceeded')) {
+                          const match = e.message.match(/retry in ([\d\.]+)s/i);
+                          const waitMs = match ? Math.min(parseFloat(match[1]) * 1000 + 1000, 12000) : 5000;
+                          attempts++;
+                          updateWorkflowStatus({
+                            logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API-RATE-LIMIT] Gemini 429 limit hit for ${modelName}. Auto-sleeping ${Math.round(waitMs / 1000)}s before retry (Attempt ${attempts}/3)...`, type: 'warn' }]
+                          });
+                          console.warn(`[Gemini 429] Waiting ${waitMs}ms for ${modelName}...`);
+                          await new Promise(resolve => setTimeout(resolve, waitMs));
+                        } else {
+                          console.warn(`[Gemini] Key #${currentKeyIndex + 1} with model ${modelName} failed: ${e.message}`);
+                          break; // Non-429 error, try next key/model
+                        }
+                      }
                     }
+                    currentKeyIndex++;
                   }
                 }
                 throw lastErr || new Error("All Gemini API keys and models exhausted. Please verify your GEMINI_API_KEY in Render settings.");
