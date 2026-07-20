@@ -1230,7 +1230,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                     let exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.50] Jamna paar waaliye\n[00:03.80] Mainu dil vich vasa le\n[00:06.00] Tere naina vakhre\n[00:08.20] Meri jaan le gaye\n[00:10.50] Tu hi tu hai mere dil vich\n[00:12.80] Mainu chhod ke na ja\n[00:14.50] 😭🤍💫`;
 
                     if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:02.50] Husn tera kamaal hai\n[00:04.80] Tauba tauba re tauba tauba\n[00:07.00] Dil sadda luttya gaya\n[00:09.20] Ki tera khayaal hai\n[00:11.40] Nakhra tera vakhra vakhra\n[00:13.20] Mainu pagal kar gaya\n[00:14.50] 🔥💫💥`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Husn tera tauba tauba\n[00:03.50] Tauba tauba\n[00:05.00] Oh le liya kudi ne\n[00:06.80] Dil sadda\n[00:08.20] Haale thoda saaf jeha\n[00:10.00] Ni lagda irada\n[00:11.80] Gutt bahli lambi ni\n[00:13.50] Rakhi ae mutiyar ne\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
                       exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.80] Teri kitaab ke har panno mein\n[00:04.20] Mera naam likha hai\n[00:06.50] Tu door sahi par dil ke paas\n[00:08.80] Har pal tera ehsaas hai\n[00:11.00] Yeh raatein kaat ti nahi\n[00:13.00] Bas teri yaad aati hai\n[00:14.50] 😭🤍💫`;
                     } else if (sName.includes('gypsy')) {
