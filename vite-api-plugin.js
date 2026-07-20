@@ -999,6 +999,11 @@ export async function apiMiddleware(req, res, next) {
                   }];
                 }
                 
+                // Silently filter out blocklisted songs before candidate evaluation
+                if (!promptSource) {
+                  songsList = songsList.filter(c => c && c.songName && !normalizedHistory.includes(normalizeName(c.songName)));
+                }
+
                 // Try to find a valid song in the list
                 for (const candidate of songsList) {
                   if (!candidate.songName) continue;
@@ -1014,14 +1019,6 @@ export async function apiMiddleware(req, res, next) {
                       logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Explicit song requested ("${selectedSong.songName}"). Bypassing history checks.`, type: 'success' }]
                     });
                     break;
-                  }
-                  
-                  // Skip if in global blocklist history
-                  if (!promptSource && normalizedHistory.includes(normalizeName(candidate.songName))) {
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Skipping "${candidate.songName}" (exists in global blocklist).`, type: 'warn' }]
-                    });
-                    continue;
                   }
                   
                   const name = candidate.songName.toLowerCase().trim();
