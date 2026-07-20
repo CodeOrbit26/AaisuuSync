@@ -1266,7 +1266,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
 
                     // Guarantee exact song-to-lyric alignment with millisecond vocal sync
                     const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
-                    let exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.50] Jamna paar waaliye\n[00:03.80] Mainu dil vich vasa le\n[00:06.00] Tere naina vakhre\n[00:08.20] Meri jaan le gaye\n[00:10.50] Tu hi tu hai mere dil vich\n[00:12.80] Mainu chhod ke na ja\n[00:14.50] 😭🤍💫`;
+                    let exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Saiyaan rehte Jamna Paar\n[00:04.50] Unki lambi motor car\n[00:07.50] Baithi saj dhaj ke\n[00:10.50] Lene aao na sarkaar\n[00:13.50] Saiyaan rehte Jamna Paar\n[00:14.50] 🤍💫🍷`;
 
                     if (sName.includes('tauba')) {
                       exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Oh le liya kudi ne dil sadda\n[00:04.80] Haale thoda saaf jeha ni lagda irada\n[00:08.00] Gutt bahli lambi ni rakhi ae mutiyar ne\n[00:11.20] Haye dikhda paranda naiyon dikhda prada\n[00:14.50] 🤍💫🍷`;
