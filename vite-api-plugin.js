@@ -1608,8 +1608,8 @@ Return JSON format exactly like this:
             const runDownloadWithFallback = (cmds, index = 0) => {
               const cmd = cmds[index];
               exec(cmd, (err, stdout, stderr) => {
-                if (err) {
-                  console.warn(`[yt-dlp] Command failed (${cmd}):`, err.message);
+                if (err || !fs.existsSync(outputPath) || fs.statSync(outputPath).size < 5000) {
+                  console.warn(`[yt-dlp] Command failed or file empty (${cmd}):`, err?.message);
                   if (index + 1 < cmds.length) {
                     runDownloadWithFallback(cmds, index + 1);
                   } else {
@@ -1624,8 +1624,8 @@ Return JSON format exactly like this:
 
             // Primary Download Engine: Native Node.js yts + ytdl-core
             try {
-              console.log(`[Native Audio] Searching YouTube for: "${selectedSong.youtubeSearchQuery} short"...`);
-              const searchRes = await yts(`${selectedSong.youtubeSearchQuery} short`);
+              console.log(`[Native Audio] Searching YouTube for: "${selectedSong.youtubeSearchQuery}"...`);
+              const searchRes = await yts(`${selectedSong.youtubeSearchQuery}`);
               const video = (searchRes.videos && searchRes.videos[0]) || null;
               if (!video) throw new Error(`No YouTube video found for: ${selectedSong.youtubeSearchQuery}`);
               
@@ -1635,8 +1635,13 @@ Return JSON format exactly like this:
               stream.pipe(writeStream);
               
               writeStream.on('finish', () => {
-                console.log('[Native Audio] Download completed natively!');
-                proceedToTrim();
+                if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 5000) {
+                  console.log('[Native Audio] Download completed natively!');
+                  proceedToTrim();
+                } else {
+                  console.warn('[Native Audio] Stream produced empty file. Falling back to CLI...');
+                  runDownloadWithFallback(fallbackCmds, 0);
+                }
               });
               writeStream.on('error', (streamErr) => {
                 console.warn('[Native Audio] Write stream error, falling back to CLI:', streamErr.message);
