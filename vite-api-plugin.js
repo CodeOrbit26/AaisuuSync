@@ -834,7 +834,25 @@ export async function apiMiddleware(req, res, next) {
                   logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.`, type: 'info' }]
                 });
                 
-                let fallbackJson = '{"songs":[{"songName":"Jamna Paar","youtubeSearchQuery":"Jamna Paar Tony Kakkar trending reels audio","viralHookStartTime":33}]}';
+                let targetSong = promptSource || "Tauba Tauba";
+                let targetQuery = promptSource ? `${promptSource} trending reels audio` : "Tauba Tauba Karan Aujla trending reels audio";
+
+                if (!promptSource && (vibeFilter === 'sad' || vibeFilter === 'sad_trending')) {
+                  targetSong = "Kitab";
+                  targetQuery = "Kitab female version trending reels audio";
+                } else if (!promptSource && vibeFilter === 'devotional') {
+                  targetSong = "Achyutam Keshavam";
+                  targetQuery = "Achyutam Keshavam trending reels audio";
+                }
+
+                let fallbackJson = JSON.stringify({
+                  songs: [{
+                    songName: targetSong,
+                    youtubeSearchQuery: targetQuery,
+                    viralHookStartTime: 25
+                  }]
+                });
+
                 if (prompt && (prompt.includes('syncedLyrics') || prompt.includes('Transcribe'))) {
                   fallbackJson = '{"syncedLyrics":"[00:00.00] Tere bina dil lagda nahi\\n[00:02.50] Meri shyaam tu hi hai\\n[00:05.00] Dil diyan gallan kar le\\n[00:07.50] Teri galiyan wich kho gaye\\n[00:10.00] Pal pal yaad aave\\n[00:12.50] Mainu chad ke na ja\\n[00:14.00] 😭🤍💫"}';
                 } else if (prompt && prompt.includes('hashtags')) {
