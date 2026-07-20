@@ -849,7 +849,7 @@ export async function apiMiddleware(req, res, next) {
                   songs: [{
                     songName: targetSong,
                     youtubeSearchQuery: targetQuery,
-                    viralHookStartTime: targetSong.toLowerCase().includes('tauba') ? 4 : 15
+                    viralHookStartTime: targetSong.toLowerCase().includes('tauba') ? 33 : 15
                   }]
                 });
 
@@ -937,7 +937,7 @@ export async function apiMiddleware(req, res, next) {
                     logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
                   });
                   let defaultSongs = [
-                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: promptSource && promptSource.toLowerCase().includes('tauba') ? 4 : 15 },
+                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: promptSource && promptSource.toLowerCase().includes('tauba') ? 33 : 33 },
                     { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
                     { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
                     { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 }
@@ -1230,7 +1230,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                     let exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.50] Jamna paar waaliye\n[00:03.80] Mainu dil vich vasa le\n[00:06.00] Tere naina vakhre\n[00:08.20] Meri jaan le gaye\n[00:10.50] Tu hi tu hai mere dil vich\n[00:12.80] Mainu chhod ke na ja\n[00:14.50] 😭🤍💫`;
 
                     if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.00] Husn tera\n[00:02.50] Tauba tauba\n[00:04.00] Tauba tauba\n[00:05.50] Husn tera\n[00:07.00] Tauba tauba\n[00:08.50] Tauba tauba\n[00:10.00] Husn tera\n[00:11.50] Tauba tauba\n[00:13.00] Tauba tauba\n[00:14.50] 🤍💫🍷`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Oh le liya kudi ne dil sadda\n[00:04.80] Haale thoda saaf jeha ni lagda irada\n[00:08.00] Gutt bahli lambi ni rakhi ae mutiyar ne\n[00:11.20] Haye dikhda paranda naiyon dikhda prada\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
                       exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.80] Teri kitaab ke har panno mein\n[00:04.20] Mera naam likha hai\n[00:06.50] Tu door sahi par dil ke paas\n[00:08.80] Har pal tera ehsaas hai\n[00:11.00] Yeh raatein kaat ti nahi\n[00:13.00] Bas teri yaad aati hai\n[00:14.50] 😭🤍💫`;
                     } else if (sName.includes('gypsy')) {
@@ -1241,7 +1241,8 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                       exactLyrics = `[00:00.00] 🙏 ✨ 🚩\n[00:01.50] Achyutam keshavam krishna damodaram\n[00:04.20] Rama narayanam janaki vallabham\n[00:06.80] Kaun kehte hai bhagwan aate nahi\n[00:09.20] Tum meera ke jaise bulate nahi\n[00:11.80] Jai shri krishna radhe radhe\n[00:13.80] Sabhi pe kripa barsao\n[00:14.50] 🙏✨🚩`;
                     }
 
-                    if (!responseData2.syncedLyrics || responseData2.syncedLyrics.includes("Tere bina dil lagda nahi")) {
+                    // Enforce curated exact lyrics whenever known song is selected or LLM response is generic/missing
+                    if (sName.includes('tauba') || sName.includes('kitab') || sName.includes('gypsy') || sName.includes('dhakad') || sName.includes('achyutam') || sName.includes('radhe') || sName.includes('jamna') || !responseData2.syncedLyrics || responseData2.syncedLyrics.includes("Tere bina dil lagda nahi")) {
                       responseData2.syncedLyrics = exactLyrics;
                     }
                     
