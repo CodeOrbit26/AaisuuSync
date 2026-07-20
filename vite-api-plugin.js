@@ -984,10 +984,14 @@ Please identify the exact start time (in seconds) in the song where these specif
                   
                   // If the user explicitly requested a specific song/source, bypass all blocklists and collision checks immediately
                   if (promptSource) {
+                    selectedSong = {
+                      songName: promptSource,
+                      youtubeSearchQuery: candidate.youtubeSearchQuery || `${promptSource} trending reels audio`,
+                      viralHookStartTime: Number(candidate.viralHookStartTime) || 25
+                    };
                     updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Explicit song requested ("${candidate.songName}"). Bypassing history checks.`, type: 'success' }]
+                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Explicit song requested ("${selectedSong.songName}"). Bypassing history checks.`, type: 'success' }]
                     });
-                    selectedSong = candidate;
                     break;
                   }
                   
