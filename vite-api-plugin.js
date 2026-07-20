@@ -1382,7 +1382,7 @@ Return JSON format exactly like this:
                     });
 
                     const videoPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp4`);
-                    const createVideoCmd = `ffmpeg -y -framerate ${fps} -i "${path.join(framesDir, 'frame_%03d.jpg')}" -i "${trimmedPath}" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "${videoPath}"`;
+                    const createVideoCmd = `"${ffmpegBin}" -y -framerate ${fps} -i "${path.join(framesDir, 'frame_%03d.jpg')}" -i "${trimmedPath}" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest "${videoPath}"`;
                     
                     updateWorkflowStatus({
                       logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[CMD] ${createVideoCmd}`, type: 'info' }],
