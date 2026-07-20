@@ -138,10 +138,24 @@ function writeAudioMemory(data) {
 
 // Global memory of generated songs to avoid repeats
 const SONGS_HISTORY_PATH = path.join(process.cwd(), 'songs_history.json');
-let generatedSongsHistory = [];
-if (fs.existsSync(SONGS_HISTORY_PATH)) {
+function readSongsHistory() {
+  let history = [];
+  if (fs.existsSync(SONGS_HISTORY_PATH)) {
+    try {
+      history = JSON.parse(fs.readFileSync(SONGS_HISTORY_PATH, 'utf8'));
+    } catch(e) {}
+  }
+  const memory = readAudioMemory();
+  memory.forEach(item => {
+    if (item.songName && !history.includes(item.songName)) {
+      history.push(item.songName);
+    }
+  });
+  return history;
+}
+function writeSongsHistory(history) {
   try {
-    generatedSongsHistory = JSON.parse(fs.readFileSync(SONGS_HISTORY_PATH, 'utf8'));
+    fs.writeFileSync(SONGS_HISTORY_PATH, JSON.stringify(history, null, 2));
   } catch(e) {}
 }
 
@@ -919,7 +933,8 @@ export async function apiMiddleware(req, res, next) {
               });
 
               const normalizeName = (name) => name ? name.toLowerCase().trim() : '';
-              const normalizedHistory = generatedSongsHistory.map(normalizeName);
+              let historyList = readSongsHistory();
+              let normalizedHistory = historyList.map(normalizeName);
               
               let responseData1;
               let selectedSong = null;
@@ -937,23 +952,40 @@ export async function apiMiddleware(req, res, next) {
                     logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
                   });
                   let defaultSongs = [
-                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: promptSource && promptSource.toLowerCase().includes('tauba') ? 34 : 34 },
+                    { songName: "Tauba Tauba", youtubeSearchQuery: "Tauba Tauba Karan Aujla official audio", viralHookStartTime: 34 },
                     { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
                     { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
-                    { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 }
+                    { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 },
+                    { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 }
                   ];
 
-                  if (!promptSource && (vibeFilter === 'sad' || vibeFilter === 'sad_trending')) {
+                  if (promptSource) {
+                    defaultSongs.unshift({
+                      songName: promptSource,
+                      youtubeSearchQuery: `${promptSource} official audio`,
+                      viralHookStartTime: promptSource.toLowerCase().includes('tauba') ? 34 : 15
+                    });
+                  } else if (vibeFilter === 'sad' || vibeFilter === 'sad_trending') {
                     defaultSongs = [
                       { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
                       { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
                       { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
                     ];
-                  } else if (!promptSource && vibeFilter === 'devotional') {
+                  } else if (vibeFilter === 'devotional') {
                     defaultSongs = [
                       { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
                       { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe official audio", viralHookStartTime: 15 }
                     ];
+                  }
+
+                  // If all songs in the pool have already been generated, reset history for fresh loop
+                  if (!promptSource) {
+                    const allPlayed = defaultSongs.every(s => normalizedHistory.includes(normalizeName(s.songName)));
+                    if (allPlayed) {
+                      console.log('[Song Pool] All songs in pool generated. Resetting history for fresh rotation...');
+                      normalizedHistory = [];
+                      writeSongsHistory([]);
+                    }
                   }
 
                   responseData1 = { songs: defaultSongs };
@@ -1084,10 +1116,11 @@ export async function apiMiddleware(req, res, next) {
               }
 
               if (!promptSource && selectedSong.songName) {
-                if (!normalizedHistory.includes(normalizeName(selectedSong.songName))) {
-                  generatedSongsHistory.push(selectedSong.songName);
-                  if (generatedSongsHistory.length > 50) generatedSongsHistory.shift();
-                  fs.writeFileSync(SONGS_HISTORY_PATH, JSON.stringify(generatedSongsHistory));
+                let currentHistory = readSongsHistory();
+                if (!currentHistory.map(normalizeName).includes(normalizeName(selectedSong.songName))) {
+                  currentHistory.push(selectedSong.songName);
+                  if (currentHistory.length > 50) currentHistory.shift();
+                  writeSongsHistory(currentHistory);
                 }
               }
 
