@@ -1056,6 +1056,8 @@
   gap: 1px;
   text-align: center;
   width: 100%;
+  position: relative;
+  z-index: 2;
 }
 
 .pipeline-lyric-line {
@@ -1109,6 +1111,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 600;
+  z-index: 2;
 }
 
 .pipeline-reel-info {

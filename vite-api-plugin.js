@@ -678,10 +678,74 @@ function writeStore(data) {
   fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
 }
 
+const curatedSongLyrics = {
+  "jamna paar": `[00:00.00] Saiyaan rehte jamna paar
+[00:03.00] Unki lambi motor car
+[00:06.00] Baithi saj dhaj ke
+[00:09.00] Lene aao na sarkaar
+[00:12.00] Oh jugni dheere dheere
+[00:14.00] 😭🤍💫`,
+
+  "gypsy": `[00:00.00] Sara kara se salute maine
+[00:03.00] Gaon uska
+[00:05.00] Ho Balam Thaanedar chalva zipsy
+[00:08.00] Hyee mera Balam Thaanedar
+[00:11.00] Chalva zipsy thaanedar chalva zipsy
+[00:14.00] 😭🤍💫`,
+
+  "tauba tauba": `[00:00.00] Husn tera tauba tauba
+[00:03.00] Husn tera tauba tauba
+[00:06.00] Oh le liya kudi ne dil sadda
+[00:09.00] Hale thoda saaf jeha ni lagda
+[00:12.00] Husn tera tauba tauba
+[00:14.00] 😭🤍💫`,
+
+  "kitab": `[00:00.00] Tainu main likhu raja dil ka
+[00:03.00] Tainu main mere pyaar likhungi
+[00:06.00] Je likhna main baithi tene
+[00:09.00] To paka main kitab likhungi
+[00:12.00] Mainu khwaab ke jaise lagta
+[00:14.00] 😭🤍💫`,
+
+  "achyutam keshavam": `[00:00.00] Achyutam Keshavam Krishna Damodaram
+[00:03.00] Ram Narayanam Janaki Vallabham
+[00:06.00] Kaun kehte hai Bhagwan aate nahi
+[00:09.00] Tum Meera ke jaise bulate nahi
+[00:12.00] Achyutam Keshavam Krishna Damodaram
+[00:14.00] 😭🤍💫`,
+
+  "choo lo": `[00:00.00] Khada hoon aaj bhi wahin
+[00:03.00] Ki dil phir bekaraar hai
+[00:06.00] Choo lo jo mujhe tum kabhi
+[00:09.00] Kho na jaaun main raat din
+[00:12.00] Mere ho bas tum mere
+[00:14.00] 😭🤍💫`,
+
+  "tu hai kahan": `[00:00.00] Tu hai kahan?
+[00:03.00] Khwabon ke iss shehar mein
+[00:06.00] Mera dil tujhe dhoondhta dhoondhta
+[00:09.00] Arsa hua, tujhko dekha nahi
+[00:12.00] Tu na jaane kahan chhup gaya
+[00:14.00] 😭🤍💫`
+};
+
+function getFallbackLyrics(songTitle) {
+  const cleanTitle = (songTitle || '').toLowerCase().trim();
+  for (const [key, lyrics] of Object.entries(curatedSongLyrics)) {
+    if (cleanTitle.includes(key) || key.includes(cleanTitle)) {
+      return lyrics;
+    }
+  }
+  return `[00:00.00] ${songTitle} - Hook Drop\n[00:03.00] Tainu main mere pyaar likhungi\n[00:06.00] Dil diyan gallan kar le yaara\n[00:09.00] Tere bina dil lagda nahi\n[00:12.00] Pal pal yaad aave teri\n[00:14.50] ✨🤍💫`;
+}
+
+let viteServerInstance = null;
+
 export function viteApiPlugin() {
   return {
     name: 'aaisu-mobile-api-server',
     configureServer(server) {
+      viteServerInstance = server;
       startBackgroundTasks();
       server.middlewares.use(apiMiddleware);
     }
@@ -868,7 +932,7 @@ export async function apiMiddleware(req, res, next) {
                 });
 
                 if (prompt && (prompt.includes('syncedLyrics') || prompt.includes('Transcribe'))) {
-                  fallbackJson = '{"syncedLyrics":"[00:00.00] Tere bina dil lagda nahi\\n[00:02.50] Meri shyaam tu hi hai\\n[00:05.00] Dil diyan gallan kar le\\n[00:07.50] Teri galiyan wich kho gaye\\n[00:10.00] Pal pal yaad aave\\n[00:12.50] Mainu chad ke na ja\\n[00:14.00] 😭🤍💫"}';
+                  fallbackJson = JSON.stringify({ syncedLyrics: getFallbackLyrics(targetSong) });
                 } else if (prompt && prompt.includes('hashtags')) {
                   fallbackJson = '{"hashtags":"#viral #trending #reelsinstagram #explore #foryou"}';
                 }
@@ -1241,7 +1305,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                     
                     if (!isValidLrc) {
                       const songTitle = selectedSong?.songName || promptSource || 'Song';
-                      responseData2.syncedLyrics = `[00:00.00] ${songTitle} - Verse 1\n[00:03.00] Feel the rhythm and beat\n[00:06.00] Whispers in the quiet night\n[00:09.00] Memories floating by\n[00:12.00] Forever in my heart\n[00:14.50] ✨🤍💫`;
+                      responseData2.syncedLyrics = getFallbackLyrics(songTitle);
                     }
                     
                     updateWorkflowStatus({
@@ -1864,7 +1928,7 @@ Return the result in strict JSON format:
           res.end(JSON.stringify({
             online: true,
             localIp: getLocalIp(),
-            isHostMode: server.config.server.host === true || server.config.server.host === '0.0.0.0',
+            isHostMode: !!(viteServerInstance && (viteServerInstance.config.server.host === true || viteServerInstance.config.server.host === '0.0.0.0')),
             timestamp: Date.now()
           }));
         } else if (pathname === '/api/instagram/launch-login' && req.method === 'POST') {

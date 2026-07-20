@@ -600,19 +600,20 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const audioRef = React.useRef(null);
+  const mediaRef = React.useRef(null);
   const [showingInfo, setShowingInfo] = useState(false);
   const [schedulingReel, setSchedulingReel] = useState(null);
   const [uploadingReels, setUploadingReels] = useState({});
+  const [videoError, setVideoError] = useState(false);
 
   const { connectedAccounts } = useApp();
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (mediaRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(e => console.log('Audio play error:', e));
+        mediaRef.current.play().catch(e => console.log('Media play error:', e));
       } else {
-        audioRef.current.pause();
+        mediaRef.current.pause();
       }
     }
   }, [isPlaying, playingReel]);
@@ -790,11 +791,11 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
   };
 
   const togglePlay = () => {
-    if (audioRef.current) {
+    if (mediaRef.current) {
       if (isPlaying) {
-        audioRef.current.pause();
+        mediaRef.current.pause();
       } else {
-        audioRef.current.play();
+        mediaRef.current.play();
       }
       setIsPlaying(!isPlaying);
     }
@@ -803,8 +804,8 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
   const handleSeek = (e) => {
     const time = parseFloat(e.target.value);
     setCurrentTime(time);
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
+    if (mediaRef.current) {
+      mediaRef.current.currentTime = time;
     }
   };
 
@@ -858,6 +859,7 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                     }
                   } else {
                     setPlayingReel(reel);
+                    setVideoError(false);
                     setCurrentTime(0);
                     setIsPlaying(true);
                     setShowingInfo(false);
@@ -868,10 +870,39 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                   {playingReel?.id === reel.id && isPlaying ? <HiOutlinePause className="play-icon" /> : <HiOutlinePlay className="play-icon" />}
                 </div>
                 <div className="pipeline-phone-screen">
+                  {reel.videoUrl && (
+                    <video
+                      className="pipeline-background-video"
+                      src={window.resolveUrl(reel.videoUrl)}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        zIndex: 1,
+                        opacity: 0.6
+                      }}
+                    />
+                  )}
                   <div className="pipeline-lyrics-static">
-                    {reel.lyrics.split('\n').map((line, i) => (
-                      <div key={i} className="pipeline-lyric-line">{line.replace(/\[\d+:\d+\.\d+\]\s*/, '').trim()}</div>
-                    ))}
+                    {reel.lyrics.split('\n')
+                      .filter(line => line.trim())
+                      .slice(0, 3)
+                      .map((line, i) => (
+                        <div key={i} className="pipeline-lyric-line">
+                          {line.replace(/\[\d+:\d+\.\d+\]\s*/, '').trim()}
+                        </div>
+                      ))
+                    }
+                    {reel.lyrics.split('\n').filter(line => line.trim()).length > 3 && (
+                      <div className="pipeline-lyric-line" style={{ opacity: 0.5, fontSize: '0.45rem' }}>...</div>
+                    )}
                   </div>
                   <div className="pipeline-phone-watermark">AaisuuSync</div>
                 </div>
@@ -912,6 +943,7 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                     const isNew = playingReel?.id !== reel.id;
                     if (isNew) {
                       setPlayingReel(reel);
+                      setVideoError(false);
                       setCurrentTime(0);
                     }
                     setIsPlaying(false);
@@ -1077,26 +1109,41 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
               ) : (
                 <div className="pipeline-play-container inline">
                   <div className="pipeline-play-canvas" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {playingReel.videoUrl ? (
+                    {playingReel.videoUrl && !videoError ? (
                       <video
                         key={playingReel.id || playingReel.videoUrl}
+                        ref={mediaRef}
                         src={window.resolveUrl(playingReel.videoUrl)}
-                        controls
+                        onTimeUpdate={handleTimeUpdate}
+                        onLoadedMetadata={handleLoadedMetadata}
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                        onEnded={() => setIsPlaying(false)}
+                        onClick={togglePlay}
+                        onError={() => {
+                          console.log('Video error, falling back to audio/lyrics preview');
+                          setVideoError(true);
+                        }}
                         autoPlay
                         loop
                         playsInline
-                        style={{ width: '100%', height: '100%', borderRadius: '16px', objectFit: 'contain', background: '#000' }}
+                        style={{ width: '100%', height: '100%', borderRadius: '16px', objectFit: 'contain', background: '#000', cursor: 'pointer' }}
                       />
                     ) : (
                       <div className="pipeline-play-screen">
                         <audio 
-                          ref={audioRef}
+                          ref={mediaRef}
                           src={window.resolveUrl(playingReel.audioUrl || "/uploads/kitab_song_trimmed.mp3")}
                           onTimeUpdate={handleTimeUpdate}
                           onLoadedMetadata={handleLoadedMetadata}
                           onPlay={() => setIsPlaying(true)}
                           onPause={() => setIsPlaying(false)}
                           onEnded={() => setIsPlaying(false)}
+                          onError={(e) => {
+                            if (e.target.src !== window.resolveUrl("/uploads/kitab_song_trimmed.mp3")) {
+                              e.target.src = window.resolveUrl("/uploads/kitab_song_trimmed.mp3");
+                            }
+                          }}
                         />
                         <div className="pipeline-lyrics-overlay">
                           <div className="pipeline-lyrics-static expanded">
