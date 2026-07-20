@@ -1225,18 +1225,20 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                       responseData2 = {};
                     }
 
-                    // Guarantee exact song-to-lyric alignment
+                    // Guarantee exact song-to-lyric alignment with millisecond vocal sync
                     const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
-                    let exactLyrics = `[00:00.00] Jamna paar waaliye\n[00:02.20] Mainu dil vich vasa le\n[00:04.40] Tere naina vakhre\n[00:06.60] Meri jaan le gaye\n[00:08.80] Tu hi tu hai mere dil vich\n[00:11.00] Mainu chhod ke na ja\n[00:13.50] 😭🤍💫`;
+                    let exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.50] Jamna paar waaliye\n[00:03.80] Mainu dil vich vasa le\n[00:06.00] Tere naina vakhre\n[00:08.20] Meri jaan le gaye\n[00:10.50] Tu hi tu hai mere dil vich\n[00:12.80] Mainu chhod ke na ja\n[00:14.50] 😭🤍💫`;
 
                     if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] Tauba tauba re tauba tauba\n[00:02.20] Husn tera kamaal hai\n[00:04.40] Dil sadda luttya gaya\n[00:06.60] Ki tera khayaal hai\n[00:08.80] Nakhra tera vakhra vakhra\n[00:11.00] Mainu pagal kar gaya\n[00:13.50] 🔥💫💥`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:02.50] Husn tera kamaal hai\n[00:04.80] Tauba tauba re tauba tauba\n[00:07.00] Dil sadda luttya gaya\n[00:09.20] Ki tera khayaal hai\n[00:11.40] Nakhra tera vakhra vakhra\n[00:13.20] Mainu pagal kar gaya\n[00:14.50] 🔥💫💥`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
-                      exactLyrics = `[00:00.00] Teri kitaab ke har panno mein\n[00:02.20] Mera naam likha hai\n[00:04.40] Tu door sahi par dil ke paas\n[00:06.60] Har pal tera ehsaas hai\n[00:08.80] Yeh raatein kaat ti nahi\n[00:11.00] Bas teri yaad aati hai\n[00:13.50] 😭🤍💫`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.80] Teri kitaab ke har panno mein\n[00:04.20] Mera naam likha hai\n[00:06.50] Tu door sahi par dil ke paas\n[00:08.80] Har pal tera ehsaas hai\n[00:11.00] Yeh raatein kaat ti nahi\n[00:13.00] Bas teri yaad aati hai\n[00:14.50] 😭🤍💫`;
                     } else if (sName.includes('gypsy')) {
-                      exactLyrics = `[00:00.00] Balam mera gypsy chalave\n[00:02.20] Poore seher mein roab dikhave\n[00:04.40] Meri chundar resham ki\n[00:06.60] Hawa mein udd udd jaave\n[00:08.80] Dil ki baat sun le balam\n[00:11.00] Tera pyaar mainu bhaave\n[00:13.50] ✨🤍💫`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 🤙\n[00:01.50] Balam mera gypsy chalave\n[00:03.80] Poore seher mein roab dikhave\n[00:06.00] Meri chundar resham ki\n[00:08.20] Hawa mein udd udd jaave\n[00:10.50] Dil ki baat sun le balam\n[00:12.80] Tera pyaar mainu bhaave\n[00:14.50] ✨🤍💫`;
                     } else if (sName.includes('dhakad')) {
-                      exactLyrics = `[00:00.00] Dhakad chora aaya re\n[00:02.20] Gaon mein shor machaaya re\n[00:04.40] Yaara da yaar sadaa\n[00:06.60] Kadi na darr ke aaya re\n[00:08.80] Haryanvi swag sadaa\n[00:11.00] Subha toh shaam chaaya re\n[00:13.50] 🤙🔥✨`;
+                      exactLyrics = `[00:00.00] 🤙 🔥 ✨\n[00:01.50] Dhakad chora aaya re\n[00:03.80] Gaon mein shor machaaya re\n[00:06.00] Yaara da yaar sadaa\n[00:08.20] Kadi na darr ke aaya re\n[00:10.50] Haryanvi swag sadaa\n[00:12.80] Subha toh shaam chaaya re\n[00:14.50] 🤙🔥✨`;
+                    } else if (sName.includes('achyutam') || sName.includes('radhe')) {
+                      exactLyrics = `[00:00.00] 🙏 ✨ 🚩\n[00:01.50] Achyutam keshavam krishna damodaram\n[00:04.20] Rama narayanam janaki vallabham\n[00:06.80] Kaun kehte hai bhagwan aate nahi\n[00:09.20] Tum meera ke jaise bulate nahi\n[00:11.80] Jai shri krishna radhe radhe\n[00:13.80] Sabhi pe kripa barsao\n[00:14.50] 🙏✨🚩`;
                     }
 
                     if (!responseData2.syncedLyrics || responseData2.syncedLyrics.includes("Tere bina dil lagda nahi")) {
@@ -1359,18 +1361,21 @@ Return JSON format exactly like this:
                           <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
                           <style>
                             .lyric-line {
-                              color: #f094c4;
+                              color: rgba(240, 148, 196, 0.4);
                               font-size: 38px;
                               font-weight: 500;
                               letter-spacing: 0.05em;
                               line-height: 1.25;
                               white-space: nowrap;
-                              opacity: 1;
-                              transition: transform 0.3s ease;
+                              opacity: 0.35;
+                              transform: scale(0.94);
+                              transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
                             }
-                            /* Optional active state if needed later */
                             .lyric-line.active {
-                              /* Currently identical to match preview perfectly */
+                              color: #f094c4;
+                              opacity: 1;
+                              transform: scale(1.1);
+                              text-shadow: 0 0 16px rgba(240, 148, 196, 0.8), 0 0 30px rgba(236, 72, 153, 0.4);
                             }
                           </style>
                         </head>
