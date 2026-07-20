@@ -1442,27 +1442,7 @@ Return JSON format exactly like this:
                       const finalAudioUrl = `/uploads/viral_reel_trimmed_${uniqueId}.mp3`;
                       const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
 
-                      // Extra Call: Ask LLM for strictly high-reach viral hashtags after rendering is complete
-                      let viralReachHashtags = '#viral #trending #reelsinstagram #explore #foryou';
-                      try {
-                        updateWorkflowStatus({
-                          logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Analyzing completed reel composition to generate strictly high-reach viral hashtags.`, type: 'info' }]
-                        });
-                        
-                        const reachPrompt = `You are a social media growth and virality expert. We have just successfully rendered a lyric/aesthetic Instagram reel for the song "${selectedSong.songName}" with the following lyrics:\n"${responseData2.syncedLyrics}"\n\nRecommend 5 additional hashtags that are strictly optimized for maximum reach and virality on Instagram reels right now (e.g. tags with 10M+ views or highly trending audio tags that will push this reel to a broader audience).\nReturn JSON format exactly like this:\n{\n  "viralReachHashtags": "string"\n}`;
-                        
-                        const reachResult = await generateWithFallback(reachPrompt);
-                        const reachData = JSON.parse(reachResult.response.text());
-                        if (reachData.viralReachHashtags) {
-                          viralReachHashtags = reachData.viralReachHashtags;
-                        }
-                        
-                        updateWorkflowStatus({
-                          logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] High-reach viral hashtags successfully compiled.`, type: 'success' }]
-                        });
-                      } catch (reachErr) {
-                        console.error('Failed to generate high-reach hashtags:', reachErr.message);
-                      }
+                      const viralReachHashtags = '#explore #foryou #viralreels #aesthetic #trending';
 
                       updateWorkflowStatus({
                         status: 'completed',
