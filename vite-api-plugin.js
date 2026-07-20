@@ -1360,39 +1360,34 @@ Return JSON format exactly like this:
                         <head>
                           <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
                           <style>
-                            .lyric-line {
-                              color: rgba(240, 148, 196, 0.4);
-                              font-size: 38px;
-                              font-weight: 500;
-                              letter-spacing: 0.05em;
-                              line-height: 1.25;
-                              white-space: nowrap;
-                              opacity: 0.35;
-                              transform: scale(0.94);
-                              transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+                            * { margin: 0; padding: 0; box-sizing: border-box; }
+                            body {
+                              background: black;
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+                              height: 100vh;
+                              font-family: 'Caveat', cursive;
+                              overflow: hidden;
+                              text-transform: uppercase;
                             }
-                            .lyric-line.active {
+                            #lyric-display {
                               color: #f094c4;
-                              opacity: 1;
-                              transform: scale(1.1);
-                              text-shadow: 0 0 16px rgba(240, 148, 196, 0.8), 0 0 30px rgba(236, 72, 153, 0.4);
+                              font-size: 42px;
+                              font-weight: 700;
+                              letter-spacing: 0.05em;
+                              line-height: 1.4;
+                              text-align: center;
+                              padding: 0 40px;
+                              text-shadow: 0 0 20px rgba(240, 148, 196, 0.6), 0 0 40px rgba(236, 72, 153, 0.3);
                             }
                           </style>
                         </head>
-                        <body style="background: black; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'Caveat', cursive; overflow: hidden; text-transform: uppercase;">
-                          <div id="container" style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; width: 100%;">
-                          </div>
+                        <body>
+                          <div id="lyric-display"></div>
                           <script>
                             const lyrics = ${JSON.stringify(parsedLyrics)};
-                            const container = document.getElementById('container');
-                            
-                            lyrics.forEach((l, i) => {
-                              const div = document.createElement('div');
-                              div.className = 'lyric-line';
-                              div.id = 'line-' + i;
-                              div.innerText = l.text;
-                              container.appendChild(div);
-                            });
+                            const display = document.getElementById('lyric-display');
 
                             function updateTime(t) {
                               let activeIndex = 0;
@@ -1402,14 +1397,7 @@ Return JSON format exactly like this:
                                   break;
                                 }
                               }
-                              lyrics.forEach((l, i) => {
-                                const el = document.getElementById('line-' + i);
-                                if (i === activeIndex) {
-                                  el.classList.add('active');
-                                } else {
-                                  el.classList.remove('active');
-                                }
-                              });
+                              display.innerText = lyrics[activeIndex].text;
                             }
                           </script>
                         </body>
