@@ -27,27 +27,21 @@ export default function Dashboard() {
   return (
     <div className="dashboard page-container">
       {/* Welcome Banner */}
-      <div className="dashboard-banner stagger">
-        <div className="banner-visual-bg"></div>
-        <div className="banner-meta-grid">
-          <div className="avatar-orb-main animate-pulse-glow">
-            <span className="user-glow-avatar">{user?.initials || 'A'}</span>
-          </div>
-          <div className="welcome-headline-text">
-            <h2>Welcome back, {user?.name || 'Abhay Gupta'}!</h2>
-            <p>Your AI Agent pipelines are running healthy and active.</p>
-          </div>
+      <div className="dashboard-welcome-banner animate-fade-in">
+        <div className="welcome-text-side">
+          <h2>Welcome back, <span className="gradient-text">{user?.name || 'Abhay Gupta'}</span> ✨</h2>
+          <p>Your AI Agent pipelines are running healthy and active.</p>
         </div>
-        <div className="banner-actions">
-          <button className="banner-control-btn border-emerald" style={{ color: 'var(--success)' }}>
-            <span className="live-badge-glow"></span>
-            Agent Core Active
-          </button>
+        <div className="welcome-date-side">
+          <div className="date-badge">
+            <span className="pulse-indicator"></span>
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+          </div>
         </div>
       </div>
 
-      {/* Statistics Section Grid */}
-      <div className="dashboard-stats-grid">
+      {/* Stats Grid */}
+      <div className="dashboard-stats stagger">
         <StatCard
           icon={HiOutlineUserGroup}
           iconColor="purple"
@@ -68,37 +62,40 @@ export default function Dashboard() {
           tagType="healthy"
         />
 
-        <div className="glass-card stat-card accent-border-indigo stagger">
-          <div className="stat-card-meta">
-            <div className="stat-card-icon-wrapper bg-indigo-glow text-indigo">
-              <HiOutlineChip />
-            </div>
-            <div className="stat-card-labels">
-              <span>Active AI Model</span>
-              <h3>{currentModel?.name || 'Gemini 2.0 Flash'}</h3>
-              <p>{currentModel?.provider || 'Google Cloud'}</p>
-            </div>
+        {/* AI Processing — Interactive */}
+        <div className="glass-card stat-card ai-processing-card accent-border-indigo stagger" onClick={() => setShowModelPicker(!showModelPicker)}>
+          <div className="stat-card-icon" style={{ background: 'rgba(99, 102, 241, 0.08)', color: 'var(--accent-primary)' }}>
+            <HiOutlineChip />
           </div>
-          <button className="stat-card-action-btn mt-3" onClick={() => setShowModelPicker(!showModelPicker)}>
-            <HiOutlineSwitchHorizontal /> Change Model
-          </button>
+          <div className="stat-card-label">Active AI Model</div>
+          <div className="stat-card-value" style={{ fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {currentModel?.name || 'Gemini 2.0 Flash'}
+          </div>
+          <div className="stat-card-sub" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <span className="status-dot online"></span>
+            {currentModel?.type || 'Flash'} API Active
+            <HiOutlineSwitchHorizontal style={{ marginLeft: 'auto', opacity: 0.5, fontSize: '0.9rem' }} />
+          </div>
 
           {showModelPicker && (
-            <div className="dashboard-model-picker-dropdown">
+            <div className="model-picker">
+              <div className="model-picker-title">Switch AI Model</div>
               {AI_MODELS.map((model) => (
                 <div
                   key={model.id}
-                  className={`model-option-item ${activeModel === model.id ? 'active' : ''}`}
-                  onClick={() => {
+                  className={`model-picker-item ${activeModel === model.id ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setActiveModel(model.id);
                     setShowModelPicker(false);
                   }}
                 >
-                  <div className="model-option-meta">
-                    <strong>{model.name}</strong>
-                    <span>{model.type}</span>
+                  <span className="model-picker-dot" style={{ background: model.color || 'var(--accent-primary)' }} />
+                  <div className="model-picker-info">
+                    <span className="model-picker-name">{model.name}</span>
+                    <span className="model-picker-type">{model.type}</span>
                   </div>
-                  {activeModel === model.id && <HiOutlineCheck className="text-emerald" />}
+                  {activeModel === model.id && <HiOutlineCheck className="model-picker-check" />}
                 </div>
               ))}
             </div>
