@@ -80,21 +80,28 @@ export function AppProvider({ children }) {
   const [blueprints, setBlueprints] = useState(() => {
     const DEFAULT_LYRICS = 'TAINU\nMAIN LIKHU\nRAJA DIL KA TAINU ME\nMERE\nPYAAR\nLIKHUNGI\nJE LIKHNA ME BAITHI\nTENE\nTO PAKA\nMAIN KITAB\nLIKHUNGI\n🤙😭✨🤍';
     const saved = localStorage.getItem('aaisu_blueprints_v2');
+    const isWiped = localStorage.getItem('wiped_v3') === 'true';
+    
+    let parsed = null;
     if (saved) {
-      const parsed = JSON.parse(saved);
-      // Migrate: ensure every blueprint has a `lyrics` field
-      Object.keys(parsed).forEach(key => {
-        if (parsed[key] && typeof parsed[key].lyrics === 'undefined') {
-          parsed[key].lyrics = key === 'Lyrics' ? DEFAULT_LYRICS : '';
+      try {
+        parsed = JSON.parse(saved);
+        // Migrate: ensure every blueprint has a `lyrics` field
+        Object.keys(parsed).forEach(key => {
+          if (parsed[key] && typeof parsed[key].lyrics === 'undefined') {
+            parsed[key].lyrics = key === 'Lyrics' ? DEFAULT_LYRICS : '';
+          }
+        });
+        // Ensure Lyrics blueprint exists with lyrics
+        if (parsed.Lyrics && !parsed.Lyrics.lyrics) {
+          parsed.Lyrics.lyrics = DEFAULT_LYRICS;
         }
-      });
-      // Ensure Lyrics blueprint exists with lyrics
-      if (parsed.Lyrics && !parsed.Lyrics.lyrics) {
-        parsed.Lyrics.lyrics = DEFAULT_LYRICS;
+      } catch (e) {
+        parsed = null;
       }
-      return parsed;
     }
-    return {
+
+    const defaultBlueprints = {
       Lyrics: {
         progress: 0,
         references: [],
@@ -131,6 +138,22 @@ export function AppProvider({ children }) {
         generated: []
       }
     };
+
+    if (!isWiped) {
+      const target = parsed || defaultBlueprints;
+      Object.keys(target).forEach(key => {
+        if (target[key]) {
+          target[key].generated = [];
+        }
+      });
+      try {
+        localStorage.setItem('aaisu_blueprints_v2', JSON.stringify(target));
+        localStorage.setItem('wiped_v3', 'true');
+      } catch (e) {}
+      return target;
+    }
+
+    return parsed || defaultBlueprints;
   });
 
   // Auto-persist blueprints on change
