@@ -932,14 +932,27 @@ Please identify the exact start time (in seconds) in the song where these specif
                   updateWorkflowStatus({
                     logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
                   });
-                  responseData1 = {
-                    songs: [
-                      { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar trending reels audio", viralHookStartTime: 33 },
-                      { songName: "Tauba Tauba", youtubeSearchQuery: "Tauba Tauba Karan Aujla trending reels audio", viralHookStartTime: 45 },
-                      { songName: "Dhakad Chora", youtubeSearchQuery: "Dhakad Chora Haryanvi trending reels audio", viralHookStartTime: 20 },
-                      { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur trending reels audio", viralHookStartTime: 15 }
-                    ]
-                  };
+                  let defaultSongs = [
+                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} trending reels audio` : "Tauba Tauba Karan Aujla trending reels audio", viralHookStartTime: 25 },
+                    { songName: "Kitab", youtubeSearchQuery: "Kitab female version trending reels audio", viralHookStartTime: 25 },
+                    { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar trending reels audio", viralHookStartTime: 33 },
+                    { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur trending reels audio", viralHookStartTime: 15 }
+                  ];
+
+                  if (!promptSource && (vibeFilter === 'sad' || vibeFilter === 'sad_trending')) {
+                    defaultSongs = [
+                      { songName: "Kitab", youtubeSearchQuery: "Kitab female version trending reels audio", viralHookStartTime: 25 },
+                      { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train trending reels audio", viralHookStartTime: 30 },
+                      { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar trending reels audio", viralHookStartTime: 20 }
+                    ];
+                  } else if (!promptSource && vibeFilter === 'devotional') {
+                    defaultSongs = [
+                      { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam trending reels audio", viralHookStartTime: 20 },
+                      { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe trending reels audio", viralHookStartTime: 15 }
+                    ];
+                  }
+
+                  responseData1 = { songs: defaultSongs };
                 }
                 
                 // Transition to audio memory verification stage
