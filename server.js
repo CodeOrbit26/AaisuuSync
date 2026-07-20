@@ -59,7 +59,8 @@ const { apiMiddleware, startBackgroundTasks } = await import('./vite-api-plugin.
 const app = express();
 
 app.use(cors());
-app.use('/uploads', express.static('public/uploads'));
+app.use('/uploads', express.static(join(__dirname, 'public', 'uploads')));
+app.use(express.static(join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
   res.json({
