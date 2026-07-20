@@ -812,36 +812,39 @@ export async function apiMiddleware(req, res, next) {
                 throw new Error('No candidates returned from Gemini API');
               };
 
-              // Helper to automatically retry across models (gemini-2.0-flash, gemini-1.5-flash, gemini-2.5-flash) with instant quota rotation
+              // Helper to automatically retry across models (gemini-2.0-flash, gemini-1.5-flash, gemini-2.5-flash) with 10s quota pause-and-retry
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
                 const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"];
                 let lastErr = null;
 
-                for (let round = 0; round < 3; round++) {
+                for (let attempt = 0; attempt < 5; attempt++) {
                   for (const modelName of modelsToTry) {
                     for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
                       try {
                         return await geminiDirectCall(API_KEYS[keyIdx], modelName, contents, generationConfig);
                       } catch (e) {
                         lastErr = e;
-                        if (e.message.includes('429') || e.message.includes('Quota exceeded')) {
-                          console.log(`[Gemini 429] Model ${modelName} rate limited. Rotating to next model...`);
+                        const is429 = e.message.includes('429') || e.message.includes('Quota exceeded') || e.message.includes('RESOURCE_EXHAUSTED');
+                        if (is429) {
+                          console.log(`[Gemini 429] Model ${modelName} rate limited on attempt ${attempt + 1}.`);
                         } else {
                           console.warn(`[Gemini] Key #${keyIdx + 1} with model ${modelName} error: ${e.message}`);
                         }
                       }
                     }
                   }
-                  if (round < 2) {
+                  if (attempt < 4) {
+                    const waitSec = 10;
                     updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API] Gemini API quota busy. Synchronizing prompt dispatch (5s)...`, type: 'info' }]
+                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API] Gemini free tier quota busy (20 req/min). Auto-pausing ${waitSec}s for quota window reset (Attempt ${attempt + 1}/4)...`, type: 'info' }]
                     });
-                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    console.log(`[Gemini 429] All models quota busy. Sleeping ${waitSec}s for quota reset...`);
+                    await new Promise(resolve => setTimeout(resolve, waitSec * 1000));
                   }
                 }
-                throw lastErr || new Error("All Gemini API keys and models exhausted. Please verify your GEMINI_API_KEY in Render settings.");
+                throw lastErr || new Error("Gemini API quota busy. Please wait 30 seconds and click Generate again.");
               };
 
               let vibeText = 'Random Selection';
