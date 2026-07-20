@@ -849,7 +849,7 @@ export async function apiMiddleware(req, res, next) {
                   songs: [{
                     songName: targetSong,
                     youtubeSearchQuery: targetQuery,
-                    viralHookStartTime: 15
+                    viralHookStartTime: targetSong.toLowerCase().includes('tauba') ? 4 : 15
                   }]
                 });
 
@@ -937,7 +937,7 @@ export async function apiMiddleware(req, res, next) {
                     logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
                   });
                   let defaultSongs = [
-                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: 15 },
+                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: promptSource && promptSource.toLowerCase().includes('tauba') ? 4 : 15 },
                     { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
                     { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
                     { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 }
@@ -1230,7 +1230,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                     let exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.50] Jamna paar waaliye\n[00:03.80] Mainu dil vich vasa le\n[00:06.00] Tere naina vakhre\n[00:08.20] Meri jaan le gaye\n[00:10.50] Tu hi tu hai mere dil vich\n[00:12.80] Mainu chhod ke na ja\n[00:14.50] 😭🤍💫`;
 
                     if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Husn tera tauba tauba\n[00:03.50] Tauba tauba\n[00:05.00] Oh le liya kudi ne\n[00:06.80] Dil sadda\n[00:08.20] Haale thoda saaf jeha\n[00:10.00] Ni lagda irada\n[00:11.80] Gutt bahli lambi ni\n[00:13.50] Rakhi ae mutiyar ne\n[00:14.50] 🤍💫🍷`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.00] Husn tera\n[00:02.50] Tauba tauba\n[00:04.00] Tauba tauba\n[00:05.50] Husn tera\n[00:07.00] Tauba tauba\n[00:08.50] Tauba tauba\n[00:10.00] Husn tera\n[00:11.50] Tauba tauba\n[00:13.00] Tauba tauba\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
                       exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.80] Teri kitaab ke har panno mein\n[00:04.20] Mera naam likha hai\n[00:06.50] Tu door sahi par dil ke paas\n[00:08.80] Har pal tera ehsaas hai\n[00:11.00] Yeh raatein kaat ti nahi\n[00:13.00] Bas teri yaad aati hai\n[00:14.50] 😭🤍💫`;
                     } else if (sName.includes('gypsy')) {
