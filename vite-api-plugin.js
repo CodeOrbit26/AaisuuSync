@@ -1364,6 +1364,7 @@ Return JSON format exactly like this:
                             body {
                               background: black;
                               display: flex;
+                              flex-direction: column;
                               align-items: center;
                               justify-content: center;
                               height: 100vh;
@@ -1371,34 +1372,44 @@ Return JSON format exactly like this:
                               overflow: hidden;
                               text-transform: uppercase;
                             }
-                            #lyric-display {
-                              color: #f094c4;
-                              font-size: 42px;
-                              font-weight: 700;
-                              letter-spacing: 0.05em;
-                              line-height: 1.4;
+                            #lyrics-container {
+                              display: flex;
+                              flex-direction: column;
+                              align-items: center;
+                              gap: 6px;
                               text-align: center;
-                              padding: 0 40px;
-                              text-shadow: 0 0 20px rgba(240, 148, 196, 0.6), 0 0 40px rgba(236, 72, 153, 0.3);
+                              padding: 0 30px;
+                            }
+                            .lyric-line {
+                              color: #f094c4;
+                              font-size: 38px;
+                              font-weight: 700;
+                              letter-spacing: 0.04em;
+                              line-height: 1.3;
+                            }
+                            #watermark {
+                              position: absolute;
+                              bottom: 18px;
+                              color: rgba(255,255,255,0.25);
+                              font-size: 13px;
+                              font-weight: 500;
+                              letter-spacing: 0.25em;
+                              text-transform: uppercase;
                             }
                           </style>
                         </head>
                         <body>
-                          <div id="lyric-display"></div>
+                          <div id="lyrics-container"></div>
+                          <div id="watermark">AAISUUSYNC</div>
                           <script>
                             const lyrics = ${JSON.stringify(parsedLyrics)};
-                            const display = document.getElementById('lyric-display');
-
-                            function updateTime(t) {
-                              let activeIndex = 0;
-                              for (let i = lyrics.length - 1; i >= 0; i--) {
-                                if (t >= lyrics[i].time) {
-                                  activeIndex = i;
-                                  break;
-                                }
-                              }
-                              display.innerText = lyrics[activeIndex].text;
-                            }
+                            const container = document.getElementById('lyrics-container');
+                            lyrics.forEach(l => {
+                              const div = document.createElement('div');
+                              div.className = 'lyric-line';
+                              div.innerText = l.text;
+                              container.appendChild(div);
+                            });
                           </script>
                         </body>
                       </html>
@@ -1426,19 +1437,20 @@ Return JSON format exactly like this:
                     const totalFrames = fps * duration;
 
                     updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Custom font confirmed loaded. Capturing ${totalFrames} frames...`, type: 'info' }]
+                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Custom font confirmed loaded. Capturing ${totalFrames} frames (static)...`, type: 'info' }]
                     });
 
-                    for (let f = 0; f < totalFrames; f++) {
-                      const t = f / fps;
-                      await page.evaluate((time) => updateTime(time), t);
-                      await page.screenshot({ 
-                        path: path.join(framesDir, `frame_${String(f).padStart(3, '0')}.jpg`),
-                        type: 'jpeg',
-                        quality: 80
-                      });
+                    // Static image — capture ONE screenshot and copy for all frames
+                    const firstFramePath = path.join(framesDir, 'frame_000.jpg');
+                    await page.screenshot({ 
+                      path: firstFramePath,
+                      type: 'jpeg',
+                      quality: 85
+                    });
+
+                    for (let f = 1; f < totalFrames; f++) {
+                      fs.copyFileSync(firstFramePath, path.join(framesDir, `frame_${String(f).padStart(3, '0')}.jpg`));
                       
-                      // Log rendering progress every 30 frames
                       if (f % 30 === 0 || f === totalFrames - 1) {
                         updateWorkflowStatus({
                           logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Captured frame ${f + 1}/${totalFrames}`, type: 'info' }],
