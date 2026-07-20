@@ -1476,8 +1476,7 @@ export default function Accounts() {
         <div className="accounts-grid-column">
           
           {/* Section: API Integrations */}
-          {(isGeminiConnected || isPexelsConnected) && (
-            <div className="glass-card config-card accent-border-indigo" id="api-keys-section">
+          <div className="glass-card config-card accent-border-indigo" id="api-keys-section">
               <div className="config-card-header">
                 <HiOutlineKey className="header-icon text-indigo" />
                 <div>
@@ -1561,11 +1560,9 @@ export default function Accounts() {
                 </div>
               </div>
             </div>
-          )}
 
           {/* Section: YouTube & Studio API */}
-          {(isYtStudioConnected || isYtChannelConnected) && (
-            <div className="glass-card config-card accent-border-rose" id="youtube-section">
+          <div className="glass-card config-card accent-border-rose" id="youtube-section">
               <div className="config-card-header">
                 <svg width="20" height="20" fill="#ff0033" viewBox="0 0 24 24" className="header-icon">
                   <path d="M23.498 6.163a3.003 3.003 0 00-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 00-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 002.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.002 3.002 0 002.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
@@ -1667,12 +1664,10 @@ export default function Accounts() {
                 </div>
               </div>
             </div>
-          )}
         </div>
 
         {/* Right Side: Instagram Account Manager */}
-        {isInstagramConnected && (
-          <div className="accounts-grid-column" id="instagram-section">
+        <div className="accounts-grid-column" id="instagram-section">
             
             <div className="glass-card config-card accent-border-orange">
               <div className="config-card-header-with-action">
@@ -1740,7 +1735,6 @@ export default function Accounts() {
               </div>
             </div>
           </div>
-        )}
       </div>
 
 
