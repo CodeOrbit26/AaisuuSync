@@ -1588,7 +1588,8 @@ Return JSON format exactly like this:
               try {
                 if (fs.existsSync(targetPresetPath)) {
                   fs.copyFileSync(targetPresetPath, outputPath);
-                  if (selectedSong) selectedSong.viralHookStartTime = 0;
+                  // Don't override viralHookStartTime — presets are full songs,
+                  // so the Gemini-recommended start time is used for trimming
                 } else {
                   const defaultAudioPath = path.join(process.cwd(), 'public', 'uploads', 'default_viral_audio.mp3');
                   if (fs.existsSync(defaultAudioPath)) {
