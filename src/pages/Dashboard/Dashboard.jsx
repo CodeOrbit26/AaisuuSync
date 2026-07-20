@@ -164,6 +164,81 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Recent Automated Reels Output Section */}
+      <div className="glass-card dashboard-reels-section accent-border-pink stagger" style={{ marginBottom: '24px', padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ padding: '8px', borderRadius: '10px', background: 'rgba(236, 72, 153, 0.15)', color: '#ec4899', display: 'flex', alignItems: 'center' }}>
+              <HiOutlineFilm style={{ fontSize: '1.4rem' }} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Recent Automated Reels Output</h3>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: 0 }}>Live generated reels ready for download and social publishing</p>
+            </div>
+          </div>
+          <Link to="/reel-automation" className="secondary-btn" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>
+            View All ({totalReelDrafts}) <HiOutlineArrowRight />
+          </Link>
+        </div>
+
+        {(() => {
+          const allGeneratedReels = Object.entries(blueprints || {}).flatMap(([key, bp]) => 
+            (bp?.generated || []).map(g => ({ ...g, blueprint: key }))
+          );
+
+          if (allGeneratedReels.length === 0) {
+            return (
+              <div style={{ textTransform: 'none', background: 'rgba(0,0,0,0.2)', padding: '24px', borderRadius: '12px', textAlign: 'center', color: '#9ca3af', border: '1px dashed rgba(255,255,255,0.08)' }}>
+                <HiOutlineFilm style={{ fontSize: '2rem', color: '#ec4899', marginBottom: '8px', opacity: 0.8 }} />
+                <div style={{ fontWeight: 600, color: '#e5e7eb', marginBottom: '4px' }}>No Reels Generated Yet</div>
+                <p style={{ fontSize: '0.8rem', margin: 0 }}>Click "Design AI Reels" below to generate your first aesthetic reel.</p>
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {allGeneratedReels.slice(0, 3).map((reel, idx) => (
+                <div key={reel.id || idx} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <HiOutlineFilm style={{ color: '#ec4899' }} /> {reel.name}
+                    </div>
+                    <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '20px', background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', fontWeight: 700, border: '1px solid rgba(34, 197, 94, 0.3)' }}>RENDERED</span>
+                  </div>
+
+                  {reel.videoUrl ? (
+                    <video 
+                      src={reel.videoUrl} 
+                      controls 
+                      style={{ width: '100%', height: '160px', borderRadius: '10px', objectFit: 'cover', background: '#000' }} 
+                    />
+                  ) : (
+                    <div style={{ height: '160px', background: '#000', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ec4899', fontSize: '0.8rem', padding: '12px', textTransform: 'uppercase', fontFamily: "'Caveat', cursive", textAlign: 'center' }}>
+                      {reel.lyricsSnapshot ? reel.lyricsSnapshot.substring(0, 50) + '...' : 'Aesthetic Lyric Reel'}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{reel.date || 'Today'}</span>
+                    {reel.videoUrl && (
+                      <a 
+                        href={reel.videoUrl} 
+                        download 
+                        className="gradient-btn" 
+                        style={{ fontSize: '0.75rem', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        Download
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </div>
+
       {/* CTA Banner */}
       <div className="glass-card dashboard-cta accent-border-indigo stagger">
         <div className="dashboard-cta-text">
