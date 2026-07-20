@@ -835,21 +835,21 @@ export async function apiMiddleware(req, res, next) {
                 });
                 
                 let targetSong = promptSource || "Tauba Tauba";
-                let targetQuery = promptSource ? `${promptSource} trending reels audio` : "Tauba Tauba Karan Aujla trending reels audio";
+                let targetQuery = promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio";
 
                 if (!promptSource && (vibeFilter === 'sad' || vibeFilter === 'sad_trending')) {
                   targetSong = "Kitab";
-                  targetQuery = "Kitab female version trending reels audio";
+                  targetQuery = "Kitab female version official audio";
                 } else if (!promptSource && vibeFilter === 'devotional') {
                   targetSong = "Achyutam Keshavam";
-                  targetQuery = "Achyutam Keshavam trending reels audio";
+                  targetQuery = "Achyutam Keshavam official audio";
                 }
 
                 let fallbackJson = JSON.stringify({
                   songs: [{
                     songName: targetSong,
                     youtubeSearchQuery: targetQuery,
-                    viralHookStartTime: 25
+                    viralHookStartTime: 15
                   }]
                 });
 
@@ -861,46 +861,50 @@ export async function apiMiddleware(req, res, next) {
                 return { response: { text: () => fallbackJson } };
               };
 
-              let vibeText = 'Random Selection';
-              let chosenVibePrompt = '';
-              
-              if (vibeFilter === 'trending') {
-                vibeText = 'Trending Hits';
-                chosenVibePrompt = 'strictly trending/viral songs';
-              } else if (vibeFilter === 'sad') {
-                vibeText = 'Sad/Emotional';
-                chosenVibePrompt = 'sad, emotional, or heartbreaking songs';
-              } else if (vibeFilter === 'sad_trending') {
-                vibeText = 'Sad + Trending';
-                chosenVibePrompt = 'sad and emotional songs that are currently viral/trending on Reels';
-              } else if (vibeFilter === 'chatpatee') {
-                vibeText = 'Chatpatee/Upbeat';
-                chosenVibePrompt = 'upbeat, chatpatee, energetic, or high-tempo Haryanvi or Hindi dance songs';
-              } else if (vibeFilter === 'old') {
-                vibeText = 'Old / Retro Classics';
-                chosenVibePrompt = 'golden era old classics or retro remix songs from the 70s, 80s, or 90s';
-              } else {
-                const vibes = ["chatpati / upbeat", "romantic", "sad / emotional", "lofi / chill", "party / club", "desi hip hop / rap", "retro remix", "devotional / spiritual", "workout / motivation"];
-                const randomVibe = vibes[Math.floor(Math.random() * vibes.length)];
-                vibeText = `Random (${randomVibe})`;
-                chosenVibePrompt = `songs matching a ${randomVibe} vibe`;
-              }
-              
-              // 1. First Call: Pick a song and start time
-              let prompt1 = customPrompt1 || `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English). For each song, give me the song name, the exact YouTube search query to find the best short/audio, and the exact start time in seconds of the best 15-second drop/hook.`;
-              if (promptSource) {
-                if (screenshotLyrics && screenshotLyrics.trim()) {
-                  prompt1 = `You are a viral TikTok/Reels expert. The user has specifically requested a reel based on this song: "${promptSource}" and these exact lyrics from a screenshot:
-"""
-${screenshotLyrics}
-"""
-Please identify the exact start time (in seconds) in the song where these specific lyrics are sung. Also provide the exact YouTube search query to find the best high-quality audio or video for this song.`;
-                } else {
-                  prompt1 = `You are a viral TikTok/Reels expert. The user has specifically requested a reel based on this source/song: "${promptSource}". Please provide the exact YouTube search query to find the best short/audio for it, and the exact start time in seconds of the best 15-second drop/hook.`;
+              // Helper to build prompt based on user choice
+              const buildPrompt1 = (vibe, source) => {
+                if (source) {
+                  return `You are a viral TikTok/Reels expert. The user has specifically requested a reel based on this source/song: "${source}". Please provide the exact YouTube search query to find the official audio for it, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
                 }
-              }
-              prompt1 += `\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
-              
+
+                let vibeText = 'Random Selection';
+                let chosenVibePrompt = '';
+                
+                if (vibeFilter === 'trending') {
+                  vibeText = 'Trending Hits';
+                  chosenVibePrompt = 'strictly trending/viral songs';
+                } else if (vibeFilter === 'sad') {
+                  vibeText = 'Sad/Emotional';
+                  chosenVibePrompt = 'sad, emotional, or heartbreaking songs';
+                } else if (vibeFilter === 'sad_trending') {
+                  vibeText = 'Sad + Trending';
+                  chosenVibePrompt = 'sad and emotional songs that are currently viral/trending on Reels';
+                } else if (vibeFilter === 'chatpatee') {
+                  vibeText = 'Chatpatee/Upbeat';
+                  chosenVibePrompt = 'upbeat, chatpatee, energetic, or high-tempo Haryanvi or Hindi dance songs';
+                } else if (vibeFilter === 'devotional') {
+                  vibeText = 'Devotional/Spiritual';
+                  chosenVibePrompt = 'aesthetic devotional, Krishna, or spiritual songs';
+                } else if (vibeFilter === 'retro_remix') {
+                  vibeText = 'Retro Remix';
+                  chosenVibePrompt = 'retro 90s classic Hindi songs or viral slowed/reverb remixes';
+                } else {
+                  vibeText = 'Random (Hindi/Haryanvi)';
+                  chosenVibePrompt = 'trending Hindi or Haryanvi songs';
+                }
+
+                return `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English). For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
+              };
+
+              const prompt1 = buildPrompt1(vibeFilter, promptSource);
+              let vibeText = 'Random Selection';
+              if (vibeFilter === 'trending') vibeText = 'Trending Hits';
+              else if (vibeFilter === 'sad') vibeText = 'Sad/Emotional';
+              else if (vibeFilter === 'sad_trending') vibeText = 'Sad + Trending';
+              else if (vibeFilter === 'chatpatee') vibeText = 'Chatpatee/Upbeat';
+              else if (vibeFilter === 'devotional') vibeText = 'Devotional/Spiritual';
+              else if (vibeFilter === 'retro_remix') vibeText = 'Retro Remix';
+
               updateWorkflowStatus({
                 stage: 'lyrics_analysis',
                 logs: [
@@ -933,22 +937,22 @@ Please identify the exact start time (in seconds) in the song where these specif
                     logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
                   });
                   let defaultSongs = [
-                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} trending reels audio` : "Tauba Tauba Karan Aujla trending reels audio", viralHookStartTime: 25 },
-                    { songName: "Kitab", youtubeSearchQuery: "Kitab female version trending reels audio", viralHookStartTime: 25 },
-                    { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar trending reels audio", viralHookStartTime: 33 },
-                    { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur trending reels audio", viralHookStartTime: 15 }
+                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: 15 },
+                    { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
+                    { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
+                    { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 }
                   ];
 
                   if (!promptSource && (vibeFilter === 'sad' || vibeFilter === 'sad_trending')) {
                     defaultSongs = [
-                      { songName: "Kitab", youtubeSearchQuery: "Kitab female version trending reels audio", viralHookStartTime: 25 },
-                      { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train trending reels audio", viralHookStartTime: 30 },
-                      { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar trending reels audio", viralHookStartTime: 20 }
+                      { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
+                      { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
+                      { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
                     ];
                   } else if (!promptSource && vibeFilter === 'devotional') {
                     defaultSongs = [
-                      { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam trending reels audio", viralHookStartTime: 20 },
-                      { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe trending reels audio", viralHookStartTime: 15 }
+                      { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
+                      { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe official audio", viralHookStartTime: 15 }
                     ];
                   }
 
@@ -1118,7 +1122,9 @@ Please identify the exact start time (in seconds) in the song where these specif
               const ffmpegOpt = ffmpegStatic ? `--ffmpeg-location "${ffmpegStatic}"` : '';
               const ffmpegBin = ffmpegStatic || 'ffmpeg';
               const flags = `-x --audio-format mp3 ${ffmpegOpt} --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
-              const query = `"ytsearch1:${selectedSong.youtubeSearchQuery} short"`;
+              // Ensure clean official audio search without 'short' suffix to download the exact song audio
+              const cleanSearchTerm = selectedSong.youtubeSearchQuery.replace(/\s+short$/i, '');
+              const query = `"ytsearch1:${cleanSearchTerm}"`;
               const searchCmd = `${ytDlpPath} ${query} ${flags}`;
               
               updateWorkflowStatus({
