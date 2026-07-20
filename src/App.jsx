@@ -8,7 +8,6 @@ import ReelAutomation from './pages/ReelAutomation/ReelAutomation';
 import YTAutomation from './pages/YTAutomation/YTAutomation';
 import InstagramDM from './pages/InstagramDM/InstagramDM';
 import Settings from './pages/Settings/Settings';
-import MobileSync from './pages/MobileSync/MobileSync';
 import './App.css';
 
 export default function App() {
@@ -22,7 +21,6 @@ export default function App() {
         <Route path="/yt-automation" element={<YTAutomation />} />
         <Route path="/instagram-dm" element={<InstagramDM />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/mobile-sync" element={<MobileSync />} />
       </Route>
     </Routes>
   );

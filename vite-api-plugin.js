@@ -112,7 +112,6 @@ async function getBase64Avatar(url) {
   }
 }
 
-const STORE_PATH = path.join(process.cwd(), 'mobile_sync_store.json');
 const AGENT_CONFIG_PATH = path.join(process.cwd(), 'agent_config.json');
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 const AUDIO_MEMORY_PATH = path.join(process.cwd(), 'audio_memory.json');
@@ -638,45 +637,7 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-// Initial/default database state
-const defaultStore = {
-  approvals: [
-    {
-      id: 'appr_1',
-      title: 'LinkedIn: AI Agent Launch Announcement',
-      description: 'Post detailing the release of AaisuuSync automation pipelines with 98% efficiency gain.',
-      status: 'pending',
-      mediaUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=60',
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'appr_2',
-      title: 'Instagram Reel: New Workspace Aesthetics',
-      description: 'A visual transition reel showing the design evolution and dark glassmorphic panels.',
-      status: 'pending',
-      mediaUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=60',
-      createdAt: new Date().toISOString()
-    }
-  ],
-  uploads: []
-};
 
-function readStore() {
-  if (!fs.existsSync(STORE_PATH)) {
-    fs.writeFileSync(STORE_PATH, JSON.stringify(defaultStore, null, 2));
-    return defaultStore;
-  }
-  try {
-    return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8'));
-  } catch (e) {
-    console.error('Failed to parse mobile_sync_store.json, resetting', e);
-    return defaultStore;
-  }
-}
-
-function writeStore(data) {
-  fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
-}
 
 const curatedSongLyrics = {
   "jamna paar": `[00:00.00] Saiyaan rehte jamna paar
@@ -812,11 +773,9 @@ export async function apiMiddleware(req, res, next) {
               const customPrompt3 = parsed.prompt3;
               const vibeFilter = parsed.vibeFilter || 'random';
               
-              const store = readStore();
-              const cachedKey = store.lastGeminiKey;
               const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
               const isInvalidKey = (k) => !k || k === 'your_gemini_api_key_here';
-              const API_KEYS = [envKey, clientKey, cachedKey].filter(k => !isInvalidKey(k));
+              const API_KEYS = [envKey, clientKey].filter(k => !isInvalidKey(k));
 
               if (API_KEYS.length === 0) {
                 const errMsg = "No valid Gemini API Key configured in Render Environment Variables or Client Settings. Please set GEMINI_API_KEY in Render settings.";
@@ -1759,14 +1718,11 @@ Return JSON format exactly like this:
                 }
               }
 
-              const store = readStore();
-              const cachedKey = store.lastGeminiKey;
               const envKey = process.env.GEMINI_API_KEY || '';
               const isRevokedKey = (k) => !k || k === 'your_gemini_api_key_here' || k.includes('AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g');
               const API_KEYS = [
                 envKey,
-                apiKey,
-                cachedKey
+                apiKey
               ].filter(k => !isRevokedKey(k));
 
               if (API_KEYS.length === 0) {
@@ -2846,134 +2802,6 @@ Return the result in strict JSON format:
               igPage = null;
               res.statusCode = 500;
               res.end(JSON.stringify({ error: e.message }));
-            }
-          });
-        } else if (pathname === '/api/data' && req.method === 'GET') {
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify(readStore()));
-        } else if (pathname === '/api/approve' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => { body += chunk; });
-          req.on('end', () => {
-            try {
-              const { id, status } = JSON.parse(body);
-              if (!id || !status) {
-                res.statusCode = 400;
-                res.end(JSON.stringify({ error: 'id and status are required' }));
-                return;
-              }
-              const store = readStore();
-              const item = store.approvals.find(a => a.id === id);
-              if (item) {
-                item.status = status;
-                writeStore(store);
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ success: true, item }));
-              } else {
-                res.statusCode = 404;
-                res.end(JSON.stringify({ error: 'Item not found' }));
-              }
-            } catch (e) {
-              res.statusCode = 400;
-              res.end(JSON.stringify({ error: 'Invalid JSON body' }));
-            }
-          });
-        } else if (pathname === '/api/upload' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => { body += chunk; });
-          req.on('end', () => {
-            try {
-              const { fileName, fileType, base64Data } = JSON.parse(body);
-              if (!fileName || !base64Data) {
-                res.statusCode = 400;
-                res.end(JSON.stringify({ error: 'fileName and base64Data are required' }));
-                return;
-              }
-
-              // Deconstruct file name
-              const ext = path.extname(fileName) || '.jpg';
-              const baseName = path.basename(fileName, ext);
-              const uniqueFileName = `${baseName.replace(/\s+/g, '_')}_${Date.now()}${ext}`;
-              const filePath = path.join(UPLOADS_DIR, uniqueFileName);
-
-              // Save file
-              const buffer = Buffer.from(base64Data, 'base64');
-              fs.writeFileSync(filePath, buffer);
-
-              // Update database
-              const store = readStore();
-              const relativeUrl = `/uploads/${uniqueFileName}`;
-              const newUpload = {
-                id: `upl_${Date.now()}`,
-                fileName: uniqueFileName,
-                originalName: fileName,
-                fileType,
-                url: relativeUrl,
-                sizeBytes: buffer.length,
-                uploadedAt: new Date().toISOString()
-              };
-
-              store.uploads.unshift(newUpload);
-              writeStore(store);
-
-              // Trigger terminal log
-              console.log(`[MobileSync] File uploaded successfully: ${uniqueFileName} (${(buffer.length/1024).toFixed(1)} KB)`);
-
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true, upload: newUpload }));
-            } catch (e) {
-              console.error('[MobileSync] Failed to process upload:', e);
-              res.statusCode = 500;
-              res.end(JSON.stringify({ error: 'Failed to save file' }));
-            }
-          });
-        } else if (pathname === '/api/add-approval-request' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => { body += chunk; });
-          req.on('end', () => {
-            try {
-              const { title, description, mediaUrl } = JSON.parse(body);
-              if (!title || !description) {
-                res.statusCode = 400;
-                res.end(JSON.stringify({ error: 'title and description are required' }));
-                return;
-              }
-              const store = readStore();
-              const newApproval = {
-                id: `appr_${Date.now()}`,
-                title,
-                description,
-                status: 'pending',
-                mediaUrl: mediaUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=60',
-                createdAt: new Date().toISOString()
-              };
-              store.approvals.unshift(newApproval);
-              writeStore(store);
-
-              console.log(`[MobileSync] Added new mobile approval request: "${title}"`);
-
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true, approval: newApproval }));
-            } catch (e) {
-              res.statusCode = 400;
-              res.end(JSON.stringify({ error: 'Invalid JSON body' }));
-            }
-          });
-        } else if (pathname === '/api/sync-reels' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => { body += chunk; });
-          req.on('end', () => {
-            try {
-              const { reels, geminiKey } = JSON.parse(body);
-              const store = readStore();
-              store.reels = reels || [];
-              if (geminiKey) store.lastGeminiKey = geminiKey;
-              writeStore(store);
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true }));
-            } catch (e) {
-              res.statusCode = 400;
-              res.end(JSON.stringify({ error: 'Invalid JSON body' }));
             }
           });
         } else if (pathname === '/api/ai/generate-comments' && req.method === 'POST') {

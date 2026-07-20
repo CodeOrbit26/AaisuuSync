@@ -6,9 +6,7 @@ import {
   HiOutlineFilm,
   HiOutlineChatAlt2,
   HiOutlineCog,
-  HiOutlineSearch,
   HiOutlineLink,
-  HiOutlineDeviceMobile,
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
 import './Sidebar.css';
@@ -21,7 +19,6 @@ const navItems = [
   { path: '/yt-automation', icon: YTIcon, label: 'YT Automation', badge: 'NEW' },
   { path: '/instagram-dm', icon: HiOutlineChatAlt2, label: 'Instagram DM' },
   { path: '/settings', icon: HiOutlineCog, label: 'Settings' },
-  { path: '/mobile-sync', icon: HiOutlineDeviceMobile, label: 'Mobile Sync', badge: 'SYNC' },
 ];
 
 function YTIcon() {

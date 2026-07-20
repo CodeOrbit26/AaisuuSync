@@ -136,51 +136,7 @@ export function AppProvider({ children }) {
   // Auto-persist blueprints on change
   React.useEffect(() => {
     localStorage.setItem('aaisu_blueprints_v2', JSON.stringify(blueprints));
-    // Sync to backend so mobile app can see the reels
-    const allReels = [];
-    Object.values(blueprints).forEach(bp => {
-      if (bp.generated && Array.isArray(bp.generated)) {
-        allReels.push(...bp.generated);
-      }
-    });
-    // Sort by most recent
-    allReels.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
-    
-    fetch('/api/sync-reels', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reels: allReels, geminiKey: apiKeys?.gemini })
-    }).catch(e => console.error('Failed to sync reels to backend', e));
-  }, [blueprints, apiKeys]);
-
-  // Auto-reset local generated reels if the backend is empty (server reset detected)
-  React.useEffect(() => {
-    fetch('/api/mobile-sync')
-      .then(res => res.json())
-      .then(store => {
-        if (store && Array.isArray(store.reels) && store.reels.length === 0) {
-          const saved = localStorage.getItem('aaisu_blueprints_v2');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            let hasGenerated = false;
-            Object.values(parsed).forEach(bp => {
-              if (bp.generated && bp.generated.length > 0) {
-                hasGenerated = true;
-              }
-            });
-            if (hasGenerated) {
-              console.log('Server is clean. Wiping client blueprints generated lists...');
-              Object.keys(parsed).forEach(key => {
-                parsed[key].generated = [];
-              });
-              setBlueprints(parsed);
-              localStorage.setItem('aaisu_blueprints_v2', JSON.stringify(parsed));
-            }
-          }
-        }
-      })
-      .catch(e => console.warn('Sync check failed:', e));
-  }, []);
+  }, [blueprints]);
 
   // Auto-persist connected accounts on change
   React.useEffect(() => {
