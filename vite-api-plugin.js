@@ -849,7 +849,7 @@ export async function apiMiddleware(req, res, next) {
                   songs: [{
                     songName: targetSong,
                     youtubeSearchQuery: targetQuery,
-                    viralHookStartTime: targetSong.toLowerCase().includes('tauba') ? 33 : 15
+                    viralHookStartTime: targetSong.toLowerCase().includes('tauba') ? 34 : 15
                   }]
                 });
 
@@ -937,7 +937,7 @@ export async function apiMiddleware(req, res, next) {
                     logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
                   });
                   let defaultSongs = [
-                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: promptSource && promptSource.toLowerCase().includes('tauba') ? 33 : 33 },
+                    { songName: promptSource || "Tauba Tauba", youtubeSearchQuery: promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio", viralHookStartTime: promptSource && promptSource.toLowerCase().includes('tauba') ? 34 : 34 },
                     { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
                     { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
                     { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 }
