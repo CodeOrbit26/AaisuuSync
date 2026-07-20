@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   HiOutlineUserGroup,
-  HiOutlineDocumentText,
   HiOutlineChip,
   HiOutlineLightningBolt,
   HiOutlineChatAlt2,
@@ -11,7 +10,6 @@ import {
   HiOutlineShieldCheck,
   HiOutlineSwitchHorizontal,
   HiOutlineCheck,
-  HiOutlineTrendingUp,
   HiOutlineTerminal
 } from 'react-icons/hi';
 import StatCard from '../../components/StatCard/StatCard';
@@ -29,64 +27,78 @@ export default function Dashboard() {
   return (
     <div className="dashboard page-container">
       {/* Welcome Banner */}
-      <div className="dashboard-welcome-banner animate-fade-in">
-        <div className="welcome-text-side">
-          <h2>Welcome back, <span className="gradient-text">{user?.name || 'Abhay Gupta'}</span> ✨</h2>
-          <p>Here is your global publishing status and automated reel agent activity today.</p>
-        </div>
-        <div className="welcome-date-side">
-          <div className="date-badge">
-            <span className="pulse-indicator"></span>
-            <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+      <div className="dashboard-banner stagger">
+        <div className="banner-visual-bg"></div>
+        <div className="banner-meta-grid">
+          <div className="avatar-orb-main animate-pulse-glow">
+            <span className="user-glow-avatar">{user?.initials || 'A'}</span>
           </div>
+          <div className="welcome-headline-text">
+            <h2>Welcome back, {user?.name || 'Abhay Gupta'}!</h2>
+            <p>Your AI Agent pipelines are running healthy and active.</p>
+          </div>
+        </div>
+        <div className="banner-actions">
+          <button className="banner-control-btn border-emerald" style={{ color: 'var(--success)' }}>
+            <span className="live-badge-glow"></span>
+            Agent Core Active
+          </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="dashboard-stats stagger">
+      {/* Statistics Section Grid */}
+      <div className="dashboard-stats-grid">
         <StatCard
           icon={HiOutlineUserGroup}
           iconColor="purple"
-          label="Instagram Accounts"
-          value={activeIgCount.toString()}
-          sub={activeIgCount > 0 ? "Pipeline Healthy" : "No Sessions linked"}
-        />
-        <StatCard
-          icon={HiOutlineDocumentText}
-          iconColor="blue"
-          label="AI Reel Drafts"
-          value={`${totalReelDrafts} Drafts`}
-          sub="Ready to Generate"
+          label="Active Accounts"
+          value={`${activeIgCount} / ${connectedAccounts.instagram.length}`}
+          sub="Instagram Live Nodes"
+          tag={activeIgCount > 0 ? "STABLE" : "OFFLINE"}
+          tagType={activeIgCount > 0 ? "healthy" : "offline"}
         />
 
-        {/* AI Processing — Interactive */}
-        <div className="glass-card stat-card ai-processing-card accent-border-cyan" onClick={() => setShowModelPicker(!showModelPicker)}>
-          <div className="stat-card-icon" style={{ background: `${currentModel.color}18`, color: currentModel.color }}>
-            <HiOutlineChip />
+        <StatCard
+          icon={HiOutlineFilm}
+          iconColor="pink"
+          label="Automated Reel Drafts"
+          value={totalReelDrafts.toString()}
+          sub="Compiled Media Assets"
+          tag="READY"
+          tagType="healthy"
+        />
+
+        <div className="glass-card stat-card accent-border-indigo stagger">
+          <div className="stat-card-meta">
+            <div className="stat-card-icon-wrapper bg-indigo-glow text-indigo">
+              <HiOutlineChip />
+            </div>
+            <div className="stat-card-labels">
+              <span>Active AI Model</span>
+              <h3>{currentModel?.name || 'Gemini 2.0 Flash'}</h3>
+              <p>{currentModel?.provider || 'Google Cloud'}</p>
+            </div>
           </div>
-          <div className="stat-card-label">AI Processing</div>
-          <div className="stat-card-value">{currentModel.name}</div>
-          <div className="stat-card-sub">
-            <span className="status-dot online"></span>
-            {currentModel.type} API Active
-            <HiOutlineSwitchHorizontal style={{ marginLeft: 'auto', opacity: 0.5, fontSize: '0.9rem' }} />
-          </div>
+          <button className="stat-card-action-btn mt-3" onClick={() => setShowModelPicker(!showModelPicker)}>
+            <HiOutlineSwitchHorizontal /> Change Model
+          </button>
 
           {showModelPicker && (
-            <div className="model-picker">
-              <div className="model-picker-title">Switch AI Model</div>
+            <div className="dashboard-model-picker-dropdown">
               {AI_MODELS.map((model) => (
                 <div
                   key={model.id}
-                  className={`model-picker-item ${activeModel === model.id ? 'active' : ''}`}
-                  onClick={(e) => { e.stopPropagation(); setActiveModel(model.id); setShowModelPicker(false); }}
+                  className={`model-option-item ${activeModel === model.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveModel(model.id);
+                    setShowModelPicker(false);
+                  }}
                 >
-                  <span className="model-picker-dot" style={{ background: model.color }} />
-                  <div className="model-picker-info">
-                    <span className="model-picker-name">{model.name}</span>
-                    <span className="model-picker-type">{model.type}</span>
+                  <div className="model-option-meta">
+                    <strong>{model.name}</strong>
+                    <span>{model.type}</span>
                   </div>
-                  {activeModel === model.id && <HiOutlineCheck className="model-picker-check" />}
+                  {activeModel === model.id && <HiOutlineCheck className="text-emerald" />}
                 </div>
               ))}
             </div>
@@ -102,66 +114,6 @@ export default function Dashboard() {
           tag="OPTIMIZED"
           tagType="optimized"
         />
-      </div>
-
-      {/* Analytics SVG Graph Row */}
-      <div className="glass-card dashboard-analytics-card accent-border-indigo stagger">
-        <div className="analytics-header">
-          <div className="analytics-header-title">
-            <HiOutlineTrendingUp className="analytics-icon" />
-            <div>
-              <h4>Channel Growth Analytics</h4>
-              <p>Weekly views reach growth across automated Instagram & YouTube pipelines</p>
-            </div>
-          </div>
-          <div className="analytics-metrics">
-            <div className="metric-pill">
-              <span className="metric-dot pink"></span>
-              <span>Reach: <strong style={{ color: 'var(--pink)' }}>+142%</strong></span>
-            </div>
-            <div className="metric-pill">
-              <span className="metric-dot indigo"></span>
-              <span>Processed: <strong>{totalReelDrafts + 12} Reels</strong></span>
-            </div>
-          </div>
-        </div>
-        <div className="analytics-chart-container">
-          <svg className="analytics-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="chart-grad-pink" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ec4899" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient id="chart-line-grad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#6366f1" />
-                <stop offset="50%" stopColor="#8b5cf6" />
-                <stop offset="100%" stopColor="#ec4899" />
-              </linearGradient>
-            </defs>
-            {/* Grid lines */}
-            <line x1="0" y1="20" x2="500" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-            <line x1="0" y1="60" x2="500" y2="60" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-            <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-            {/* Chart Area Gradient */}
-            <path d="M 0,120 L 0,85 Q 50,75 100,90 T 200,60 T 300,45 T 400,30 Q 450,15 500,20 L 500,120 Z" fill="url(#chart-grad-pink)" />
-            {/* Chart line */}
-            <path d="M 0,85 Q 50,75 100,90 T 200,60 T 300,45 T 400,30 Q 450,15 500,20" fill="none" stroke="url(#chart-line-grad)" strokeWidth="3" strokeLinecap="round" />
-            {/* Interactive graph dots */}
-            <circle cx="100" cy="90" r="4" fill="#6366f1" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
-            <circle cx="200" cy="60" r="4" fill="#8b5cf6" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
-            <circle cx="300" cy="45" r="4" fill="#8b5cf6" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
-            <circle cx="450" cy="15" r="5" fill="#ec4899" stroke="rgba(255,255,255,1)" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 6px #ec4899)' }} />
-          </svg>
-          <div className="chart-labels">
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-            <span>Sun</span>
-          </div>
-        </div>
       </div>
 
       {/* Recent Automated Reels Output Section */}
