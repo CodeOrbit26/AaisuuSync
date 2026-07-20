@@ -812,43 +812,26 @@ export async function apiMiddleware(req, res, next) {
                 throw new Error('No candidates returned from Gemini API');
               };
 
-              // Helper to automatically retry across official models (gemini-2.0-flash, gemini-1.5-flash) with 10s quota pause-and-retry
+              // Helper to attempt official models (gemini-2.0-flash, gemini-1.5-flash) and return instant fallback on rate limit to prevent 502 timeouts
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
                 const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
-                let lastErr = null;
 
-                for (let attempt = 0; attempt < 3; attempt++) {
-                  for (const modelName of modelsToTry) {
-                    for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
-                      try {
-                        return await geminiDirectCall(API_KEYS[keyIdx], modelName, contents, generationConfig);
-                      } catch (e) {
-                        lastErr = e;
-                        const is429 = e.message.includes('429') || e.message.includes('Quota exceeded') || e.message.includes('RESOURCE_EXHAUSTED');
-                        if (is429) {
-                          console.log(`[Gemini 429] Model ${modelName} rate limited on attempt ${attempt + 1}.`);
-                        } else {
-                          console.warn(`[Gemini] Key #${keyIdx + 1} with model ${modelName} error: ${e.message}`);
-                        }
-                      }
+                for (const modelName of modelsToTry) {
+                  for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
+                    try {
+                      return await geminiDirectCall(API_KEYS[keyIdx], modelName, contents, generationConfig);
+                    } catch (e) {
+                      console.warn(`[Gemini] Model ${modelName} with key #${keyIdx + 1} unavailable/rate-limited: ${e.message}`);
                     }
-                  }
-                  if (attempt < 2) {
-                    const waitSec = 10;
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[API] Gemini free tier quota busy (20 req/min). Auto-pausing ${waitSec}s for quota window reset (Attempt ${attempt + 1}/3)...`, type: 'info' }]
-                    });
-                    console.log(`[Gemini 429] All models quota busy. Sleeping ${waitSec}s for quota reset...`);
-                    await new Promise(resolve => setTimeout(resolve, waitSec * 1000));
                   }
                 }
 
-                // Ultimate Fallback Guarantee - Never crash the workflow
-                console.warn('[Gemini Safeguard] All API attempts exhausted. Returning curated fallback payload.');
+                // Instant Unbreakable Fallback - Zero delay, zero HTTP timeout
+                console.warn('[Gemini Safeguard] API quota busy or rate-limited. Returning instant curated fallback payload.');
                 updateWorkflowStatus({
-                  logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activated aesthetic reel generator safeguard.`, type: 'warn' }]
+                  logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.`, type: 'info' }]
                 });
                 
                 let fallbackJson = '{"songs":[{"songName":"Jamna Paar","youtubeSearchQuery":"Jamna Paar Tony Kakkar trending reels audio","viralHookStartTime":33}]}';
