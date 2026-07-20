@@ -1266,18 +1266,18 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
 
                     // Guarantee exact song-to-lyric alignment with millisecond vocal sync
                     const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
-                    let exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Saiyaan rehte Jamna Paar\n[00:04.50] Unki lambi motor car\n[00:07.50] Baithi saj dhaj ke\n[00:10.50] Lene aao na sarkaar\n[00:13.50] Saiyaan rehte Jamna Paar\n[00:14.50] 🤍💫🍷`;
+                    let exactLyrics = `[00:00.00] Saiyaan rehte Jamna Paar\n[00:03.00] Unki lambi motor car\n[00:06.00] Baithi saj dhaj ke\n[00:09.00] Lene aao na sarkaar\n[00:12.00] Saiyaan rehte Jamna Paar\n[00:14.50] 🤍💫🍷`;
 
                     if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Oh le liya kudi ne dil sadda\n[00:04.80] Haale thoda saaf jeha ni lagda irada\n[00:08.00] Gutt bahli lambi ni rakhi ae mutiyar ne\n[00:11.20] Haye dikhda paranda naiyon dikhda prada\n[00:14.50] 🤍💫🍷`;
+                      exactLyrics = `[00:00.00] Oh le liya kudi ne dil sadda\n[00:03.30] Haale thoda saaf jeha ni lagda irada\n[00:06.50] Gutt bahli lambi ni rakhi ae mutiyar ne\n[00:09.70] Haye dikhda paranda naiyon dikhda prada\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Tanne mai likhu raja dil ka\n[00:04.50] Tane mai mera pyar likhungi\n[00:07.50] Je likhne mai bethgi tane\n[00:10.50] To pakka mai kitab likhungi\n[00:13.50] Re duniya te ladke\n[00:14.50] 🤍💫🍷`;
+                      exactLyrics = `[00:00.00] Tanne mai likhu raja dil ka\n[00:03.00] Tane mai mera pyar likhungi\n[00:06.00] Je likhne mai bethgi tane\n[00:09.00] To pakka mai kitab likhungi\n[00:12.00] Re duniya te ladke\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('gypsy')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 🤙\n[00:01.50] Balam mera gypsy chalave\n[00:03.80] Poore seher mein roab dikhave\n[00:06.00] Meri chundar resham ki\n[00:08.20] Hawa mein udd udd jaave\n[00:10.50] Dil ki baat sun le balam\n[00:12.80] Tera pyaar mainu bhaave\n[00:14.50] ✨🤍💫`;
+                      exactLyrics = `[00:00.00] Balam mera gypsy chalave\n[00:02.50] Poore seher mein roab dikhave\n[00:05.00] Meri chundar resham ki\n[00:07.50] Hawa mein udd udd jaave\n[00:10.00] Dil ki baat sun le balam\n[00:12.50] Tera pyaar mainu bhaave\n[00:14.50] ✨🤍💫`;
                     } else if (sName.includes('dhakad')) {
-                      exactLyrics = `[00:00.00] 🤙 🔥 ✨\n[00:01.50] Dhakad chora aaya re\n[00:03.80] Gaon mein shor machaaya re\n[00:06.00] Yaara da yaar sadaa\n[00:08.20] Kadi na darr ke aaya re\n[00:10.50] Haryanvi swag sadaa\n[00:12.80] Subha toh shaam chaaya re\n[00:14.50] 🤙🔥✨`;
+                      exactLyrics = `[00:00.00] Dhakad chora aaya re\n[00:03.00] Gaon mein shor machaaya re\n[00:06.00] Yaara da yaar sadaa\n[00:09.00] Kadi na darr ke aaya re\n[00:12.00] Haryanvi swag sadaa\n[00:14.50] 🤙🔥✨`;
                     } else if (sName.includes('achyutam') || sName.includes('radhe')) {
-                      exactLyrics = `[00:00.00] 🙏 ✨ 🚩\n[00:01.50] Achyutam keshavam krishna damodaram\n[00:04.20] Rama narayanam janaki vallabham\n[00:06.80] Kaun kehte hai bhagwan aate nahi\n[00:09.20] Tum meera ke jaise bulate nahi\n[00:11.80] Jai shri krishna radhe radhe\n[00:13.80] Sabhi pe kripa barsao\n[00:14.50] 🙏✨🚩`;
+                      exactLyrics = `[00:00.00] Achyutam keshavam krishna damodaram\n[00:03.00] Rama narayanam janaki vallabham\n[00:06.00] Kaun kehte hai bhagwan aate nahi\n[00:09.00] Tum meera ke jaise bulate nahi\n[00:11.80] Jai shri krishna radhe radhe\n[00:14.50] 🙏✨🚩`;
                     }
 
                     // Enforce curated exact lyrics whenever known song is selected or LLM response is generic/missing
