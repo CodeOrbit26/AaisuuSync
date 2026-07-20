@@ -960,35 +960,33 @@ export async function apiMiddleware(req, res, next) {
                   ];
 
                   if (promptSource) {
-                    defaultSongs.unshift({
+                    const matched = defaultSongs.find(s => s.songName.toLowerCase().includes(promptSource.toLowerCase())) || {
                       songName: promptSource,
                       youtubeSearchQuery: `${promptSource} official audio`,
                       viralHookStartTime: promptSource.toLowerCase().includes('tauba') ? 34 : 15
-                    });
-                  } else if (vibeFilter === 'sad' || vibeFilter === 'sad_trending') {
-                    defaultSongs = [
-                      { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
-                      { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
-                      { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
-                    ];
-                  } else if (vibeFilter === 'devotional') {
-                    defaultSongs = [
-                      { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
-                      { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe official audio", viralHookStartTime: 15 }
-                    ];
-                  }
-
-                  // If all songs in the pool have already been generated, reset history for fresh loop
-                  if (!promptSource) {
-                    const allPlayed = defaultSongs.every(s => normalizedHistory.includes(normalizeName(s.songName)));
-                    if (allPlayed) {
-                      console.log('[Song Pool] All songs in pool generated. Resetting history for fresh rotation...');
-                      normalizedHistory = [];
-                      writeSongsHistory([]);
+                    };
+                    selectedSong = matched;
+                  } else {
+                    if (vibeFilter === 'sad' || vibeFilter === 'sad_trending') {
+                      defaultSongs = [
+                        { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
+                        { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
+                        { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
+                      ];
+                    } else if (vibeFilter === 'devotional') {
+                      defaultSongs = [
+                        { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
+                        { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe official audio", viralHookStartTime: 15 }
+                      ];
                     }
+
+                    // Strict round-robin selection based on total history count to guarantee non-repeating song rotation
+                    const nextIdx = historyList.length % defaultSongs.length;
+                    selectedSong = defaultSongs[nextIdx];
                   }
 
-                  responseData1 = { songs: defaultSongs };
+                  responseData1 = { songs: [selectedSong] };
+                  break;
                 }
                 
                 // Transition to audio memory verification stage
