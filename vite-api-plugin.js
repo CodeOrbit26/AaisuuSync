@@ -1073,10 +1073,13 @@ export async function apiMiddleware(req, res, next) {
                   }];
                 }
                 
-                selectedSong = fallbackSongsList[0] || {
+                const unplayedFallback = fallbackSongsList.filter(s => s && s.songName && !normalizedHistory.includes(normalizeName(s.songName)));
+                selectedSong = (unplayedFallback.length > 0
+                  ? unplayedFallback[Math.floor(Math.random() * unplayedFallback.length)]
+                  : fallbackSongsList[Math.floor(Math.random() * fallbackSongsList.length)]) || {
                   songName: "Achyutam Keshavam",
-                  youtubeSearchQuery: "Achyutam Keshavam short",
-                  viralHookStartTime: 12
+                  youtubeSearchQuery: "Achyutam Keshavam official audio",
+                  viralHookStartTime: 15
                 };
               }
 
@@ -1589,8 +1592,7 @@ Return JSON format exactly like this:
               try {
                 if (fs.existsSync(targetPresetPath)) {
                   fs.copyFileSync(targetPresetPath, outputPath);
-                  // Don't override viralHookStartTime — presets are full songs,
-                  // so the Gemini-recommended start time is used for trimming
+                  if (selectedSong) selectedSong.viralHookStartTime = 0;
                 } else {
                   const defaultAudioPath = path.join(process.cwd(), 'public', 'uploads', 'default_viral_audio.mp3');
                   if (fs.existsSync(defaultAudioPath)) {
