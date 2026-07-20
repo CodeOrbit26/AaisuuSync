@@ -1066,7 +1066,10 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.25;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: center;
+  max-width: 92%;
   transition: all 0.3s ease;
   opacity: 1; /* Completely visible */
 }
@@ -1458,7 +1461,11 @@
 }
 
 .pipeline-lyrics-static.expanded .pipeline-lyric-line {
-  font-size: 1.35rem;
+  font-size: 1.05rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: center;
+  max-width: 90%;
 }
 
 .pipeline-play-controls {

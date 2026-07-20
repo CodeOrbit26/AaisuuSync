@@ -1076,31 +1076,43 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                 </div>
               ) : (
                 <div className="pipeline-play-container inline">
-                  <div className="pipeline-play-canvas">
-                    <div className="pipeline-play-screen">
-                      <audio 
-                        ref={audioRef}
-                        src={window.resolveUrl(playingReel.audioUrl || "/uploads/kitab_song_trimmed.mp3")}
-                        onTimeUpdate={handleTimeUpdate}
-                        onLoadedMetadata={handleLoadedMetadata}
-                        onPlay={() => setIsPlaying(true)}
-                        onPause={() => setIsPlaying(false)}
-                        onEnded={() => setIsPlaying(false)}
+                  <div className="pipeline-play-canvas" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {playingReel.videoUrl ? (
+                      <video
+                        key={playingReel.id || playingReel.videoUrl}
+                        src={window.resolveUrl(playingReel.videoUrl)}
+                        controls
+                        autoPlay
+                        loop
+                        playsInline
+                        style={{ width: '100%', height: '100%', borderRadius: '16px', objectFit: 'contain', background: '#000' }}
                       />
-                      <div className="pipeline-lyrics-overlay">
-                        <div className="pipeline-lyrics-static expanded">
-                          {parsedLyrics.map((line, i) => (
-                            <div 
-                              key={i} 
-                              className={`pipeline-lyric-line ${i === activeIndex ? 'active' : ''}`}
-                            >
-                              {line.text}
-                            </div>
-                          ))}
+                    ) : (
+                      <div className="pipeline-play-screen">
+                        <audio 
+                          ref={audioRef}
+                          src={window.resolveUrl(playingReel.audioUrl || "/uploads/kitab_song_trimmed.mp3")}
+                          onTimeUpdate={handleTimeUpdate}
+                          onLoadedMetadata={handleLoadedMetadata}
+                          onPlay={() => setIsPlaying(true)}
+                          onPause={() => setIsPlaying(false)}
+                          onEnded={() => setIsPlaying(false)}
+                        />
+                        <div className="pipeline-lyrics-overlay">
+                          <div className="pipeline-lyrics-static expanded">
+                            {parsedLyrics.map((line, i) => (
+                              <div 
+                                key={i} 
+                                className={`pipeline-lyric-line ${i === activeIndex ? 'active' : ''}`}
+                              >
+                                {line.text}
+                              </div>
+                            ))}
+                          </div>
                         </div>
+                        <div className="pipeline-phone-watermark">AaisuuSync</div>
                       </div>
-                      <div className="pipeline-phone-watermark">AaisuuSync</div>
-                    </div>
+                    )}
                   </div>
                   <div className="pipeline-play-controls">
                     <button className="pipeline-play-toggle" onClick={togglePlay}>
