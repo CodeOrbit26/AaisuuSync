@@ -875,42 +875,30 @@ export async function apiMiddleware(req, res, next) {
                 return { response: { text: () => fallbackJson } };
               };
 
-              // Helper to build prompt based on user choice
-              const buildPrompt1 = (vibe, source) => {
-                if (source) {
-                  return `You are a viral TikTok/Reels expert. The user has specifically requested a reel based on this source/song: "${source}". Please provide the exact YouTube search query to find the official audio for it, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
+              const buildPrompt1 = (vibeFilter, promptSource, historyList = []) => {
+                if (promptSource) {
+                  return `You are a viral TikTok/Reels expert. Give me details for the song "${promptSource}".\nReturn JSON format exactly like this: { "songs": [ { "songName": "${promptSource}", "youtubeSearchQuery": "${promptSource} official audio", "viralHookStartTime": 15 } ] }`;
                 }
-
-                let vibeText = 'Random Selection';
-                let chosenVibePrompt = '';
-                
-                if (vibeFilter === 'trending') {
-                  vibeText = 'Trending Hits';
-                  chosenVibePrompt = 'strictly trending/viral songs';
-                } else if (vibeFilter === 'sad') {
-                  vibeText = 'Sad/Emotional';
-                  chosenVibePrompt = 'sad, emotional, or heartbreaking songs';
+                let chosenVibePrompt = 'trending Hindi or Haryanvi songs';
+                if (vibeFilter === 'sad') {
+                  chosenVibePrompt = 'sad, emotional Hindi/Haryanvi songs';
                 } else if (vibeFilter === 'sad_trending') {
-                  vibeText = 'Sad + Trending';
-                  chosenVibePrompt = 'sad and emotional songs that are currently viral/trending on Reels';
+                  chosenVibePrompt = 'trending sad/lofi Hindi or Haryanvi songs';
                 } else if (vibeFilter === 'chatpatee') {
-                  vibeText = 'Chatpatee/Upbeat';
-                  chosenVibePrompt = 'upbeat, chatpatee, energetic, or high-tempo Haryanvi or Hindi dance songs';
+                  chosenVibePrompt = 'upbeat, chatpatee, energetic Hindi or Haryanvi songs';
                 } else if (vibeFilter === 'devotional') {
-                  vibeText = 'Devotional/Spiritual';
-                  chosenVibePrompt = 'aesthetic devotional, Krishna, or spiritual songs';
+                  chosenVibePrompt = 'devotional, Krishna, or spiritual songs';
                 } else if (vibeFilter === 'retro_remix') {
-                  vibeText = 'Retro Remix';
                   chosenVibePrompt = 'retro 90s classic Hindi songs or viral slowed/reverb remixes';
-                } else {
-                  vibeText = 'Random (Hindi/Haryanvi)';
-                  chosenVibePrompt = 'trending Hindi or Haryanvi songs';
                 }
 
-                return `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English). For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
+                const excludeText = historyList.length > 0 ? `\nIMPORTANT: DO NOT suggest any of these recently played songs: ${historyList.slice(-10).join(', ')}. Suggest brand new options.` : '';
+
+                return `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English).${excludeText} For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
               };
 
-              const prompt1 = buildPrompt1(vibeFilter, promptSource);
+              const historyList = readSongsHistory();
+              const prompt1 = buildPrompt1(vibeFilter, promptSource, historyList);
               let vibeText = 'Random Selection';
               if (vibeFilter === 'trending') vibeText = 'Trending Hits';
               else if (vibeFilter === 'sad') vibeText = 'Sad/Emotional';
@@ -933,7 +921,6 @@ export async function apiMiddleware(req, res, next) {
               });
 
               const normalizeName = (name) => name ? name.toLowerCase().trim() : '';
-              let historyList = readSongsHistory();
               let normalizedHistory = historyList.map(normalizeName);
               
               let responseData1;
