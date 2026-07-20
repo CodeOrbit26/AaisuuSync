@@ -879,20 +879,21 @@ export async function apiMiddleware(req, res, next) {
                 if (promptSource) {
                   return `You are a viral TikTok/Reels expert. Give me details for the song "${promptSource}".\nReturn JSON format exactly like this: { "songs": [ { "songName": "${promptSource}", "youtubeSearchQuery": "${promptSource} official audio", "viralHookStartTime": 15 } ] }`;
                 }
-                let chosenVibePrompt = 'trending Hindi or Haryanvi songs';
+                let chosenVibePrompt = 'trending Hindi or Haryanvi songs by artists like Swara Verma, Tony Kakkar, GD Kaur, King, MC Stan, Jubin Nautiyal, Diljit Dosanjh, Arijit Singh, Badshah, or B Praak';
                 if (vibeFilter === 'sad') {
-                  chosenVibePrompt = 'sad, emotional Hindi/Haryanvi songs';
+                  chosenVibePrompt = 'sad, emotional Hindi/Haryanvi songs by artists like The Local Train, Raffey Anwar, B Praak, or Arijit Singh';
                 } else if (vibeFilter === 'sad_trending') {
                   chosenVibePrompt = 'trending sad/lofi Hindi or Haryanvi songs';
                 } else if (vibeFilter === 'chatpatee') {
-                  chosenVibePrompt = 'upbeat, chatpatee, energetic Hindi or Haryanvi songs';
+                  chosenVibePrompt = 'upbeat, chatpatee, energetic Hindi or Haryanvi dance songs';
                 } else if (vibeFilter === 'devotional') {
                   chosenVibePrompt = 'devotional, Krishna, or spiritual songs';
                 } else if (vibeFilter === 'retro_remix') {
                   chosenVibePrompt = 'retro 90s classic Hindi songs or viral slowed/reverb remixes';
                 }
 
-                const excludeText = historyList.length > 0 ? `\nIMPORTANT: DO NOT suggest any of these recently played songs: ${historyList.slice(-10).join(', ')}. Suggest brand new options.` : '';
+                const excludeList = ['Tauba Tauba', ...historyList].filter(Boolean);
+                const excludeText = `\nSTRICT REQUIREMENT: Absolutely DO NOT suggest any of these songs: ${excludeList.slice(-15).join(', ')}. Provide completely fresh, different songs.`;
 
                 return `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English).${excludeText} For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
               };
