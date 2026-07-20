@@ -1297,7 +1297,7 @@ Return JSON format exactly like this:
                     }
                     const browser = await puppeteer.launch(launchOptions);
                     const page = await browser.newPage();
-                    await page.setViewport({ width: 1080, height: 1920 });
+                    await page.setViewport({ width: 540, height: 960 });
 
                     const htmlContent = `
                       <html>
@@ -1306,7 +1306,7 @@ Return JSON format exactly like this:
                           <style>
                             .lyric-line {
                               color: #f094c4;
-                              font-size: 70px;
+                              font-size: 38px;
                               font-weight: 500;
                               letter-spacing: 0.05em;
                               line-height: 1.25;
@@ -1321,7 +1321,7 @@ Return JSON format exactly like this:
                           </style>
                         </head>
                         <body style="background: black; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'Caveat', cursive; overflow: hidden; text-transform: uppercase;">
-                          <div id="container" style="display: flex; flex-direction: column; align-items: center; gap: 15px; text-align: center; width: 100%;">
+                          <div id="container" style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; width: 100%;">
                           </div>
                           <script>
                             const lyrics = ${JSON.stringify(parsedLyrics)};
@@ -1374,7 +1374,7 @@ Return JSON format exactly like this:
                       console.warn('[Puppeteer] Font load wait warning:', e.message);
                     }
 
-                    const fps = 10;
+                    const fps = 5;
                     const duration = 15;
                     const totalFrames = fps * duration;
 
