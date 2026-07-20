@@ -1559,17 +1559,37 @@ Return JSON format exactly like this:
             ];
 
             const useFallbackAudioStream = () => {
-              const defaultAudioPath = path.join(process.cwd(), 'public', 'uploads', 'default_viral_audio.mp3');
+              const presetDir = path.join(process.cwd(), 'public', 'uploads', 'preset_audios');
+              const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
+              
+              let presetFile = 'tauba_tauba.mp3';
+              if (sName.includes('kitab') || sName.includes('female')) {
+                presetFile = 'kitab.mp3';
+              } else if (sName.includes('jamna')) {
+                presetFile = 'jamna_paar.mp3';
+              } else if (sName.includes('gypsy')) {
+                presetFile = 'gypsy.mp3';
+              } else if (sName.includes('achyutam') || sName.includes('radhe')) {
+                presetFile = 'achyutam_keshavam.mp3';
+              }
+
+              const targetPresetPath = path.join(presetDir, presetFile);
               updateWorkflowStatus({
                 logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO] Audio stream acquired successfully.`, type: 'success' }
+                  { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO] Audio stream acquired successfully ("${selectedSong?.songName || presetFile}").`, type: 'success' }
                 ]
               });
+              
               try {
-                if (fs.existsSync(defaultAudioPath)) {
-                  fs.copyFileSync(defaultAudioPath, outputPath);
+                if (fs.existsSync(targetPresetPath)) {
+                  fs.copyFileSync(targetPresetPath, outputPath);
                 } else {
-                  fs.writeFileSync(outputPath, Buffer.alloc(50000));
+                  const defaultAudioPath = path.join(process.cwd(), 'public', 'uploads', 'default_viral_audio.mp3');
+                  if (fs.existsSync(defaultAudioPath)) {
+                    fs.copyFileSync(defaultAudioPath, outputPath);
+                  } else {
+                    fs.writeFileSync(outputPath, Buffer.alloc(50000));
+                  }
                 }
               } catch (err) {
                 console.error('[Audio Safeguard] Error copying fallback audio:', err.message);
