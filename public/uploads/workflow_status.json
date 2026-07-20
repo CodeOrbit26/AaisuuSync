@@ -1,61 +1,6 @@
 {
-  "status": "failed",
-  "stage": "lyrics_analysis",
-  "logs": [
-    {
-      "timestamp": "5:05:01 PM",
-      "message": "[SYSTEM] POST /api/generate-viral-reel request received.",
-      "type": "info"
-    },
-    {
-      "timestamp": "5:05:01 PM",
-      "message": "[INPUT] Specific song override: None (Random song selection)",
-      "type": "info"
-    },
-    {
-      "timestamp": "5:05:01 PM",
-      "message": "[SYSTEM] Active category filter option configured: \"Random (retro remix)\"",
-      "type": "info"
-    },
-    {
-      "timestamp": "5:05:01 PM",
-      "message": "[GEMINI] Dispatching Song Recommendation query (Prompt 1).",
-      "type": "info"
-    },
-    {
-      "timestamp": "5:05:02 PM",
-      "message": "[ERROR] Global handler exception: [401] {\n  \"error\": {\n    \"code\": 401,\n    \"message\": \"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\n    \"status\": \"UNAUTHENTICATED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"ACCESS_TOKEN_TYPE_UNSUPPORTED\",\n        \"metadata\": {\n          \"service\": \"generativelanguage.googleapis.com\",\n          \"method\": \"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent\"\n        }\n      }\n    ]\n  }\n}\n",
-      "type": "error"
-    }
-  ],
-  "executionData": {
-    "startTime": 1784460901988,
-    "promptSource": "None",
-    "vibe": "Random (retro remix)",
-    "apiKeysValidated": true,
-    "songName": "",
-    "youtubeSearchQuery": "",
-    "viralHookStartTime": 0,
-    "syncedLyrics": "",
-    "prompt3": "",
-    "viralHashtags": "",
-    "viralReachHashtags": "",
-    "youtubeCmd": "",
-    "trimCmd": "",
-    "puppeteerHtml": "",
-    "ffmpegCmd": "",
-    "resolution": "1080x1920",
-    "fps": 10,
-    "bitrate": "Adaptive",
-    "format": "mp4",
-    "renderingProgress": 0,
-    "renderingTotal": 150,
-    "videoUrl": "",
-    "audioUrl": "",
-    "prompt1": "You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now with a **chatpati / upbeat** vibe (ONLY Hindi or Haryanvi, NO English). For each song, give me the song name, the exact YouTube search query to find the best short/audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }\nReturn JSON format exactly like this: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }",
-    "dbTotalSongs": 18,
-    "prompt2": "Listen to this 15-second audio clip. Transcribe the lyrics exactly as they are sung in the audio.\nCRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.\nReturn the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].\nIMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫\n\nReturn JSON format exactly like this: { \"syncedLyrics\": \"string\" }",
-    "totalElapsedTime": "32.0s"
-  },
-  "updatedAt": 1784460902184
+  "status": "idle",
+  "stage": "idle",
+  "logs": [],
+  "executionData": {}
 }
