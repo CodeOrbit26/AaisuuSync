@@ -1092,25 +1092,29 @@ export async function apiMiddleware(req, res, next) {
 
               // Fallback if no song was successfully selected
               if (!selectedSong) {
-                let fallbackSongsList = [];
-                if (responseData1 && responseData1.songs && Array.isArray(responseData1.songs) && responseData1.songs.length > 0) {
-                  fallbackSongsList = responseData1.songs;
-                } else if (responseData1 && responseData1.songName) {
-                  fallbackSongsList = [{
-                    songName: responseData1.songName,
-                    youtubeSearchQuery: responseData1.youtubeSearchQuery || responseData1.songName,
-                    viralHookStartTime: Number(responseData1.viralHookStartTime) || 0
-                  }];
+                const curatedPool = [
+                  { songName: "Tauba Tauba", youtubeSearchQuery: "Tauba Tauba Karan Aujla official audio", viralHookStartTime: 34 },
+                  { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
+                  { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
+                  { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 },
+                  { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 }
+                ];
+
+                if (vibeFilter === 'sad' || vibeFilter === 'sad_trending') {
+                  curatedPool.unshift(
+                    { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
+                    { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
+                  );
                 }
+
+                const unplayedPool = curatedPool.filter(s => s && s.songName && !normalizedHistory.includes(normalizeName(s.songName)));
                 
-                const unplayedFallback = fallbackSongsList.filter(s => s && s.songName && !normalizedHistory.includes(normalizeName(s.songName)));
-                selectedSong = (unplayedFallback.length > 0
-                  ? unplayedFallback[Math.floor(Math.random() * unplayedFallback.length)]
-                  : fallbackSongsList[Math.floor(Math.random() * fallbackSongsList.length)]) || {
-                  songName: "Achyutam Keshavam",
-                  youtubeSearchQuery: "Achyutam Keshavam official audio",
-                  viralHookStartTime: 15
-                };
+                if (unplayedPool.length > 0) {
+                  selectedSong = unplayedPool[Math.floor(Math.random() * unplayedPool.length)];
+                } else {
+                  const nextIdx = historyList.length % curatedPool.length;
+                  selectedSong = curatedPool[nextIdx];
+                }
               }
 
               if (!promptSource && selectedSong.songName) {
