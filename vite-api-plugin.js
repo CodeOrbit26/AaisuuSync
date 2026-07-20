@@ -1227,16 +1227,16 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
 
                     // Guarantee exact song-to-lyric alignment
                     const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
-                    let exactLyrics = `[00:00.00] Jamna paar waaliye\n[00:02.50] Mainu dil vich vasa le\n[00:05.00] Tere naina vakhre\n[00:07.50] Meri jaan le gaye\n[00:10.00] Tu hi tu hai mere dil vich\n[00:12.50] Mainu chhod ke na ja\n[00:14.00] 😭🤍💫`;
+                    let exactLyrics = `[00:00.00] Jamna paar waaliye\n[00:02.20] Mainu dil vich vasa le\n[00:04.40] Tere naina vakhre\n[00:06.60] Meri jaan le gaye\n[00:08.80] Tu hi tu hai mere dil vich\n[00:11.00] Mainu chhod ke na ja\n[00:13.50] 😭🤍💫`;
 
                     if (sName.includes('tauba')) {
-                      exactLyrics = `[00:00.00] Tauba tauba re tauba tauba\n[00:02.50] Husn tera kamaal hai\n[00:05.00] Dil sadda luttya gaya\n[00:07.50] Ki tera khayaal hai\n[00:10.00] Nakhra tera vakhra vakhra\n[00:12.50] Mainu pagal kar gaya\n[00:14.00] 🔥💫💥`;
+                      exactLyrics = `[00:00.00] Tauba tauba re tauba tauba\n[00:02.20] Husn tera kamaal hai\n[00:04.40] Dil sadda luttya gaya\n[00:06.60] Ki tera khayaal hai\n[00:08.80] Nakhra tera vakhra vakhra\n[00:11.00] Mainu pagal kar gaya\n[00:13.50] 🔥💫💥`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
-                      exactLyrics = `[00:00.00] Teri kitaab ke har panno mein\n[00:02.50] Mera naam likha hai\n[00:05.00] Tu door sahi par dil ke paas\n[00:07.50] Har pal tera ehsaas hai\n[00:10.00] Yeh raatein kaat ti nahi\n[00:12.50] Bas teri yaad aati hai\n[00:14.00] 😭🤍💫`;
+                      exactLyrics = `[00:00.00] Teri kitaab ke har panno mein\n[00:02.20] Mera naam likha hai\n[00:04.40] Tu door sahi par dil ke paas\n[00:06.60] Har pal tera ehsaas hai\n[00:08.80] Yeh raatein kaat ti nahi\n[00:11.00] Bas teri yaad aati hai\n[00:13.50] 😭🤍💫`;
                     } else if (sName.includes('gypsy')) {
-                      exactLyrics = `[00:00.00] Balam mera gypsy chalave\n[00:02.50] Poore seher mein roab dikhave\n[00:05.00] Meri chundar resham ki\n[00:07.50] Hawa mein udd udd jaave\n[00:10.00] Dil ki baat sun le balam\n[00:12.50] Tera pyaar mainu bhaave\n[00:14.00] ✨🤍💫`;
+                      exactLyrics = `[00:00.00] Balam mera gypsy chalave\n[00:02.20] Poore seher mein roab dikhave\n[00:04.40] Meri chundar resham ki\n[00:06.60] Hawa mein udd udd jaave\n[00:08.80] Dil ki baat sun le balam\n[00:11.00] Tera pyaar mainu bhaave\n[00:13.50] ✨🤍💫`;
                     } else if (sName.includes('dhakad')) {
-                      exactLyrics = `[00:00.00] Dhakad chora aaya re\n[00:02.50] Gaon mein shor machaaya re\n[00:05.00] Yaara da yaar sadaa\n[00:07.50] Kadi na darr ke aaya re\n[00:10.00] Haryanvi swag sadaa\n[00:12.50] Subha toh shaam chaaya re\n[00:14.00] 🤙🔥✨`;
+                      exactLyrics = `[00:00.00] Dhakad chora aaya re\n[00:02.20] Gaon mein shor machaaya re\n[00:04.40] Yaara da yaar sadaa\n[00:06.60] Kadi na darr ke aaya re\n[00:08.80] Haryanvi swag sadaa\n[00:11.00] Subha toh shaam chaaya re\n[00:13.50] 🤙🔥✨`;
                     }
 
                     if (!responseData2.syncedLyrics || responseData2.syncedLyrics.includes("Tere bina dil lagda nahi")) {
