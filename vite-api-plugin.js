@@ -1122,11 +1122,9 @@ export async function apiMiddleware(req, res, next) {
 
               if (!promptSource && selectedSong.songName) {
                 let currentHistory = readSongsHistory();
-                if (!currentHistory.map(normalizeName).includes(normalizeName(selectedSong.songName))) {
-                  currentHistory.push(selectedSong.songName);
-                  if (currentHistory.length > 50) currentHistory.shift();
-                  writeSongsHistory(currentHistory);
-                }
+                currentHistory.push(selectedSong.songName);
+                if (currentHistory.length > 50) currentHistory.shift();
+                writeSongsHistory(currentHistory);
               }
 
               updateWorkflowStatus({
