@@ -1271,7 +1271,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                     if (sName.includes('tauba')) {
                       exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Oh le liya kudi ne dil sadda\n[00:04.80] Haale thoda saaf jeha ni lagda irada\n[00:08.00] Gutt bahli lambi ni rakhi ae mutiyar ne\n[00:11.20] Haye dikhda paranda naiyon dikhda prada\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('kitab') || sName.includes('female')) {
-                      exactLyrics = `[00:00.00] ✨ 🤍 💫\n[00:01.80] Teri kitaab ke har panno mein\n[00:04.20] Mera naam likha hai\n[00:06.50] Tu door sahi par dil ke paas\n[00:08.80] Har pal tera ehsaas hai\n[00:11.00] Yeh raatein kaat ti nahi\n[00:13.00] Bas teri yaad aati hai\n[00:14.50] 😭🤍💫`;
+                      exactLyrics = `[00:00.00] ✨ 🤍 🍷\n[00:01.50] Tanne mai likhu raja dil ka\n[00:04.50] Tane mai mera pyar likhungi\n[00:07.50] Je likhne mai bethgi tane\n[00:10.50] To pakka mai kitab likhungi\n[00:13.50] Re duniya te ladke\n[00:14.50] 🤍💫🍷`;
                     } else if (sName.includes('gypsy')) {
                       exactLyrics = `[00:00.00] ✨ 🤍 🤙\n[00:01.50] Balam mera gypsy chalave\n[00:03.80] Poore seher mein roab dikhave\n[00:06.00] Meri chundar resham ki\n[00:08.20] Hawa mein udd udd jaave\n[00:10.50] Dil ki baat sun le balam\n[00:12.80] Tera pyaar mainu bhaave\n[00:14.50] ✨🤍💫`;
                     } else if (sName.includes('dhakad')) {
