@@ -1842,3 +1842,44 @@
   white-space: nowrap;
 }
 
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .linkedin-tabs-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .linkedin-tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: var(--font-xs);
+  }
+
+  .linkedin-writer-grid,
+  .linkedin-outreach-grid,
+  .analytics-bottom-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .analytics-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .linkedin-tools-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .linkedin-banner-card {
+    flex-direction: column;
+    padding: 16px;
+    text-align: center;
+    gap: var(--space-4);
+  }
+}
+
+

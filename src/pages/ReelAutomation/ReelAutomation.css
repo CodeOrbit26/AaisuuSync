@@ -2751,5 +2751,62 @@
   transform: translateY(-1px);
 }
 
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .reel-engine-layout {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-4);
+  }
 
+  .matrix-grid,
+  .memory-body,
+  .aesthetic-section,
+  .reel-split-grid,
+  .blueprint-prompts-grid,
+  .output-grid,
+  .content-split-layout {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-3);
+  }
+
+  .reel-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+
+  .reel-tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: var(--font-xs);
+  }
+
+  .reel-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .reel-content-card,
+  .glass-card {
+    padding: var(--space-4);
+  }
+
+  .blueprint-card {
+    padding: var(--space-3);
+  }
+
+  .reel-preview-player {
+    max-height: 300px;
+  }
+
+  .lyrics-textarea {
+    min-height: 120px;
+  }
+}
 

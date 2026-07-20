@@ -21,3 +21,35 @@
   margin-left: 8px;
   scroll-behavior: smooth;
 }
+
+/* Mobile overlay backdrop */
+.sidebar-overlay {
+  display: none;
+}
+
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .layout-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .layout-content {
+    padding: 16px 14px 40px;
+    margin-left: 0;
+    height: calc(100vh - 56px);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 99;
+    animation: fadeIn 0.2s ease both;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}

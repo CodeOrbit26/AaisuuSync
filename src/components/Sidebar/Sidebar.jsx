@@ -7,6 +7,7 @@ import {
   HiOutlineChatAlt2,
   HiOutlineCog,
   HiOutlineLink,
+  HiOutlineX,
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
 import './Sidebar.css';
@@ -30,17 +31,21 @@ function YTIcon() {
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, systemStatus } = useApp();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
       <div className="sidebar-brand">
         <div className="sidebar-brand-logo">A</div>
         <div className="sidebar-brand-text">
           <h1>AaisuuSync</h1>
           <span>AI Platform</span>
         </div>
+        {/* Mobile close button */}
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">
+          <HiOutlineX />
+        </button>
       </div>
 
       <nav className="sidebar-nav">

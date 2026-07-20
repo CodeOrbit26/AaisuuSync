@@ -1507,3 +1507,130 @@
   border-radius: var(--radius-lg);
   padding: var(--space-10) var(--space-6);
 }
+
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .accounts-page {
+    gap: var(--space-4);
+  }
+
+  .accounts-header-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  /* Pipeline visualizer — stack vertically */
+  .pipeline-container {
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: auto;
+    align-items: stretch;
+  }
+
+  .pipeline-column {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pipeline-node {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .pipeline-svg-wrapper {
+    display: none;
+  }
+
+  .pipeline-center-column {
+    width: 100%;
+    order: -1;
+  }
+
+  .pipeline-visualizer-card {
+    padding: var(--space-4);
+  }
+
+  /* Accounts grid — single column */
+  .accounts-split-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .config-card {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .config-card-header,
+  .config-card-header-with-action {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .header-meta {
+    gap: var(--space-2);
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-group input {
+    width: 100%;
+  }
+
+  /* YouTube panels — single column */
+  .youtube-panels-split {
+    grid-template-columns: 1fr;
+  }
+
+  /* Instagram account rows */
+  .instagram-account-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .acc-info-block {
+    width: 100%;
+  }
+
+  .acc-actions-block {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .acc-stats {
+    flex-wrap: wrap;
+  }
+
+  /* Channel statistics */
+  .channel-statistics {
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    min-width: 60px;
+  }
+
+  /* Connect dropdown */
+  .connect-dropdown-menu {
+    min-width: 200px;
+    right: auto;
+    left: 0;
+  }
+
+  /* Table-based account manager */
+  .chrome-accounts-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+

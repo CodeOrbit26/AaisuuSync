@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { HiOutlineSearch, HiOutlineBell } from 'react-icons/hi';
+import { HiOutlineSearch, HiOutlineBell, HiOutlineMenu } from 'react-icons/hi';
 import {
   HiOutlineViewGrid,
   HiOutlineUserGroup,
@@ -22,7 +22,7 @@ const pageMeta = {
   '/settings': { title: 'Settings', subtitle: 'Configure your AaisuuSync platform', icon: HiOutlineCog },
 };
 
-export default function Topbar() {
+export default function Topbar({ onMenuToggle }) {
   const location = useLocation();
   const { notifications } = useApp();
   const meta = pageMeta[location.pathname] || pageMeta['/'];
@@ -31,6 +31,10 @@ export default function Topbar() {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        {/* Mobile hamburger button */}
+        <button className="topbar-menu-btn" onClick={onMenuToggle} aria-label="Toggle menu">
+          <HiOutlineMenu />
+        </button>
         <div className="topbar-title">
           <h2>
             <Icon className="topbar-title-icon" />

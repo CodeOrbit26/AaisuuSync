@@ -181,3 +181,48 @@
   padding-top: 18px;
   border-top: 1px solid var(--border-color);
 }
+
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .settings-page {
+    max-width: 100%;
+  }
+
+  .settings-section-card {
+    padding: 16px;
+  }
+
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .settings-row-right {
+    width: 100%;
+  }
+
+  .settings-plan {
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+    padding: 16px;
+  }
+
+  .settings-api-key {
+    flex-direction: column;
+  }
+
+  .settings-save-bar {
+    flex-direction: column;
+  }
+
+  .settings-save-bar .gradient-btn,
+  .settings-save-bar .outline-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

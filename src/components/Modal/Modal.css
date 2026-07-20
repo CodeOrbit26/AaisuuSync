@@ -103,3 +103,35 @@
 .modal-btn.primary:hover {
   opacity: 0.9;
 }
+
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-width: none;
+    max-height: 90vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-header {
+    padding: 14px 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+
+  .modal-footer .modal-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}
+

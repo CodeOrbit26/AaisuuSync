@@ -15,6 +15,34 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Hamburger menu — hidden on desktop */
+.topbar-menu-btn {
+  display: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.topbar-menu-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.topbar-title {
+  min-width: 0;
 }
 
 .topbar-title h2 {
@@ -26,11 +54,15 @@
   gap: 10px;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-title-icon {
   font-size: 1.4rem;
   color: var(--accent-primary);
+  flex-shrink: 0;
 }
 
 .topbar-subtitle {
@@ -40,12 +72,16 @@
   align-items: center;
   gap: 6px;
   margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .topbar-search {
@@ -113,4 +149,42 @@
   align-items: center;
   justify-content: center;
   border: 2px solid var(--bg-primary);
+}
+
+/* ============================================
+   Mobile Responsive — 768px and below
+   ============================================ */
+@media (max-width: 768px) {
+  .topbar {
+    height: 56px;
+    padding: 0 14px;
+    gap: 8px;
+  }
+
+  .topbar-menu-btn {
+    display: flex;
+  }
+
+  .topbar-title h2 {
+    font-size: 1rem;
+    gap: 6px;
+  }
+
+  .topbar-title-icon {
+    font-size: 1.1rem;
+  }
+
+  .topbar-subtitle {
+    display: none;
+  }
+
+  .topbar-search {
+    display: none;
+  }
+
+  .topbar-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
 }

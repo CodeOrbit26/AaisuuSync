@@ -267,3 +267,19 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .dm-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: var(--space-3);
+  }
+  .dm-sidebar {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .dm-config-card {
+    padding: 14px;
+  }
+}
+
