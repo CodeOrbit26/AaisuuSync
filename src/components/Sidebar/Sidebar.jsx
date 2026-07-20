@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   HiOutlineViewGrid,
   HiOutlineUserGroup,
@@ -8,8 +8,10 @@ import {
   HiOutlineCog,
   HiOutlineLink,
   HiOutlineX,
+  HiOutlineLogout,
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const navItems = [
@@ -33,6 +35,13 @@ function YTIcon() {
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user, systemStatus } = useApp();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
@@ -84,8 +93,12 @@ export default function Sidebar({ isOpen, onClose }) {
             <h4>{user.name}</h4>
             <span>{user.plan}</span>
           </div>
+          <button className="sidebar-logout-btn" onClick={handleLogout} aria-label="Logout" title="Logout">
+            <HiOutlineLogout />
+          </button>
         </div>
       </div>
     </aside>
   );
 }
+

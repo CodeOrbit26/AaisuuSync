@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Accounts from './pages/Accounts/Accounts';
@@ -8,12 +9,35 @@ import ReelAutomation from './pages/ReelAutomation/ReelAutomation';
 import YTAutomation from './pages/YTAutomation/YTAutomation';
 import InstagramDM from './pages/InstagramDM/InstagramDM';
 import Settings from './pages/Settings/Settings';
+import Login from './pages/Auth/Login';
+import Signup from './pages/Auth/Signup';
 import './App.css';
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+function AuthRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
 
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      {/* Auth routes — outside Layout, no sidebar/topbar */}
+      <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
+      <Route path="/signup" element={<AuthRoute><Signup /></AuthRoute>} />
+
+      {/* Protected app routes — inside Layout */}
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/linkedin-automation" element={<LinkedInAutomation />} />
@@ -22,7 +46,9 @@ export default function App() {
         <Route path="/instagram-dm" element={<InstagramDM />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
+
+      {/* Catch-all → redirect to login */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
-

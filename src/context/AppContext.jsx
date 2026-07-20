@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext(null);
 
@@ -10,7 +11,24 @@ const AI_MODELS = [
   { id: 'llama', name: 'Llama 3', type: 'Local', color: '#f97316' },
 ];
 
+// Helper: get user-scoped localStorage key
+function userKey(userId, key) {
+  return userId ? `${userId}_${key}` : key;
+}
+
+function safeGet(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function AppProvider({ children }) {
+  const { currentUser } = useAuth();
+  const uid = currentUser?.id || null;
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeModel, setActiveModel] = useState('gemini');
 
@@ -24,152 +42,101 @@ export function AppProvider({ children }) {
   });
 
   const [apiKeys, setApiKeys] = useState(() => {
-    const saved = localStorage.getItem('aaisu_api_keys_v2');
     const defaultKeys = {
-      gemini: 'AIzaSyMockKeyForAestheticsCheck28',
-      pexels: 'PexelsMockKeyForAestheticsCheck28',
+      gemini: '',
+      pexels: '',
       ytStudioKey: '',
-      chatgpt: 'ChatGPTMockKeyForAestheticsCheck28',
+      chatgpt: '',
       claude: '',
       flowai: ''
     };
-    const loadedKeys = saved ? { ...defaultKeys, ...JSON.parse(saved) } : defaultKeys;
-    if (loadedKeys.gemini && (loadedKeys.gemini.includes('AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g') || loadedKeys.gemini === 'your_gemini_api_key_here')) {
-      loadedKeys.gemini = '';
-      try { localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(loadedKeys)); } catch (e) {}
-    }
-    return loadedKeys;
+    if (!uid) return defaultKeys;
+    const saved = safeGet(userKey(uid, 'aaisu_api_keys_v2'), null);
+    return saved ? { ...defaultKeys, ...saved } : defaultKeys;
   });
 
-  // Persistent connected accounts
+  // Persistent connected accounts (per user)
   const [connectedAccounts, setConnectedAccounts] = useState(() => {
-    const saved = localStorage.getItem('aaisu_connected_accounts_v2');
+    const defaultAccounts = { instagram: [], linkedin: [], youtubeChannel: null, youtubeStudio: null };
+    if (!uid) return defaultAccounts;
+    const saved = safeGet(userKey(uid, 'aaisu_connected_accounts_v2'), null);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      if (!parsed.linkedin) parsed.linkedin = [];
-      return parsed;
+      if (!saved.linkedin) saved.linkedin = [];
+      return saved;
     }
-    return {
-      instagram: [
-        {
-          id: 'mock_ig_1',
-          username: 'any_abh28',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=60',
-          followers: '12.4K',
-          posts: '142',
-          status: 'healthy',
-          role: 'Full Pipeline Agent'
-        },
-        {
-          id: 'mock_ig_2',
-          username: 'aaisuu28',
-          avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=60',
-          followers: '45.2K',
-          posts: '89',
-          status: 'healthy',
-          role: 'Full Pipeline Agent'
-        }
-      ],
-      linkedin: [],
-      youtubeChannel: null,
-      youtubeStudio: null
-    };
+    return defaultAccounts;
   });
 
-  // Persistent AI Agent Blueprints State (shared across Reel Automation and Dashboard)
-  const [blueprints, setBlueprints] = useState(() => {
-    const DEFAULT_LYRICS = 'TAINU\nMAIN LIKHU\nRAJA DIL KA TAINU ME\nMERE\nPYAAR\nLIKHUNGI\nJE LIKHNA ME BAITHI\nTENE\nTO PAKA\nMAIN KITAB\nLIKHUNGI\n🤙😭✨🤍';
-    const saved = localStorage.getItem('aaisu_blueprints_v2');
-    const isWiped = localStorage.getItem('wiped_v3') === 'true';
-    
-    let parsed = null;
-    if (saved) {
-      try {
-        parsed = JSON.parse(saved);
-        // Migrate: ensure every blueprint has a `lyrics` field
-        Object.keys(parsed).forEach(key => {
-          if (parsed[key] && typeof parsed[key].lyrics === 'undefined') {
-            parsed[key].lyrics = key === 'Lyrics' ? DEFAULT_LYRICS : '';
-          }
-        });
-        // Ensure Lyrics blueprint exists with lyrics
-        if (parsed.Lyrics && !parsed.Lyrics.lyrics) {
-          parsed.Lyrics.lyrics = DEFAULT_LYRICS;
-        }
-      } catch (e) {
-        parsed = null;
-      }
-    }
+  // Persistent AI Agent Blueprints State (per user)
+  const DEFAULT_LYRICS = 'TAINU\nMAIN LIKHU\nRAJA DIL KA TAINU ME\nMERE\nPYAAR\nLIKHUNGI\nJE LIKHNA ME BAITHI\nTENE\nTO PAKA\nMAIN KITAB\nLIKHUNGI\n🤙😭✨🤍';
 
+  const [blueprints, setBlueprints] = useState(() => {
     const defaultBlueprints = {
       Lyrics: {
-        progress: 0,
-        references: [],
+        progress: 0, references: [],
         instructions: 'Target short vertical videos (9:16) with handwritten lyrics overlays. Ensure fonts are aligned precisely on beat drop cuts. Apply soft retro grading and high contrast text shadows.',
-        lyrics: 'TAINU\nMAIN LIKHU\nRAJA DIL KA TAINU ME\nMERE\nPYAAR\nLIKHUNGI\nJE LIKHNA ME BAITHI\nTENE\nTO PAKA\nMAIN KITAB\nLIKHUNGI\n🤙😭✨🤍',
-        generated: []
+        lyrics: DEFAULT_LYRICS, generated: []
       },
       Sad: {
-        progress: 0,
-        references: [],
+        progress: 0, references: [],
         instructions: 'Focus on low-contrast, cool blue color grading. Transition using cross-dissolves on slow ambient beats. Emotional spacing between text overlays should be 1.5s minimum.',
-        lyrics: '',
-        generated: []
+        lyrics: '', generated: []
       },
       'Split Meme': {
-        progress: 0,
-        references: [],
+        progress: 0, references: [],
         instructions: 'Top screen: high-quality looping video clip. Bottom screen: ASMR gameplay or kinetic sand slicing. Synchronize audio beat to top screen action. Captions must use modern bold sans-serif fonts in red/white.',
-        lyrics: '',
-        generated: []
+        lyrics: '', generated: []
       },
       'Classic Quote': {
-        progress: 0,
-        references: [],
+        progress: 0, references: [],
         instructions: 'Use minimal black background or slow cinematic nature loops. Text fades in word-by-word. Pacing should feel spacious. Audio must be deep male voice or warm low-fidelity piano.',
-        lyrics: '',
-        generated: []
+        lyrics: '', generated: []
       },
       Vibe: {
-        progress: 0,
-        references: [],
+        progress: 0, references: [],
         instructions: 'High energy cuts on every snare hit. Fast zoom transitions. Saturated warm tones. Retro VHS overlays active. Ideal for lifestyle and workspace showcase videos.',
-        lyrics: '',
-        generated: []
+        lyrics: '', generated: []
       }
     };
 
-    if (!isWiped) {
-      const target = parsed || defaultBlueprints;
-      Object.keys(target).forEach(key => {
-        if (target[key]) {
-          target[key].generated = [];
+    if (!uid) return defaultBlueprints;
+
+    const saved = safeGet(userKey(uid, 'aaisu_blueprints_v2'), null);
+    if (saved) {
+      // Migrate: ensure every blueprint has a `lyrics` field
+      Object.keys(saved).forEach(key => {
+        if (saved[key] && typeof saved[key].lyrics === 'undefined') {
+          saved[key].lyrics = key === 'Lyrics' ? DEFAULT_LYRICS : '';
         }
       });
-      try {
-        localStorage.setItem('aaisu_blueprints_v2', JSON.stringify(target));
-        localStorage.setItem('wiped_v3', 'true');
-      } catch (e) {}
-      return target;
+      if (saved.Lyrics && !saved.Lyrics.lyrics) {
+        saved.Lyrics.lyrics = DEFAULT_LYRICS;
+      }
+      return saved;
     }
-
-    return parsed || defaultBlueprints;
+    return defaultBlueprints;
   });
 
-  // Auto-persist blueprints on change
+  // Auto-persist blueprints on change (user-scoped)
   React.useEffect(() => {
-    localStorage.setItem('aaisu_blueprints_v2', JSON.stringify(blueprints));
-  }, [blueprints]);
+    if (uid) {
+      localStorage.setItem(userKey(uid, 'aaisu_blueprints_v2'), JSON.stringify(blueprints));
+    }
+  }, [blueprints, uid]);
 
-  // Auto-persist connected accounts on change
+  // Auto-persist connected accounts on change (user-scoped)
   React.useEffect(() => {
-    localStorage.setItem('aaisu_connected_accounts_v2', JSON.stringify(connectedAccounts));
-  }, [connectedAccounts]);
+    if (uid) {
+      localStorage.setItem(userKey(uid, 'aaisu_connected_accounts_v2'), JSON.stringify(connectedAccounts));
+    }
+  }, [connectedAccounts, uid]);
 
   // Helper functions
   const saveApiKeys = (keys) => {
     setApiKeys(keys);
-    localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(keys));
+    if (uid) {
+      localStorage.setItem(userKey(uid, 'aaisu_api_keys_v2'), JSON.stringify(keys));
+    }
   };
 
   const connectInstagram = (username, password, role, profileDetails) => {
@@ -215,7 +182,7 @@ export function AppProvider({ children }) {
     const newAcc = {
       id: `li_${Date.now()}`,
       username: cleanUsername,
-      name: name || 'Abhay Gupta',
+      name: name || 'User',
       status: 'healthy',
       role: role || 'Content Publishing',
       followers: '5.4K',
@@ -253,10 +220,7 @@ export function AppProvider({ children }) {
   };
 
   const disconnectYouTubeChannel = () => {
-    const updated = {
-      ...connectedAccounts,
-      youtubeChannel: null
-    };
+    const updated = { ...connectedAccounts, youtubeChannel: null };
     setConnectedAccounts(updated);
   };
 
@@ -273,14 +237,13 @@ export function AppProvider({ children }) {
     
     const keys = { ...apiKeys, ytStudioKey: key };
     setApiKeys(keys);
-    localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(keys));
+    if (uid) {
+      localStorage.setItem(userKey(uid, 'aaisu_api_keys_v2'), JSON.stringify(keys));
+    }
   };
 
   const disconnectYouTubeStudio = () => {
-    const updated = {
-      ...connectedAccounts,
-      youtubeStudio: null
-    };
+    const updated = { ...connectedAccounts, youtubeStudio: null };
     setConnectedAccounts(updated);
   };
 
@@ -291,13 +254,9 @@ export function AppProvider({ children }) {
     } else if (platform === 'linkedin') {
       updated.linkedin = (updated.linkedin || []).map(acc => acc.id === id ? { ...acc, role } : acc);
     } else if (platform === 'youtubeChannel') {
-      if (updated.youtubeChannel) {
-        updated.youtubeChannel = { ...updated.youtubeChannel, role };
-      }
+      if (updated.youtubeChannel) updated.youtubeChannel = { ...updated.youtubeChannel, role };
     } else if (platform === 'youtubeStudio') {
-      if (updated.youtubeStudio) {
-        updated.youtubeStudio = { ...updated.youtubeStudio, role };
-      }
+      if (updated.youtubeStudio) updated.youtubeStudio = { ...updated.youtubeStudio, role };
     }
     setConnectedAccounts(updated);
   };
@@ -309,17 +268,12 @@ export function AppProvider({ children }) {
     } else if (platform === 'linkedin') {
       updated.linkedin = (updated.linkedin || []).map(acc => acc.id === id ? { ...acc, status } : acc);
     } else if (platform === 'youtubeChannel') {
-      if (updated.youtubeChannel) {
-        updated.youtubeChannel = { ...updated.youtubeChannel, status };
-      }
+      if (updated.youtubeChannel) updated.youtubeChannel = { ...updated.youtubeChannel, status };
     } else if (platform === 'youtubeStudio') {
-      if (updated.youtubeStudio) {
-        updated.youtubeStudio = { ...updated.youtubeStudio, status };
-      }
+      if (updated.youtubeStudio) updated.youtubeStudio = { ...updated.youtubeStudio, status };
     }
     setConnectedAccounts(updated);
   };
-
 
   // Dynamic system health computation
   const getSystemStatus = () => {
@@ -353,19 +307,25 @@ export function AppProvider({ children }) {
     ];
 
     const online = services.some(s => s.status !== 'offline');
-
     return { online, services };
   };
 
   const systemStatus = getSystemStatus();
 
-  const [user] = useState({
-    name: 'Abhay Gupta',
-    email: 'abhay@aaisuusync.pro',
+  // User info from AuthContext
+  const user = currentUser ? {
+    name: currentUser.name,
+    email: currentUser.email,
     avatar: null,
-    initials: 'AG',
-    plan: 'AaisuuSync Pro',
-  });
+    initials: currentUser.initials,
+    plan: currentUser.plan || 'AaisuuSync Pro',
+  } : {
+    name: 'Guest',
+    email: '',
+    avatar: null,
+    initials: 'G',
+    plan: 'Free',
+  };
 
   const currentModel = AI_MODELS.find((m) => m.id === activeModel) || AI_MODELS[0];
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);

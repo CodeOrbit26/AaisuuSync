@@ -299,3 +299,32 @@ img { max-width: 100%; display: block; }
 .switch-toggle.on::after {
   transform: translateX(20px);
 }
+
+/* ============================================
+   Global Mobile Responsive — 768px
+   ============================================ */
+@media (max-width: 768px) {
+  .glass-card {
+    border-radius: var(--radius-lg);
+  }
+
+  .gradient-btn,
+  .outline-btn {
+    font-size: var(--font-xs);
+    padding: 8px 14px;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+
+  /* Fix any hardcoded widths overflowing on mobile */
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-card-value {
+    font-size: 1.3rem;
+  }
+}
+
