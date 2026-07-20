@@ -875,13 +875,13 @@ export async function apiMiddleware(req, res, next) {
                 return { response: { text: () => fallbackJson } };
               };
 
-              const buildPrompt1 = (vibeFilter, promptSource, historyList = []) => {
+              const buildPrompt1 = (vibeFilter, promptSource, historyList = [], audioMemory = []) => {
                 if (promptSource) {
                   return `You are a viral TikTok/Reels expert. Give me details for the song "${promptSource}".\nReturn JSON format exactly like this: { "songs": [ { "songName": "${promptSource}", "youtubeSearchQuery": "${promptSource} official audio", "viralHookStartTime": 15 } ] }`;
                 }
-                let chosenVibePrompt = 'trending Hindi or Haryanvi songs by artists like Swara Verma, Tony Kakkar, GD Kaur, King, MC Stan, Jubin Nautiyal, Diljit Dosanjh, Arijit Singh, Badshah, or B Praak';
+                let chosenVibePrompt = 'trending Hindi or Haryanvi songs';
                 if (vibeFilter === 'sad') {
-                  chosenVibePrompt = 'sad, emotional Hindi/Haryanvi songs by artists like The Local Train, Raffey Anwar, B Praak, or Arijit Singh';
+                  chosenVibePrompt = 'sad, emotional Hindi/Haryanvi songs';
                 } else if (vibeFilter === 'sad_trending') {
                   chosenVibePrompt = 'trending sad/lofi Hindi or Haryanvi songs';
                 } else if (vibeFilter === 'chatpatee') {
@@ -892,14 +892,16 @@ export async function apiMiddleware(req, res, next) {
                   chosenVibePrompt = 'retro 90s classic Hindi songs or viral slowed/reverb remixes';
                 }
 
-                const excludeList = ['Tauba Tauba', ...historyList].filter(Boolean);
-                const excludeText = `\nSTRICT REQUIREMENT: Absolutely DO NOT suggest any of these songs: ${excludeList.slice(-15).join(', ')}. Provide completely fresh, different songs.`;
+                const loggedNames = audioMemory.map(a => a.songName).filter(Boolean);
+                const excludeList = [...new Set([...historyList, ...loggedNames])];
+                const excludeText = excludeList.length > 0 ? `\nSTRICT REQUIREMENT: Absolutely DO NOT suggest any of these previously generated songs from Audio Memory: ${excludeList.slice(-20).join(', ')}. Provide completely fresh, different songs.` : '';
 
                 return `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English).${excludeText} For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
               };
 
               const historyList = readSongsHistory();
-              const prompt1 = buildPrompt1(vibeFilter, promptSource, historyList);
+              const audioMemory = readAudioMemory();
+              const prompt1 = buildPrompt1(vibeFilter, promptSource, historyList, audioMemory);
               let vibeText = 'Random Selection';
               if (vibeFilter === 'trending') vibeText = 'Trending Hits';
               else if (vibeFilter === 'sad') vibeText = 'Sad/Emotional';
@@ -928,49 +930,34 @@ export async function apiMiddleware(req, res, next) {
               let selectedSong = null;
               let attempt = 0;
               let currentPrompt = prompt1;
-              const audioMemory = readAudioMemory();
               
               while (attempt < 5) {
                 try {
                   const result1 = await generateWithFallback(currentPrompt);
                   responseData1 = JSON.parse(result1.response.text());
                 } catch (llmErr) {
-                  console.warn('[LLM Fallback] Gemini API rate limited. Using curated viral song pool:', llmErr.message);
+                  console.warn('[LLM Fallback] Gemini API rate limited. Filtering unplayed songs:', llmErr.message);
                   updateWorkflowStatus({
-                    logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activating curated viral song pool safeguard.`, type: 'warn' }]
+                    logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API busy. Selecting unplayed song from audio memory filter.`, type: 'warn' }]
                   });
-                  let defaultSongs = [
-                    { songName: "Tauba Tauba", youtubeSearchQuery: "Tauba Tauba Karan Aujla official audio", viralHookStartTime: 34 },
+                  let pool = [
                     { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
                     { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
                     { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 },
-                    { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 }
+                    { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
+                    { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
+                    { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
                   ];
 
                   if (promptSource) {
-                    const matched = defaultSongs.find(s => s.songName.toLowerCase().includes(promptSource.toLowerCase())) || {
+                    selectedSong = {
                       songName: promptSource,
                       youtubeSearchQuery: `${promptSource} official audio`,
-                      viralHookStartTime: promptSource.toLowerCase().includes('tauba') ? 34 : 15
+                      viralHookStartTime: 15
                     };
-                    selectedSong = matched;
                   } else {
-                    if (vibeFilter === 'sad' || vibeFilter === 'sad_trending') {
-                      defaultSongs = [
-                        { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
-                        { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
-                        { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
-                      ];
-                    } else if (vibeFilter === 'devotional') {
-                      defaultSongs = [
-                        { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
-                        { songName: "Radhe Radhe", youtubeSearchQuery: "Radhe Radhe official audio", viralHookStartTime: 15 }
-                      ];
-                    }
-
-                    // Strict round-robin selection based on total history count to guarantee non-repeating song rotation
-                    const nextIdx = historyList.length % defaultSongs.length;
-                    selectedSong = defaultSongs[nextIdx];
+                    const unplayed = pool.filter(s => !normalizedHistory.includes(normalizeName(s.songName)));
+                    selectedSong = unplayed.length > 0 ? unplayed[0] : pool[historyList.length % pool.length];
                   }
 
                   responseData1 = { songs: [selectedSong] };
