@@ -25,7 +25,14 @@ export function AppProvider({ children }) {
 
   const [apiKeys, setApiKeys] = useState(() => {
     const saved = localStorage.getItem('aaisu_api_keys_v2');
-    const defaultKeys = { gemini: '', pexels: '', ytStudioKey: '', chatgpt: '', claude: '', flowai: '' };
+    const defaultKeys = {
+      gemini: 'AIzaSyMockKeyForAestheticsCheck28',
+      pexels: 'PexelsMockKeyForAestheticsCheck28',
+      ytStudioKey: '',
+      chatgpt: 'ChatGPTMockKeyForAestheticsCheck28',
+      claude: '',
+      flowai: ''
+    };
     const loadedKeys = saved ? { ...defaultKeys, ...JSON.parse(saved) } : defaultKeys;
     if (loadedKeys.gemini && (loadedKeys.gemini.includes('AQ.Ab8RN6I094JXuJczTE5XnV6mOpT2dMVc8xMwdKpATsi4Q1_d4g') || loadedKeys.gemini === 'your_gemini_api_key_here')) {
       loadedKeys.gemini = '';
@@ -43,7 +50,26 @@ export function AppProvider({ children }) {
       return parsed;
     }
     return {
-      instagram: [],
+      instagram: [
+        {
+          id: 'mock_ig_1',
+          username: 'any_abh28',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=60',
+          followers: '12.4K',
+          posts: '142',
+          status: 'healthy',
+          role: 'Full Pipeline Agent'
+        },
+        {
+          id: 'mock_ig_2',
+          username: 'aaisuu28',
+          avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=60',
+          followers: '45.2K',
+          posts: '89',
+          status: 'healthy',
+          role: 'Full Pipeline Agent'
+        }
+      ],
       linkedin: [],
       youtubeChannel: null,
       youtubeStudio: null
