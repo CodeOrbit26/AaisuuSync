@@ -1,27 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { HiOutlineArrowLeft } from 'react-icons/hi';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import Topbar from '../Topbar/Topbar';
 import { useApp } from '../../context/AppContext';
 import './Layout.css';
 
-const pageTitles = {
-  '/settings': 'Platform Settings',
-  '/notifications': 'Notifications History',
-  '/upgrade': 'Upgrade Plan',
-  '/get-help': 'Help & Support',
-  '/learn-more': 'Platform Documentation',
-};
-
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { sidebarCollapsed } = useApp();
+  const { sidebarCollapsed, setSidebarCollapsed } = useApp();
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const fullScreenRoutes = ['/settings', '/notifications', '/upgrade', '/get-help', '/learn-more'];
-  const isFullScreen = fullScreenRoutes.includes(location.pathname);
+  // Fold/Collapse sidebar automatically when opening specific full-screen pages
+  useEffect(() => {
+    const fullScreenPages = ['/settings', '/notifications', '/upgrade', '/learn-more', '/get-help'];
+    if (fullScreenPages.includes(location.pathname)) {
+      setSidebarCollapsed(true);
+    } else {
+      setSidebarCollapsed(false);
+    }
+  }, [location.pathname, setSidebarCollapsed]);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -38,29 +35,6 @@ export default function Layout() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  if (isFullScreen) {
-    const currentTitle = pageTitles[location.pathname] || 'Workspace';
-    return (
-      <div className="layout layout-fullscreen">
-        <header className="fullscreen-header">
-          <button className="fullscreen-back-btn" onClick={() => navigate('/')}>
-            <HiOutlineArrowLeft />
-            <span>Back to Dashboard</span>
-          </button>
-          <div className="fullscreen-header-title">
-            <span>{currentTitle}</span>
-          </div>
-          <div className="fullscreen-header-badge">
-            <span className="badge-dot"></span> AaisuuSync Workspace
-          </div>
-        </header>
-        <main className="fullscreen-content">
-          <Outlet />
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>

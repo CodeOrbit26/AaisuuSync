@@ -38,6 +38,9 @@ export default function Notifications() {
       {/* Top Title Section */}
       <div className="notif-page-header">
         <div className="header-left">
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            <HiOutlineArrowLeft />
+          </button>
           <div>
             <h2>Notifications Log</h2>
             <p>Complete execution history and pipeline reports from connected AI agents</p>
