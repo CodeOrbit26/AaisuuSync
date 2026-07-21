@@ -935,7 +935,7 @@ export async function apiMiddleware(req, res, next) {
               else if (vibeFilter === 'retro_remix') vibeText = 'Retro Remix';
 
               updateWorkflowStatus({
-                stage: 'lyrics_analysis',
+                stage: 'audio_memory_verification',
                 logs: [
                   { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Active category filter option configured: "${vibeText}"`, type: 'info' },
                   promptSource ? { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Vibe filter overridden by specific source: "${promptSource}"`, type: 'warn' } : null,
@@ -1249,6 +1249,7 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                     }
 
                     updateWorkflowStatus({
+                      stage: 'lyrics_analysis',
                       logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Sending trimmed audio for transcription & timestamping (Prompt 2).`, type: 'info' }],
                       executionData: {
                         prompt2
@@ -1305,6 +1306,7 @@ Return JSON format exactly like this:
                       }
 
                       updateWorkflowStatus({
+                        stage: 'viral_strategy',
                         logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Generating Viral Strategy & Hashtags (Prompt 4).`, type: 'info' }]
                       });
 

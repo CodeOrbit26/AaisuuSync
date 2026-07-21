@@ -29,6 +29,7 @@ const STAGE_KEYS = [
   'reel_composition',
   'backend_execution',
   'rendering',
+  'viral_strategy',
   'final_output'
 ];
 
@@ -36,55 +37,61 @@ const STAGES = [
   {
     key: 'input_processing',
     title: 'Input Processing',
-    description: 'Endpoint request interception and input parameter validation',
+    description: 'Endpoint request interception, API key validation, and prompt initialization',
     icon: <HiOutlineDatabase />
   },
   {
     key: 'audio_memory_verification',
     title: 'Audio Memory Verification',
-    description: 'Cross-referencing suggested song hooks against the Audio Memory database',
+    description: 'Prompt 1 LLM song recommendation & Audio Memory database cross-referencing',
     icon: <HiOutlineSearch />
   },
   {
     key: 'lyrics_analysis',
-    title: 'Lyrics Analysis',
-    description: 'LLM song suggestion, YouTube download, and lyrics transcription',
+    title: 'Lyrics Analysis & Sync',
+    description: 'Prompt 2 audio segment retrieval, Hinglish transcription & LRC timestamping',
     icon: <HiOutlineMusicNote />
   },
   {
     key: 'visual_planning',
-    title: 'Visual Planning',
-    description: 'Timings alignment and typographical canvas styles planning',
+    title: 'Visual Specs Planning',
+    description: 'Prompt 3 AI Visual Specs, typography layout rules & color palette styling',
     icon: <HiOutlineAdjustments />
   },
   {
     key: 'asset_selection',
     title: 'Asset Selection',
-    description: 'Google Font loading and design backdrop resolution',
+    description: 'Google Font resolution, canvas 9:16 boundaries, and backdrop styling',
     icon: <HiOutlineSearch />
   },
   {
     key: 'reel_composition',
-    title: 'Reel Composition',
+    title: 'Reel Canvas Composition',
     description: 'Puppeteer headless canvas rendering and frame screenshots extraction',
     icon: <HiOutlineFilm />
   },
   {
     key: 'backend_execution',
     title: 'Backend Execution',
-    description: 'Pipeline services topology and full infrastructure diagram',
+    description: 'FFmpeg command pipeline initialization and audio/video stream setup',
     icon: <HiOutlineTerminal />
   },
   {
     key: 'rendering',
-    title: 'Rendering',
-    description: 'FFmpeg sequential image stitching and audio muxing pipeline',
+    title: 'Rendering & Muxing',
+    description: 'FFmpeg sequential image stitching and 15s audio muxing pipeline',
     icon: <HiOutlineExternalLink />
   },
   {
+    key: 'viral_strategy',
+    title: 'Viral Strategy & Hashtags',
+    description: 'Prompt 4 viral reach hashtags extraction and high-engagement tagging',
+    icon: <HiOutlineDocumentDuplicate />
+  },
+  {
     key: 'final_output',
-    title: 'Final Output',
-    description: 'Preview rendering, download generation, and summary reports',
+    title: 'Audio Memory Save & Final Output',
+    description: 'Saving song details to Audio Memory database and outputting Reel MP4 video',
     icon: <HiOutlineCheckCircle />
   }
 ];
