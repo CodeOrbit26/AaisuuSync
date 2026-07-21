@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--border-color);
   height: 88px;
 }
@@ -29,7 +29,7 @@
 .sidebar-brand-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
 .sidebar-toggle-btn {
@@ -67,8 +67,8 @@
 }
 
 .sidebar-brand-logo {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   border-radius: 12px;
   background: var(--accent-gradient);
   display: flex;
