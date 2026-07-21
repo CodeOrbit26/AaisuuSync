@@ -106,7 +106,6 @@ export default function Sidebar({ isOpen, onClose }) {
           <NavLink
             key={item.path}
             to={item.path}
-            title={sidebarCollapsed ? item.label : undefined}
             className={({ isActive }) =>
               `sidebar-link${isActive ? ' active' : ''}`
             }
@@ -115,7 +114,11 @@ export default function Sidebar({ isOpen, onClose }) {
             <span className="sidebar-link-icon">
               <item.icon />
             </span>
-            {!sidebarCollapsed && <span>{item.label}</span>}
+            {!sidebarCollapsed ? (
+              <span>{item.label}</span>
+            ) : (
+              <span className="sidebar-tooltip">{item.label}</span>
+            )}
           </NavLink>
         ))}
       </nav>
