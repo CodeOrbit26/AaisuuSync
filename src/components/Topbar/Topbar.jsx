@@ -40,30 +40,10 @@ export default function Topbar({ onMenuToggle }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
-        {/* Desktop Sidebar Toggle (Claude style) when collapsed */}
-        <button 
-          className="topbar-btn desktop-sidebar-toggle" 
-          onClick={toggleSidebar}
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
-          title={sidebarCollapsed ? 'Expand sidebar (⌘B)' : 'Minimize sidebar (⌘B)'}
-        >
-          <SidebarToggleIcon />
-        </button>
-
         {/* Mobile hamburger button */}
         <button className="topbar-menu-btn" onClick={onMenuToggle} aria-label="Toggle menu">
           <HiOutlineMenu />
         </button>
-        <div className="topbar-title">
-          <h2>
-            <Icon className="topbar-title-icon" />
-            {meta.title}
-          </h2>
-          <span className="topbar-subtitle">
-            <span className="status-dot online" style={{ width: 6, height: 6 }}></span>
-            {meta.subtitle}
-          </span>
-        </div>
       </div>
       <div className="topbar-right">
         <div className="topbar-search">
