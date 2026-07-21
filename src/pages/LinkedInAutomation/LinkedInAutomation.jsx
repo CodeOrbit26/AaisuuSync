@@ -68,7 +68,14 @@ export default function LinkedInAutomation() {
   const { currentUser } = useAuth();
   const uid = currentUser?.id || '';
   const uk = (key) => uid ? `${uid}_${key}` : key;
-  const [activeTab, setActiveTab] = useState('pipeline');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(uk('aaisuu_active_tab_linkedin')) || 'pipeline';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(uk('aaisuu_active_tab_linkedin'), activeTab);
+  }, [activeTab, uid]);
+
   const [systemOn, setSystemOn] = useState(false);
   const { connectedAccounts, connectLinkedIn, disconnectLinkedIn, currentModel } = useApp();
 

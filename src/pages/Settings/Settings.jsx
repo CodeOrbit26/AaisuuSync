@@ -28,7 +28,16 @@ export default function Settings() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('profile');
+  const uid = currentUser?.id || '';
+  const uk = (key) => uid ? `${uid}_${key}` : key;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(uk('aaisuu_active_tab_settings')) || 'profile';
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem(uk('aaisuu_active_tab_settings'), activeTab);
+  }, [activeTab, uid]);
 
   // Form States
   const [displayName, setDisplayName] = useState(user.name || 'Abhay Gupta');

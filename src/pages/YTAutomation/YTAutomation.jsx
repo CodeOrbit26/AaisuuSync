@@ -46,7 +46,18 @@ const viewsData = [];
 const topVideos = [];
 
 export default function YTAutomation() {
-  const [activeTab, setActiveTab] = useState('pipeline');
+  const { currentUser } = useAuth();
+  const uid = currentUser?.id || '';
+  const uk = (key) => uid ? `${uid}_${key}` : key;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(uk('aaisuu_active_tab_yt')) || 'pipeline';
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem(uk('aaisuu_active_tab_yt'), activeTab);
+  }, [activeTab, uid]);
+
   const [pipelineFilter, setPipelineFilter] = useState('queued');
   const [activeBlueprint, setActiveBlueprint] = useState('Shorts');
   const [systemOn, setSystemOn] = useState(false);

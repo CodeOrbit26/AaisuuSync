@@ -90,7 +90,14 @@ export default function ReelAutomation() {
   const uid = currentUser?.id || '';
   const uk = (key) => uid ? `${uid}_${key}` : key;
 
-  const [activeTab, setActiveTab] = useState('pipeline');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(uk('aaisuu_active_tab_reels')) || 'pipeline';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(uk('aaisuu_active_tab_reels'), activeTab);
+  }, [activeTab, uid]);
+
   const [pipelineFilter, setPipelineFilter] = useState('upcoming');
   const [activeBlueprint, setActiveBlueprint] = useState('Lyrics');
   const [systemOn, setSystemOn] = useState(() => {
