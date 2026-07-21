@@ -75,7 +75,7 @@ export default function Sidebar({ isOpen, onClose }) {
     <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''} ${sidebarCollapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-brand">
         <div className="sidebar-brand-left">
-          <div className="sidebar-brand-logo">A</div>
+          <img src="/logo.png" alt="Logo" className="sidebar-brand-logo" style={{ background: 'transparent', objectFit: 'contain' }} />
           {!sidebarCollapsed && (
             <div className="sidebar-brand-text">
               <h1>AaisuuSync</h1>

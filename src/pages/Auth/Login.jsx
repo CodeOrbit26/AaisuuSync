@@ -47,8 +47,8 @@ export default function Login() {
         {/* Left Side: Brand & Feature Showcase */}
         <div className="auth-hero">
           <div className="auth-hero-brand">
-            <div className="auth-hero-logo">
-              <HiOutlineSparkles />
+            <div className="auth-hero-logo" style={{ background: 'transparent' }}>
+              <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <span className="auth-hero-title">AaisuuSync</span>
@@ -113,7 +113,7 @@ export default function Login() {
         <div className="auth-card-wrapper">
           <div className="auth-card">
             <div className="auth-brand-mobile">
-              <div className="auth-brand-logo">A</div>
+              <img src="/logo.png" alt="Logo" className="auth-brand-logo" style={{ background: 'transparent', objectFit: 'contain' }} />
               <h2>AaisuuSync</h2>
             </div>
 
