@@ -4,15 +4,15 @@
    ============================================ */
 
 :root {
-  /* Backgrounds — richer depth */
-  --bg-primary: #0e1322;
-  --bg-secondary: #151d30;
-  --bg-surface: #1d273f;
-  --bg-surface-hover: #253250;
-  --bg-elevated: #2e3e60;
-  --bg-inset: #0b0f1a;
+  /* Backgrounds — Charcoal Obsidian Palette */
+  --bg-primary: #14161b;
+  --bg-secondary: #181a20;
+  --bg-surface: #1e2128;
+  --bg-surface-hover: #262932;
+  --bg-elevated: #2d313c;
+  --bg-inset: #101115;
 
-  /* Accent Colors — vivid indigo/violet */
+  /* Accent Colors — Refined Indigo & Coral */
   --accent-primary: #6366f1;
   --accent-secondary: #8b5cf6;
   --accent-tertiary: #a78bfa;
@@ -35,13 +35,13 @@
   --sky-bg: rgba(14, 165, 233, 0.1);
 
   /* Semantic Colors */
-  --success: #22c55e;
-  --success-dim: #16a34a;
-  --success-bg: rgba(34, 197, 94, 0.1);
-  --warning: #eab308;
-  --warning-bg: rgba(234, 179, 8, 0.1);
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.1);
+  --success: #10b981;
+  --success-dim: #059669;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --danger: #ff6b6b;
+  --danger-bg: rgba(255, 107, 107, 0.12);
   --info: #3b82f6;
   --info-bg: rgba(59, 130, 246, 0.1);
 
@@ -49,15 +49,15 @@
   --yt-red: #ff0033;
   --yt-red-bg: rgba(255, 0, 51, 0.1);
 
-  /* Text Colors */
-  --text-primary: #e8edf5;
-  --text-secondary: #8b95a9;
-  --text-muted: #4e5a72;
+  /* Text Colors — Neutral Slate Gray & Soft Off-White */
+  --text-primary: #e3e4e8;
+  --text-secondary: #92949c;
+  --text-muted: #5f616b;
   --text-accent: #818cf8;
 
   /* Borders */
-  --border-color: rgba(255, 255, 255, 0.06);
-  --border-color-hover: rgba(255, 255, 255, 0.12);
+  --border-color: rgba(255, 255, 255, 0.07);
+  --border-color-hover: rgba(255, 255, 255, 0.14);
   --border-accent: rgba(99, 102, 241, 0.25);
 
   /* Shadows */

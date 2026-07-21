@@ -330,8 +330,8 @@
   bottom: calc(100% + 8px);
   left: 8px;
   width: 250px;
-  background: #181d28;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.4);
   padding: 6px;
@@ -359,7 +359,7 @@
 .profile-popover-email {
   font-size: 0.72rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: #92949c;
   word-break: break-all;
   display: block;
 }
@@ -372,7 +372,7 @@
 
 .profile-popover-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   margin: 6px 4px;
 }
 
@@ -382,7 +382,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #e2e8f0;
+  color: #e3e4e8;
   font-size: 0.82rem;
   font-weight: 500;
   display: flex;
@@ -393,7 +393,7 @@
 }
 
 .profile-popover-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
 }
 
@@ -405,7 +405,7 @@
 
 .popover-item-left svg {
   font-size: 1rem;
-  color: #94a3b8;
+  color: #92949c;
 }
 
 .profile-popover-item:hover .popover-item-left svg {
@@ -414,29 +414,29 @@
 
 .popover-item-shortcut {
   font-size: 0.68rem;
-  color: #64748b;
+  color: #92949c;
   font-family: monospace;
-  background: rgba(255, 255, 255, 0.06);
+  background: #252830;
   padding: 1px 5px;
   border-radius: 4px;
 }
 
 .popover-item-arrow {
   font-size: 0.85rem;
-  color: #64748b;
+  color: #5f616b;
 }
 
 .profile-popover-item.danger {
-  color: #f87171;
+  color: #ff6b6b;
 }
 
 .profile-popover-item.danger .popover-item-left svg {
-  color: #f87171;
+  color: #ff6b6b;
 }
 
 .profile-popover-item.danger:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
 }
 
 /* Popover Footer Workspace Pill */
