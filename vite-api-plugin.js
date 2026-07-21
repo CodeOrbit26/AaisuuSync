@@ -1157,10 +1157,10 @@ export async function apiMiddleware(req, res, next) {
               }
               const ffmpegOpt = ffmpegStatic ? `--ffmpeg-location "${ffmpegStatic}"` : '';
               const ffmpegBin = ffmpegStatic || 'ffmpeg';
-              const flags = `-x --audio-format mp3 ${ffmpegOpt} --no-playlist --no-check-certificates --extractor-args "youtube:player_client=android,web" --geo-bypass -o "${outputPath}"`;
+              const flags = `-x --audio-format mp3 ${ffmpegOpt} --no-playlist --no-check-certificates --geo-bypass -o "${outputPath}"`;
               // Ensure clean official audio search without 'short' suffix to download the exact song audio
               const cleanSearchTerm = selectedSong.youtubeSearchQuery.replace(/\s+short$/i, '');
-              const query = `"ytsearch1:${cleanSearchTerm}"`;
+              const query = `"ytsearch1:${cleanSearchTerm} official audio"`;
               const searchCmd = `${ytDlpPath} ${query} ${flags}`;
               
               updateWorkflowStatus({
@@ -1223,19 +1223,22 @@ export async function apiMiddleware(req, res, next) {
                     
                     let prompt2 = customPrompt2;
                     if (!prompt2) {
+                      const songNameStr = selectedSong?.songName || 'Selected Track';
                       if (screenshotLyrics) {
-                        prompt2 = `Listen to this 15-second audio clip for the song "${selectedSong?.songName || 'Selected Track'}". Your goal is to transcribe the lyrics exactly as they are sung in the audio, using the reference lyrics extracted from a screenshot of the song to guide you:
+                        prompt2 = `Listen to this 15-second audio clip for the song "${songNameStr}". Your goal is to transcribe the lyrics exactly as they are sung in the audio, using the reference lyrics extracted from a screenshot of the song to guide you:
 Reference Lyrics:
 """
 ${screenshotLyrics}
 """
+CRITICAL SONG MATCHING RULE: The song title is "${songNameStr}". You MUST generate/transcribe lyrics strictly for "${songNameStr}". Under NO circumstances should you return lyrics for "Tauba Tauba" or any other song unless the song title is explicitly "Tauba Tauba".
 CRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.
 Return the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms] mapping exactly to the audio timing.
 IMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫
 
 Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                       } else {
-                        prompt2 = `Listen to this 15-second audio clip for the song "${selectedSong?.songName || 'Selected Track'}". Transcribe the lyrics exactly as they are sung in the audio.
+                        prompt2 = `Listen to this 15-second audio clip for the song "${songNameStr}". Transcribe the lyrics exactly as they are sung in the audio.
+CRITICAL SONG MATCHING RULE: The song title is "${songNameStr}". You MUST generate/transcribe lyrics strictly for "${songNameStr}". Under NO circumstances should you return lyrics for "Tauba Tauba" or any other song unless the song title is explicitly "Tauba Tauba".
 CRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.
 Return the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].
 IMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫
@@ -1617,19 +1620,16 @@ Return JSON format exactly like this:
                   fs.copyFileSync(targetPresetPath, outputPath);
                   if (selectedSong) selectedSong.viralHookStartTime = 0;
                 } else {
-                  const defaultAudioPath = path.join(process.cwd(), 'public', 'uploads', 'default_viral_audio.mp3');
-                  if (fs.existsSync(defaultAudioPath)) {
-                    fs.copyFileSync(defaultAudioPath, outputPath);
-                    if (selectedSong) selectedSong.viralHookStartTime = 0;
-                  } else {
-                    try {
-                      const genCmd = `"${ffmpegBin}" -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 15 -q:a 9 -acodec libmp3lame "${outputPath}"`;
-                      execSync(genCmd);
-                    } catch (genErr) {
-                      console.error('[Audio Safeguard] Failed to generate valid fallback MP3 via ffmpeg:', genErr.message);
-                      fs.writeFileSync(outputPath, Buffer.from('ID3\x03\x00\x00\x00\x00\x00\x00', 'binary'));
-                    }
-                    if (selectedSong) selectedSong.viralHookStartTime = 0;
+                  try {
+                    const genCmd = `"${ffmpegBin}" -y -f lavfi -i "sine=frequency=440:beep_factor=2:r=44100" -t 15 -q:a 9 -acodec libmp3lame "${outputPath}"`;
+                    execSync(genCmd);
+                  } catch (genErr) {
+                    const silentCmd = `"${ffmpegBin}" -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 15 -q:a 9 -acodec libmp3lame "${outputPath}"`;
+                    try { execSync(silentCmd); } catch (sErr) {}
+                  }
+                  if (selectedSong) {
+                    selectedSong.viralHookStartTime = 0;
+                    selectedSong.isFallbackAudio = true;
                   }
                 }
               } catch (err) {
@@ -1640,54 +1640,25 @@ Return JSON format exactly like this:
 
             const runDownloadWithFallback = (cmds, index = 0) => {
               const cmd = cmds[index];
+              console.log(`[Audio Engine] Executing YouTube download attempt #${index + 1}: ${cmd}`);
               exec(cmd, (err, stdout, stderr) => {
                 if (err || !fs.existsSync(outputPath) || fs.statSync(outputPath).size < 5000) {
-                  console.warn(`[yt-dlp] Command failed or file empty (${cmd}):`, err?.message);
+                  console.warn(`[Audio Engine] Attempt #${index + 1} failed or output empty:`, err?.message);
                   if (index + 1 < cmds.length) {
                     runDownloadWithFallback(cmds, index + 1);
                   } else {
-                    console.log('[Audio] Activating high-quality audio fallback...');
+                    console.log('[Audio Engine] All YouTube download attempts exhausted. Activating fallback audio stream...');
                     useFallbackAudioStream();
                   }
                   return;
                 }
+                console.log('[Audio Engine] YouTube audio download successful!');
                 proceedToTrim();
               });
             };
 
-            // Primary Download Engine: Native Node.js yts + ytdl-core
-            try {
-              console.log(`[Native Audio] Searching YouTube for: "${selectedSong.youtubeSearchQuery}"...`);
-              const searchRes = await yts(`${selectedSong.youtubeSearchQuery}`);
-              const video = (searchRes.videos && searchRes.videos[0]) || null;
-              if (!video) throw new Error(`No YouTube video found for: ${selectedSong.youtubeSearchQuery}`);
-              
-              console.log(`[Native Audio] Downloading "${video.title}" (${video.url})...`);
-              const stream = ytdl(video.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 });
-              const writeStream = fs.createWriteStream(outputPath);
-              stream.pipe(writeStream);
-              
-              writeStream.on('finish', () => {
-                if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 5000) {
-                  console.log('[Native Audio] Download completed natively!');
-                  proceedToTrim();
-                } else {
-                  console.warn('[Native Audio] Stream produced empty file. Falling back to CLI...');
-                  runDownloadWithFallback(fallbackCmds, 0);
-                }
-              });
-              writeStream.on('error', (streamErr) => {
-                console.warn('[Native Audio] Write stream error, falling back to CLI:', streamErr.message);
-                runDownloadWithFallback(fallbackCmds, 0);
-              });
-              stream.on('error', (streamErr) => {
-                console.warn('[Native Audio] YTDL stream error, falling back to CLI:', streamErr.message);
-                runDownloadWithFallback(fallbackCmds, 0);
-              });
-            } catch (nativeErr) {
-              console.warn('[Native Audio] Search/init failed, falling back to CLI:', nativeErr.message);
-              runDownloadWithFallback(fallbackCmds, 0);
-            }
+            // Primary Download Engine: Exec bundled yt-dlp binary directly
+            runDownloadWithFallback(fallbackCmds, 0);
             } catch (e) {
               updateWorkflowStatus({
                 status: 'failed',
