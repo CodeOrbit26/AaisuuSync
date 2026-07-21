@@ -1024,13 +1024,13 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                       <button className="grid-action-btn download" onClick={() => handleDownload(reel)}>
                         <HiOutlineDownload /> Download
                       </button>
+
+                      {/* Delete */}
+                      <button className="grid-action-btn delete" onClick={() => handleDelete(reel.id, reel.blueprint)}>
+                        <HiOutlineTrash /> Delete
+                      </button>
                     </>
                   )}
-
-                  {/* Delete */}
-                  <button className="grid-action-btn delete" onClick={() => handleDelete(reel.id, reel.blueprint)}>
-                    <HiOutlineTrash /> Delete
-                  </button>
                 </div>
               </div>
             </div>
