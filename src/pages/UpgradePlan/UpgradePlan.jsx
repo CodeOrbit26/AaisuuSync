@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   HiOutlineCheck,
   HiOutlineSparkles,
@@ -8,13 +9,15 @@ import {
   HiOutlineChip,
   HiOutlineCheckCircle,
   HiOutlineUserGroup,
-  HiOutlineFilm
+  HiOutlineFilm,
+  HiOutlineArrowLeft
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import './UpgradePlan.css';
 
 export default function UpgradePlan() {
+  const navigate = useNavigate();
   const { user } = useApp();
   const { currentUser } = useAuth();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
@@ -27,6 +30,14 @@ export default function UpgradePlan() {
 
   return (
     <div className="upgrade-container page-container">
+      {/* Top Page Header Row */}
+      <div className="page-header-row">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Go back" title="Go back">
+          <HiOutlineArrowLeft />
+        </button>
+        <span className="page-header-context-title">Back to Dashboard</span>
+      </div>
+
       {/* Hero Header */}
       <div className="upgrade-hero">
         <span className="upgrade-pill">

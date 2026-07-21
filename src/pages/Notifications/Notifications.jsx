@@ -35,12 +35,17 @@ export default function Notifications() {
 
   return (
     <div className="notifications-page-container page-container fade-in">
+      {/* Top Page Header Row */}
+      <div className="page-header-row">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Go back" title="Go back">
+          <HiOutlineArrowLeft />
+        </button>
+        <span className="page-header-context-title">Back to Dashboard</span>
+      </div>
+
       {/* Top Title Section */}
       <div className="notif-page-header">
         <div className="header-left">
-          <button className="back-btn" onClick={() => navigate(-1)}>
-            <HiOutlineArrowLeft />
-          </button>
           <div>
             <h2>Notifications Log</h2>
             <p>Complete execution history and pipeline reports from connected AI agents</p>

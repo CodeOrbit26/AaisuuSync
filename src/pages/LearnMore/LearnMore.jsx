@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   HiOutlineBookOpen,
   HiOutlineSparkles,
@@ -9,7 +10,8 @@ import {
   HiOutlineCheckCircle,
   HiOutlineChip,
   HiOutlinePlay,
-  HiOutlineLightBulb
+  HiOutlineLightBulb,
+  HiOutlineArrowLeft
 } from 'react-icons/hi';
 import './LearnMore.css';
 
@@ -59,10 +61,19 @@ const guides = [
 ];
 
 export default function LearnMore() {
+  const navigate = useNavigate();
   const [selectedGuide, setSelectedGuide] = useState(guides[0]);
 
   return (
     <div className="learn-container page-container">
+      {/* Top Page Header Row */}
+      <div className="page-header-row">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Go back" title="Go back">
+          <HiOutlineArrowLeft />
+        </button>
+        <span className="page-header-context-title">Back to Dashboard</span>
+      </div>
+
       {/* Hero Header */}
       <div className="learn-hero">
         <span className="learn-pill">

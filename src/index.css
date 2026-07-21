@@ -328,3 +328,45 @@ img { max-width: 100%; display: block; }
   }
 }
 
+/* ============================================
+   Global Premium Back Button Style
+   ============================================ */
+.page-header-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #92949c;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.back-btn:hover {
+  background: #262932;
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
+}
+
+.page-header-context-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #5f616b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+

@@ -24,26 +24,6 @@
   gap: 16px;
 }
 
-.back-btn {
-  background: #181a20;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #92949c;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.back-btn:hover {
-  background: #262932;
-  color: #ffffff;
-}
-
 .header-left h2 {
   font-size: 1.8rem;
   font-weight: 800;

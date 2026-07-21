@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   HiOutlineUser,
   HiOutlineKey,
@@ -15,7 +16,8 @@ import {
   HiOutlineSparkles,
   HiOutlineChip,
   HiOutlineExternalLink,
-  HiOutlineCheckCircle
+  HiOutlineCheckCircle,
+  HiOutlineArrowLeft
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +26,7 @@ import './Settings.css';
 export default function Settings() {
   const { user, apiKeys, saveApiKeys, activeModel, setActiveModel, systemStatus } = useApp();
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -88,6 +91,14 @@ export default function Settings() {
 
   return (
     <div className="settings-container page-container">
+      {/* Top Page Header Row */}
+      <div className="page-header-row">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Go back" title="Go back">
+          <HiOutlineArrowLeft />
+        </button>
+        <span className="page-header-context-title">Back to Dashboard</span>
+      </div>
+
       {/* Top Banner Header */}
       <div className="settings-banner-card">
         <div className="settings-user-profile-hero">

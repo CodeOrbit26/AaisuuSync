@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   HiOutlineQuestionMarkCircle,
   HiOutlineSearch,
@@ -9,7 +10,8 @@ import {
   HiOutlineChevronUp,
   HiOutlineSparkles,
   HiOutlinePaperAirplane,
-  HiOutlineCheckCircle
+  HiOutlineCheckCircle,
+  HiOutlineArrowLeft
 } from 'react-icons/hi';
 import './GetHelp.css';
 
@@ -37,6 +39,7 @@ const faqs = [
 ];
 
 export default function GetHelp() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState(null);
   const [ticketSubject, setTicketSubject] = useState('');
@@ -64,6 +67,14 @@ export default function GetHelp() {
 
   return (
     <div className="help-container page-container">
+      {/* Top Page Header Row */}
+      <div className="page-header-row">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Go back" title="Go back">
+          <HiOutlineArrowLeft />
+        </button>
+        <span className="page-header-context-title">Back to Dashboard</span>
+      </div>
+
       {/* Search & Hero Banner */}
       <div className="help-hero">
         <div className="help-pill">
