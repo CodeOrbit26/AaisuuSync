@@ -1819,7 +1819,7 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
   // Screenshot & Vision AI State for Blueprints
   const [blueprintScreenshots, setBlueprintScreenshots] = useState(() => {
     try {
-      const saved = localStorage.getItem(`u_${currentUserKey}_bp_screenshots`);
+      const saved = localStorage.getItem(uk('bp_screenshots'));
       return saved ? JSON.parse(saved) : {};
     } catch { return {}; }
   });
@@ -1828,9 +1828,9 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
 
   useEffect(() => {
     try {
-      localStorage.setItem(`u_${currentUserKey}_bp_screenshots`, JSON.stringify(blueprintScreenshots));
+      localStorage.setItem(uk('bp_screenshots'), JSON.stringify(blueprintScreenshots));
     } catch (e) {}
-  }, [blueprintScreenshots, currentUserKey]);
+  }, [blueprintScreenshots, uid]);
 
   const handleBpScreenshotUpload = (e) => {
     const file = e.target.files && e.target.files[0];
