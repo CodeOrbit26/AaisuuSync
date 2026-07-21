@@ -771,6 +771,7 @@ export async function apiMiddleware(req, res, next) {
               const customPrompt1 = parsed.prompt1;
               const customPrompt2 = parsed.prompt2;
               const customPrompt3 = parsed.prompt3;
+              const customPrompt4 = parsed.prompt4;
               const vibeFilter = parsed.vibeFilter || 'random';
               
               const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
@@ -1282,19 +1283,19 @@ Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                       }
                     });
 
-                    // 4. Third Call: Generate Viral Hashtags (Prompt 3)
+                    // 4. Fourth Call: Generate Viral Hashtags & Strategy (Prompt 4)
                     try {
-                      let prompt3 = customPrompt3;
-                      if (prompt3) {
-                        if (prompt3.includes('[SONG_NAME]') || prompt3.includes('[LYRICS]')) {
-                          prompt3 = prompt3
-                            .replace('[SONG_NAME]', selectedSong.songName || '')
-                            .replace('[LYRICS]', responseData2.syncedLyrics || '');
+                      let prompt4 = customPrompt4 || customPrompt3;
+                      if (prompt4) {
+                        if (prompt4.includes('[SONG_NAME]') || prompt4.includes('[LYRICS]')) {
+                          prompt4 = prompt4
+                            .replace(/\[SONG_NAME\]/g, selectedSong.songName || '')
+                            .replace(/\[LYRICS\]/g, responseData2.syncedLyrics || '');
                         } else {
-                          prompt3 = `Selected Song: "${selectedSong.songName}"\nLyrics snippet:\n"${responseData2.syncedLyrics}"\n\n${prompt3}`;
+                          prompt4 = `Selected Song: "${selectedSong.songName}"\nLyrics snippet:\n"${responseData2.syncedLyrics}"\n\n${prompt4}`;
                         }
                       } else {
-                        prompt3 = `You are an Instagram Reels virality expert. Based on the selected song name "${selectedSong.songName}" and the lyrics snippet:
+                        prompt4 = `You are an Instagram Reels virality expert. Based on the selected song name "${selectedSong.songName}" and the lyrics snippet:
 "${responseData2.syncedLyrics}"
 Generate a list of 8-10 highly targeted viral hashtags. You MUST find and extract relevant keywords, emotions, themes, and song specific terms directly from the song name "${selectedSong.songName}" and the lyrics (the reel composition) to include in the hashtags, combined with standard high-reach aesthetic tags (e.g. #explorepage, #viralreels, #feelitreelit, #trendingreels).
 Return JSON format exactly like this:
@@ -1304,50 +1305,37 @@ Return JSON format exactly like this:
                       }
 
                       updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Generating Viral Hashtags (Prompt 3).`, type: 'info' }]
+                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Generating Viral Strategy & Hashtags (Prompt 4).`, type: 'info' }]
                       });
 
-                      const result3 = await generateWithFallback(prompt3);
-                      const responseData3 = JSON.parse(result3.response.text());
-                      if (responseData3.viralHashtags) {
-                        viralHashtags = responseData3.viralHashtags;
+                      const result4 = await generateWithFallback(prompt4);
+                      const responseData4 = JSON.parse(result4.response.text());
+                      if (responseData4.viralHashtags) {
+                        viralHashtags = responseData4.viralHashtags;
                       }
                       
                       updateWorkflowStatus({
                         executionData: { viralHashtags },
                         logs: [
-                          { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Viral hashtags generated successfully.`, type: 'success' }
+                          { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Viral strategy & hashtags generated successfully.`, type: 'success' }
                         ]
                       });
-                    } catch (prompt3Err) {
-                      console.error('Failed to generate Prompt 3 details:', prompt3Err.message);
+                    } catch (prompt4Err) {
+                      console.error('Failed to generate Prompt 4 details:', prompt4Err.message);
                       updateWorkflowStatus({
                         logs: [
-                          { timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Prompt 3 generation failed: ${prompt3Err.message}. Using high-engagement defaults.`, type: 'warn' }
+                          { timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Prompt 4 generation failed: ${prompt4Err.message}. Using high-engagement defaults.`, type: 'warn' }
                         ]
                       });
                     }
 
-                    // -- Generate Video Visuals --
-                    const framesDir = path.join(UPLOADS_DIR, `frames_${uniqueId}`);
-                    if (!fs.existsSync(framesDir)) fs.mkdirSync(framesDir, { recursive: true });
-
-                    // Parse lyrics
-                    const rawLyrics = responseData2.syncedLyrics.replace(/\[/g, '\n[');
-                    const parsedLyrics = rawLyrics.split('\n').map(line => {
-                      const match = line.match(/\[\s*(\d+):(\d+(?:\.\d+)?)\s*\]\s*(.*)/);
-                      if (match) {
-                        return { time: parseInt(match[1]) * 60 + parseFloat(match[2]), text: match[3].trim() };
-                      }
-                      return { time: 0, text: line.trim() };
-                    }).filter(l => l.text);
-
-                    // 4. Visual Planning & Asset Selection
+                    // 5. Visual Planning & Asset Selection (Prompt 3)
                     updateWorkflowStatus({
                       stage: 'visual_planning',
                       logs: [
+                        { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Executing AI Visual Specs & Layout Styling (Prompt 3).`, type: 'info' },
                         { timestamp: new Date().toLocaleTimeString(), message: `[VISUAL] Mapping ${parsedLyrics.length} lyric cues to typographic layers.`, type: 'info' },
-                        { timestamp: new Date().toLocaleTimeString(), message: `[STYLE] Setting layout: 1080x1920 Portait. Styling: 'Caveat' Font, weight 500, HSL Pink accents, 15px gap.`, type: 'info' }
+                        { timestamp: new Date().toLocaleTimeString(), message: `[STYLE] Setting layout: 1080x1920 Portrait. Styling: 'Caveat' Font, weight 500, HSL Pink accents, 15px gap.`, type: 'info' }
                       ]
                     });
 

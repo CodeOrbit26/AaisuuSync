@@ -1414,6 +1414,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
             prompt1: bpPrompts.prompt1 || null,
             prompt2: bpPrompts.prompt2 || null,
             prompt3: bpPrompts.prompt3 || null,
+            prompt4: bpPrompts.prompt4 || null,
             vibeFilter: vibeFilter || null
           })
         });
