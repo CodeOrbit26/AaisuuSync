@@ -1615,12 +1615,12 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                     e.currentTarget.style.background = '#14151a';
                   }}
                 >
-                  <option value="random">🎲 Random Vibe</option>
-                  <option value="trending">🔥 Trending Songs</option>
-                  <option value="sad">😢 Sad Songs</option>
-                  <option value="sad_trending">😭 Sad + Trending</option>
-                  <option value="chatpatee">🌶️ Chatpatee Songs</option>
-                  <option value="old">📻 Old / Retro Classics</option>
+                  <option value="random">Random Selection</option>
+                  <option value="trending">Trending Hits</option>
+                  <option value="sad">Sad & Emotional</option>
+                  <option value="sad_trending">Sad & Trending</option>
+                  <option value="chatpatee">Upbeat & Energetic</option>
+                  <option value="old">Retro Classics</option>
                 </select>
                 <input 
                   type="text" 
@@ -1649,7 +1649,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                   }}
                 />
                 <button 
-                  className="generating-btn" 
+                  className={`generating-btn ${isGenerating ? 'generating' : ''}`} 
                   onClick={() => handleGenerateClick(
                     null, 
                     document.getElementById('promptSourceInput')?.value,
@@ -1671,7 +1671,10 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                       AI Generating...
                     </>
                   ) : hasLyrics ? (
-                    <>▶ Generate Reel</>
+                    <>
+                      <HiOutlineSparkles style={{ fontSize: '1rem' }} />
+                      Generate Reel
+                    </>
                   ) : (
                     <>Need Lyrics</>
                   )}

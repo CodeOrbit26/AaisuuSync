@@ -307,47 +307,50 @@
 .generating-btn {
   padding: 10px 24px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 600;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   cursor: pointer;
-  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(16, 185, 129, 0.1) inset;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   gap: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .generating-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.35);
-  border-color: rgba(16, 185, 129, 0.4);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 1) 0%, rgba(5, 150, 105, 1) 100%);
+  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.45), 0 0 10px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.6);
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
 }
 
 .generating-btn:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.4);
 }
 
 .generating-btn:disabled {
-  background: rgba(255, 255, 255, 0.03) !important;
-  color: rgba(255, 255, 255, 0.3) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: rgba(255, 255, 255, 0.2) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.1) !important;
   box-shadow: none !important;
   cursor: not-allowed;
 }
 
-.generating-btn.active {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.9) 0%, rgba(124, 58, 237, 0.9) 100%);
-  border-color: rgba(124, 58, 237, 0.3);
-  box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.2);
+.generating-btn.generating {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+  border-color: rgba(124, 58, 237, 0.5) !important;
+  box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.4), 0 0 12px rgba(124, 58, 237, 0.3) !important;
+  cursor: not-allowed;
+  opacity: 1 !important;
 }
 
-.generating-btn.active:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 1) 0%, rgba(124, 58, 237, 1) 100%);
-  box-shadow: 0 6px 20px 0 rgba(124, 58, 237, 0.35);
+.generating-btn.generating:hover {
+  transform: none !important;
 }
 
 /* --- Agent Tab --- */
