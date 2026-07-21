@@ -1671,10 +1671,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                       AI Generating...
                     </>
                   ) : hasLyrics ? (
-                    <>
-                      <HiOutlineSparkles style={{ fontSize: '1rem' }} />
-                      Generate Reel
-                    </>
+                    <>Generate Reel</>
                   ) : (
                     <>Need Lyrics</>
                   )}
