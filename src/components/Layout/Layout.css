@@ -10,6 +10,11 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--bg-primary);
+  transition: margin-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.layout.sidebar-collapsed .layout-main {
+  margin-left: 68px;
 }
 
 .layout-content {

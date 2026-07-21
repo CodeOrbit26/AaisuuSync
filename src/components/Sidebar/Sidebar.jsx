@@ -39,8 +39,17 @@ function YTIcon() {
   );
 }
 
+function SidebarToggleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <line x1="9" y1="3" x2="9" y2="21" />
+    </svg>
+  );
+}
+
 export default function Sidebar({ isOpen, onClose }) {
-  const { user, systemStatus } = useApp();
+  const { user, systemStatus, sidebarCollapsed, toggleSidebar } = useApp();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -63,13 +72,28 @@ export default function Sidebar({ isOpen, onClose }) {
   }, []);
 
   return (
-    <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
+    <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''} ${sidebarCollapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-brand">
-        <div className="sidebar-brand-logo">A</div>
-        <div className="sidebar-brand-text">
-          <h1>AaisuuSync</h1>
-          <span>AI Platform</span>
+        <div className="sidebar-brand-left">
+          <div className="sidebar-brand-logo">A</div>
+          {!sidebarCollapsed && (
+            <div className="sidebar-brand-text">
+              <h1>AaisuuSync</h1>
+              <span>AI Platform</span>
+            </div>
+          )}
         </div>
+
+        {/* Sidebar Toggle Button (Claude Style) */}
+        <button 
+          className="sidebar-toggle-btn" 
+          onClick={toggleSidebar} 
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
+          title={sidebarCollapsed ? 'Expand sidebar (⌘B)' : 'Minimize sidebar (⌘B)'}
+        >
+          <SidebarToggleIcon />
+        </button>
+
         {/* Mobile close button */}
         <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">
           <HiOutlineX />
@@ -77,11 +101,12 @@ export default function Sidebar({ isOpen, onClose }) {
       </div>
 
       <nav className="sidebar-nav">
-        <div className="sidebar-section-label">Main Menu</div>
+        {!sidebarCollapsed && <div className="sidebar-section-label">Main Menu</div>}
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            title={sidebarCollapsed ? item.label : undefined}
             className={({ isActive }) =>
               `sidebar-link${isActive ? ' active' : ''}`
             }
@@ -90,35 +115,45 @@ export default function Sidebar({ isOpen, onClose }) {
             <span className="sidebar-link-icon">
               <item.icon />
             </span>
-            <span>{item.label}</span>
+            {!sidebarCollapsed && <span>{item.label}</span>}
           </NavLink>
         ))}
       </nav>
 
       <div className="sidebar-footer" ref={menuRef}>
-        <div className="sidebar-status">
-          <span className="sidebar-status-label">System Status</span>
-          <span className="sidebar-status-value">
-            <span className={`status-dot ${systemStatus.online ? 'online' : 'offline'}`}></span>
-            {systemStatus.online ? 'Systems Online' : 'Offline'}
-          </span>
-        </div>
+        {!sidebarCollapsed && (
+          <div className="sidebar-status">
+            <span className="sidebar-status-label">System Status</span>
+            <span className="sidebar-status-value">
+              <span className={`status-dot ${systemStatus.online ? 'online' : 'offline'}`}></span>
+              {systemStatus.online ? 'Systems Online' : 'Offline'}
+            </span>
+          </div>
+        )}
 
         {/* User Card Widget */}
-        <div className="sidebar-user" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+        <div 
+          className="sidebar-user" 
+          onClick={() => setShowProfileMenu(!showProfileMenu)}
+          title={sidebarCollapsed ? `${user.name || 'Abhay Gupta'} (${user.email})` : undefined}
+        >
           <div className="sidebar-user-avatar">{user.initials || 'AG'}</div>
-          <div className="sidebar-user-info">
-            <h4>{user.name || 'Abhay Gupta'}</h4>
-            <span className="sidebar-user-plan">{user.plan || 'AaisuuSync Free'}</span>
-          </div>
-          <button className="sidebar-logout-btn" onClick={(e) => { e.stopPropagation(); handleLogout(); }} aria-label="Logout" title="Logout">
-            <HiOutlineLogout />
-          </button>
+          {!sidebarCollapsed && (
+            <div className="sidebar-user-info">
+              <h4>{user.name || 'Abhay Gupta'}</h4>
+              <span className="sidebar-user-plan">{user.plan || 'AaisuuSync Free'}</span>
+            </div>
+          )}
+          {!sidebarCollapsed && (
+            <button className="sidebar-logout-btn" onClick={(e) => { e.stopPropagation(); handleLogout(); }} aria-label="Logout" title="Logout">
+              <HiOutlineLogout />
+            </button>
+          )}
         </div>
 
         {/* Profile Popover Menu (Matching IDE/ChatGPT User Profile Menu) */}
         {showProfileMenu && (
-          <div className="profile-popover">
+          <div className={`profile-popover ${sidebarCollapsed ? 'collapsed-popover' : ''}`}>
             <div className="profile-popover-header">
               <span className="profile-popover-email">{user.email || 'abhaygupta26nov11@gmail.com'}</span>
             </div>

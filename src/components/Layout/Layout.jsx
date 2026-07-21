@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import Topbar from '../Topbar/Topbar';
+import { useApp } from '../../context/AppContext';
 import './Layout.css';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { sidebarCollapsed } = useApp();
   const location = useLocation();
 
   // Close sidebar on route change (mobile)
@@ -25,7 +27,7 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
+    <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Mobile overlay backdrop */}
       {sidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
