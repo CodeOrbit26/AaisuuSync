@@ -32,7 +32,8 @@ import {
   HiOutlineChevronUp,
   HiOutlinePlus,
   HiOutlinePencil,
-  HiOutlineCamera
+  HiOutlineCamera,
+  HiOutlineEye
 } from 'react-icons/hi';
 import { createPortal } from 'react-dom';
 import Tabs from '../../components/Tabs/Tabs';
@@ -1769,6 +1770,7 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
   const [prompt2Text, setPrompt2Text] = useState('');
   const [prompt3Text, setPrompt3Text] = useState('');
   const [prompt4Text, setPrompt4Text] = useState('');
+  const [viewModal, setViewModal] = useState({ show: false, image: null, summary: '', blueprint: '' });
 
   // Audio Memory State
   const [audioMemory, setAudioMemory] = useState([]);
@@ -2371,28 +2373,49 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
                     <div className="bp-preview-container">
                       <img src={blueprintScreenshots[selectedPromptBp]} alt={`${selectedPromptBp} reference`} className="bp-preview-img" />
                       <div className="bp-preview-actions">
-                        <button
-                          type="button"
-                          className="btn-analyze-ai"
-                          onClick={handleAnalyzeBpScreenshot}
-                          disabled={isAnalyzingBpScreenshot}
-                        >
-                          {isAnalyzingBpScreenshot ? (
-                            <>
-                              <div className="spinner-border" />
-                              <span>Scanning Layout...</span>
-                            </>
-                          ) : (
-                            <>
-                              <HiOutlineSparkles className="btn-icon" />
-                              <span>Analyze & Generate Prompts</span>
-                            </>
-                          )}
-                        </button>
+                        {(visionSummaries[selectedPromptBp] || (blueprintPrompts[selectedPromptBp] && (blueprintPrompts[selectedPromptBp].prompt1 || blueprintPrompts[selectedPromptBp].prompt3))) ? (
+                          <button
+                            type="button"
+                            className="btn-analyze-ai"
+                            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', borderColor: 'transparent' }}
+                            onClick={() => setViewModal({
+                              show: true,
+                              image: blueprintScreenshots[selectedPromptBp],
+                              summary: visionSummaries[selectedPromptBp] || blueprintPrompts[selectedPromptBp]?.aestheticSummary || '',
+                              blueprint: selectedPromptBp
+                            })}
+                          >
+                            <HiOutlineEye className="btn-icon" />
+                            <span>View Visual Specs & Prompts</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-analyze-ai"
+                            onClick={handleAnalyzeBpScreenshot}
+                            disabled={isAnalyzingBpScreenshot}
+                          >
+                            {isAnalyzingBpScreenshot ? (
+                              <>
+                                <div className="spinner-border" />
+                                <span>Scanning Layout...</span>
+                              </>
+                            ) : (
+                              <>
+                                <HiOutlineSparkles className="btn-icon" />
+                                <span>Analyze & Generate Prompts</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           className="btn-remove-img"
-                          onClick={() => setBlueprintScreenshots(prev => ({ ...prev, [selectedPromptBp]: null }))}
+                          onClick={() => {
+                            setBlueprintScreenshots(prev => ({ ...prev, [selectedPromptBp]: null }));
+                            setVisionSummaries(prev => ({ ...prev, [selectedPromptBp]: '' }));
+                          }}
                         >
                           <HiOutlineTrash className="btn-icon" />
                           <span>Remove</span>
@@ -2703,6 +2726,36 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
             </div>
             <div className="modal-actions-row" style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button className="agent-action-btn active" onClick={() => setErrorModal({ show: false, message: '' })}>Close</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {viewModal.show && createPortal(
+        <div className="modal-backdrop" onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}>
+          <div className="modal-card animate-scale-up" style={{ maxWidth: '650px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)' }}>
+                <HiOutlineEye /> {viewModal.blueprint} Blueprint Reference Specs
+              </h3>
+              <button className="btn-close" onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}>×</button>
+            </div>
+            <div className="modal-body" style={{ padding: '16px 0', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {viewModal.image && (
+                <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.4)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <img src={viewModal.image} alt="Reference Layout" style={{ maxHeight: '280px', borderRadius: '8px', objectFit: 'contain' }} />
+                </div>
+              )}
+              {viewModal.summary && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '12px 16px', borderRadius: '8px' }}>
+                  <strong style={{ color: '#10b981', display: 'block', marginBottom: '4px', fontSize: '0.85rem' }}>AI VISUAL SPECS</strong>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: '1.5' }}>{viewModal.summary}</p>
+                </div>
+              )}
+            </div>
+            <div className="modal-actions-row" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="agent-action-btn active" onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}>Close Preview</button>
             </div>
           </div>
         </div>,
