@@ -108,7 +108,7 @@ export default function Settings() {
           <div className="settings-user-meta">
             <div className="settings-user-name-row">
               <h3>{displayName}</h3>
-              <span className="settings-free-badge">AaisuuSync Free</span>
+              <span className="settings-free-badge">{user.plan || 'AaisuuSync Free'}</span>
               <span className="settings-status-chip">
                 <span className="chip-dot"></span> Active
               </span>
