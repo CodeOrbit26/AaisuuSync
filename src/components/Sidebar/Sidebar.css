@@ -69,7 +69,7 @@
 .sidebar-brand-logo {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: var(--accent-gradient);
   display: flex;
   align-items: center;
@@ -158,9 +158,9 @@
 
 .sidebar-link.active {
   color: #ffffff;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.75) 0%, rgba(124, 58, 237, 0.65) 50%, rgba(192, 38, 211, 0.45) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
   font-weight: 600;
 }
 

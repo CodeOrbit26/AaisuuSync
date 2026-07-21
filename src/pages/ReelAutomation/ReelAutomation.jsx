@@ -1661,7 +1661,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: '22px',
+                    borderRadius: '12px',
                     margin: 0
                   }}
                 >
