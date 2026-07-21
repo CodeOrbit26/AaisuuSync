@@ -1394,12 +1394,20 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
       
       const bpPrompts = (blueprintPrompts && blueprintPrompts[activeBlueprint]) || {};
       
+      let resolvedKey = (typeof overrideKey === 'string' && overrideKey.trim()) ? overrideKey.trim() : (apiKeys?.gemini || '');
+      if (!resolvedKey) {
+        try {
+          const raw = localStorage.getItem('aaisu_api_keys_v2') || localStorage.getItem('aaisuu_api_keys_v2');
+          if (raw) resolvedKey = JSON.parse(raw)?.gemini || '';
+        } catch (e) {}
+      }
+
       try {
         const res = await fetch('/api/generate-viral-reel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            apiKey: typeof overrideKey === 'string' ? overrideKey : apiKeys?.gemini,
+            apiKey: resolvedKey,
             promptSource: customPromptSource || null,
             screenshotLyrics: screenshotLyrics || null,
             prompt1: bpPrompts.prompt1 || null,

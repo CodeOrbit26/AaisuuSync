@@ -62,19 +62,29 @@ export function AppProvider({ children }) {
     setNotifications((prev) => ({ ...prev, count: 0 }));
   };
 
-  const [apiKeys, setApiKeys] = useState(() => {
-    const defaultKeys = {
-      gemini: '',
-      pexels: '',
-      ytStudioKey: '',
-      chatgpt: '',
-      claude: '',
-      flowai: ''
-    };
-    if (!uid) return defaultKeys;
-    const saved = safeGet(userKey(uid, 'aaisu_api_keys_v2'), null);
-    return saved ? { ...defaultKeys, ...saved } : defaultKeys;
-  });
+  const defaultKeys = {
+    gemini: '',
+    pexels: '',
+    ytStudioKey: '',
+    chatgpt: '',
+    claude: '',
+    flowai: ''
+  };
+
+  const getSavedApiKeys = (userId) => {
+    const userScoped = userId ? safeGet(userKey(userId, 'aaisu_api_keys_v2'), null) : null;
+    const globalScoped = safeGet('aaisu_api_keys_v2', null) || safeGet('aaisuu_api_keys_v2', null);
+    const combined = { ...defaultKeys, ...(globalScoped || {}), ...(userScoped || {}) };
+    return combined;
+  };
+
+  const [apiKeys, setApiKeys] = useState(() => getSavedApiKeys(uid));
+
+  // Sync apiKeys whenever uid loads or changes
+  React.useEffect(() => {
+    const loaded = getSavedApiKeys(uid);
+    setApiKeys(prev => ({ ...loaded, ...prev, gemini: prev.gemini || loaded.gemini, pexels: prev.pexels || loaded.pexels }));
+  }, [uid]);
 
   // Persistent connected accounts (per user)
   const [connectedAccounts, setConnectedAccounts] = useState(() => {
@@ -155,8 +165,11 @@ export function AppProvider({ children }) {
   // Helper functions
   const saveApiKeys = (keys) => {
     setApiKeys(keys);
+    localStorage.setItem('aaisu_api_keys_v2', JSON.stringify(keys));
+    localStorage.setItem('aaisuu_api_keys_v2', JSON.stringify(keys));
     if (uid) {
       localStorage.setItem(userKey(uid, 'aaisu_api_keys_v2'), JSON.stringify(keys));
+      localStorage.setItem(userKey(uid, 'aaisuu_api_keys_v2'), JSON.stringify(keys));
     }
   };
 
