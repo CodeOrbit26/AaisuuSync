@@ -13,6 +13,14 @@ import {
 import { useApp } from '../../context/AppContext';
 import './Topbar.css';
 
+const PAGE_TITLES = {
+  '/settings': 'Settings',
+  '/notifications': 'Notifications',
+  '/upgrade': 'Upgrade Plan',
+  '/learn-more': 'Learn More',
+  '/get-help': 'Get Help'
+};
+
 export default function Topbar({ onMenuToggle }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,6 +59,8 @@ export default function Topbar({ onMenuToggle }) {
     }
   };
 
+  const currentTitle = PAGE_TITLES[location.pathname];
+
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -58,6 +68,9 @@ export default function Topbar({ onMenuToggle }) {
         <button className="topbar-menu-btn" onClick={onMenuToggle} aria-label="Toggle menu">
           <HiOutlineMenu />
         </button>
+        {currentTitle && (
+          <h1 className="topbar-page-title">{currentTitle}</h1>
+        )}
       </div>
       <div className="topbar-right">
         <div className="topbar-search">
