@@ -1733,6 +1733,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
 /* --- Agent Rules Tab --- */
 function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage, blueprintPrompts, setBlueprintPrompts }) {
   const { currentUser } = useAuth();
+  const { apiKeys } = useApp();
   const uid = currentUser?.id || '';
   const uk = (key) => uid ? `${uid}_${key}` : key;
 
@@ -1740,7 +1741,10 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [expandedRules, setExpandedRules] = useState(new Set());
-  
+
+  // Error modal state
+  const [errorModal, setErrorModal] = useState({ show: false, message: '' });
+
   // Rule Modals State
   const [showAddRuleModal, setShowAddRuleModal] = useState(false);
   const [editingRule, setEditingRule] = useState(null);
@@ -1854,6 +1858,17 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
     const screenshot = blueprintScreenshots[selectedPromptBp];
     if (!screenshot) return;
 
+    let activeKey = apiKeys?.gemini;
+    if (!activeKey) {
+      try {
+        const savedKeys = localStorage.getItem(uk('aaisuu_api_keys_v2')) || localStorage.getItem('aaisuu_api_keys_v2');
+        if (savedKeys) {
+          const parsedKeys = JSON.parse(savedKeys);
+          activeKey = parsedKeys?.gemini;
+        }
+      } catch (e) {}
+    }
+
     setIsAnalyzingBpScreenshot(true);
     try {
       const res = await fetch('/api/analyze-blueprint-screenshot', {
@@ -1862,16 +1877,29 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
         body: JSON.stringify({
           image: screenshot,
           blueprintName: selectedPromptBp,
-          apiKey: apiKeys?.gemini
+          apiKey: activeKey
         })
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to analyze blueprint screenshot');
 
+      const p1 = data.prompt1 || prompt1Text;
+      const p2 = data.prompt2 || prompt2Text;
+      const p3 = data.prompt3 || prompt3Text;
+
       if (data.prompt1) setPrompt1Text(data.prompt1);
       if (data.prompt2) setPrompt2Text(data.prompt2);
       if (data.prompt3) setPrompt3Text(data.prompt3);
+
+      setBlueprintPrompts(prev => ({
+        ...prev,
+        [selectedPromptBp]: {
+          prompt1: (p1 || '').trim(),
+          prompt2: (p2 || '').trim(),
+          prompt3: (p3 || '').trim()
+        }
+      }));
 
       if (data.aestheticSummary) {
         setVisionSummaries(prev => ({
@@ -1880,7 +1908,7 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
         }));
       }
 
-      setToastMessage(`AI Vision successfully extracted prompt rules for ${selectedPromptBp}!`);
+      setToastMessage(`AI Vision successfully analyzed reference screenshot & saved prompts for ${selectedPromptBp}!`);
     } catch (err) {
       setErrorModal({ show: true, message: err.message });
     } finally {
@@ -2600,6 +2628,24 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
               <button type="submit" className="agent-action-btn active" style={{ background: 'var(--accent-primary)', borderColor: 'var(--accent-primary)', color: '#fff' }}>Save Changes</button>
             </div>
           </form>
+        </div>,
+        document.body
+      )}
+
+      {errorModal.show && createPortal(
+        <div className="modal-backdrop" onClick={() => setErrorModal({ show: false, message: '' })}>
+          <div className="modal-card animate-scale-up" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ color: '#f87171' }}>AI Vision Error</h3>
+              <button className="btn-close" onClick={() => setErrorModal({ show: false, message: '' })}>×</button>
+            </div>
+            <div className="modal-body" style={{ padding: '16px 0', color: 'var(--text-primary)' }}>
+              <p>{errorModal.message}</p>
+            </div>
+            <div className="modal-actions-row" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="agent-action-btn active" onClick={() => setErrorModal({ show: false, message: '' })}>Close</button>
+            </div>
+          </div>
         </div>,
         document.body
       )}
