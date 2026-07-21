@@ -853,7 +853,7 @@ export async function apiMiddleware(req, res, next) {
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
-                const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+                const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
 
                 for (const modelName of modelsToTry) {
                   for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
@@ -1906,7 +1906,7 @@ Return strict JSON format:
               let resultText = '';
               let success = false;
               let errorMsg = '';
-              const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+              const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
 
               for (const key of API_KEYS) {
                 if (success) break;
@@ -1926,8 +1926,19 @@ Return strict JSON format:
               }
 
               if (!success) {
+                let cleanError = errorMsg;
+                try {
+                  const rawObjStr = errorMsg.replace(/^\[\d+\]\s*/, '');
+                  const jsonErr = JSON.parse(rawObjStr);
+                  if (jsonErr.error && jsonErr.error.message) {
+                    cleanError = jsonErr.error.message;
+                  } else if (jsonErr.message) {
+                    cleanError = jsonErr.message;
+                  }
+                } catch (e) {}
+
                 res.statusCode = 500;
-                res.end(JSON.stringify({ error: `Vision analysis failed: ${errorMsg}` }));
+                res.end(JSON.stringify({ error: `Vision analysis failed: ${cleanError}` }));
                 return;
               }
 
@@ -2949,10 +2960,10 @@ Return strict JSON format:
               
               let data = await geminiRes.json();
               
-              // Fallback to gemini-1.5-flash if overloaded
+              // Fallback to gemini-2.0-flash if overloaded
               if (data.error && (data.error.code === 503 || data.error.code === 429)) {
-                console.log('2.5-flash overloaded, falling back to 1.5-flash...');
-                geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                console.log('2.5-flash overloaded, falling back to 2.0-flash...');
+                geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(payload)
