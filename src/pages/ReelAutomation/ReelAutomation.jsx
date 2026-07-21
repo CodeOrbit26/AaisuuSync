@@ -1732,6 +1732,10 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
 
 /* --- Agent Rules Tab --- */
 function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage, blueprintPrompts, setBlueprintPrompts }) {
+  const { currentUser } = useAuth();
+  const uid = currentUser?.id || '';
+  const uk = (key) => uid ? `${uid}_${key}` : key;
+
   const [subTab, setSubTab] = useState('rules'); // 'rules' | 'captions' | 'prompts'
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');

@@ -31,6 +31,7 @@ import {
 } from 'react-icons/hi';
 import Tabs from '../../components/Tabs/Tabs';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import './YTAutomation.css';
 
 const blueprintTypes = ['Shorts', 'Long-Form', 'Tutorials', 'Vlogs', 'Compilations'];
