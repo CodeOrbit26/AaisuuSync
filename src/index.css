@@ -87,7 +87,7 @@
   --transition-slow: 320ms var(--ease-out);
 
   /* Layout */
-  --sidebar-width: 232px;
+  --sidebar-width: 280px;
   --topbar-height: 72px;
 }
 
