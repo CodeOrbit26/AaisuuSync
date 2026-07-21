@@ -19,7 +19,7 @@ const SUPERUSER = {
   email: 'abhaygupta26nov11@gmail.com',
   initials: 'AG',
   passwordHash: simpleHash('@bhay2611'),
-  plan: 'AaisuuSync Pro Ultra',
+  plan: 'AaisuuSync Free',
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 

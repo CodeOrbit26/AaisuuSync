@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   HiOutlineViewGrid,
@@ -9,6 +9,13 @@ import {
   HiOutlineLink,
   HiOutlineX,
   HiOutlineLogout,
+  HiOutlineGlobeAlt,
+  HiOutlineQuestionMarkCircle,
+  HiOutlineArrowCircleUp,
+  HiOutlineDownload,
+  HiOutlineInformationCircle,
+  HiOutlineChevronRight,
+  HiOutlineChevronDown
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -37,11 +44,24 @@ export default function Sidebar({ isOpen, onClose }) {
   const { user, systemStatus } = useApp();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const menuRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
   };
+
+  // Close profile popup when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
@@ -72,14 +92,11 @@ export default function Sidebar({ isOpen, onClose }) {
               <item.icon />
             </span>
             <span>{item.label}</span>
-            {item.badge && (
-              <span className="sidebar-link-badge">{item.badge}</span>
-            )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="sidebar-footer">
+      <div className="sidebar-footer" ref={menuRef}>
         <div className="sidebar-status">
           <span className="sidebar-status-label">System Status</span>
           <span className="sidebar-status-value">
@@ -87,18 +104,75 @@ export default function Sidebar({ isOpen, onClose }) {
             {systemStatus.online ? 'Systems Online' : 'Offline'}
           </span>
         </div>
-        <div className="sidebar-user">
-          <div className="sidebar-user-avatar">{user.initials}</div>
+
+        {/* User Card Widget */}
+        <div className="sidebar-user" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+          <div className="sidebar-user-avatar">{user.initials || 'AG'}</div>
           <div className="sidebar-user-info">
-            <h4>{user.name}</h4>
+            <h4>{user.name || 'Abhay Gupta'}</h4>
+            <span className="sidebar-user-plan">{user.plan || 'AaisuuSync Free'}</span>
           </div>
-          <button className="sidebar-logout-btn" onClick={handleLogout} aria-label="Logout" title="Logout">
+          <button className="sidebar-logout-btn" onClick={(e) => { e.stopPropagation(); handleLogout(); }} aria-label="Logout" title="Logout">
             <HiOutlineLogout />
           </button>
         </div>
+
+        {/* Profile Popover Menu (Matching IDE/ChatGPT User Profile Menu) */}
+        {showProfileMenu && (
+          <div className="profile-popover">
+            <div className="profile-popover-header">
+              <span className="profile-popover-email">{user.email || 'abhaygupta26nov11@gmail.com'}</span>
+            </div>
+
+            <div className="profile-popover-section">
+              <button className="profile-popover-item" onClick={() => { setShowProfileMenu(false); navigate('/settings'); }}>
+                <span className="popover-item-left"><HiOutlineCog /> Settings</span>
+                <span className="popover-item-shortcut">⌘,</span>
+              </button>
+              <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
+                <span className="popover-item-left"><HiOutlineGlobeAlt /> Language</span>
+                <HiOutlineChevronRight className="popover-item-arrow" />
+              </button>
+              <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
+                <span className="popover-item-left"><HiOutlineQuestionMarkCircle /> Get help</span>
+              </button>
+            </div>
+
+            <div className="profile-popover-divider"></div>
+
+            <div className="profile-popover-section">
+              <button className="profile-popover-item highlight" onClick={() => { setShowProfileMenu(false); navigate('/settings'); }}>
+                <span className="popover-item-left"><HiOutlineArrowCircleUp /> Upgrade plan</span>
+              </button>
+              <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
+                <span className="popover-item-left"><HiOutlineDownload /> Get apps and extensions</span>
+              </button>
+              <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
+                <span className="popover-item-left"><HiOutlineInformationCircle /> Learn more</span>
+                <HiOutlineChevronRight className="popover-item-arrow" />
+              </button>
+            </div>
+
+            <div className="profile-popover-divider"></div>
+
+            <div className="profile-popover-section">
+              <button className="profile-popover-item danger" onClick={handleLogout}>
+                <span className="popover-item-left"><HiOutlineLogout /> Log out</span>
+              </button>
+            </div>
+
+            {/* Bottom Workspace Pill inside Menu */}
+            <div className="profile-popover-footer">
+              <div className="workspace-pill">
+                <div className="workspace-pill-icon">A</div>
+                <span>AaisuuSync · Free</span>
+                <HiOutlineChevronDown className="workspace-chevron" />
+              </div>
+              <HiOutlineDownload className="workspace-download-icon" title="Download desktop App" />
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );
 }
-
-
