@@ -191,6 +191,10 @@
   height: 44px;
 }
 
+.sidebar.is-collapsed .sidebar-nav {
+  overflow: visible;
+}
+
 .sidebar.is-collapsed .sidebar-link-icon {
   margin: 0;
   font-size: 1.25rem;
