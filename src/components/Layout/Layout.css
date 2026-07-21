@@ -58,3 +58,91 @@
     -webkit-backdrop-filter: blur(4px);
   }
 }
+
+/* ============================================
+   Fullscreen Layout (Settings, Help, Support)
+   ============================================ */
+.layout-fullscreen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.fullscreen-header {
+  height: 64px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 100;
+}
+
+.fullscreen-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.fullscreen-back-btn:hover {
+  color: #ffffff;
+}
+
+.fullscreen-header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.fullscreen-header-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 4px 10px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.fullscreen-content {
+  flex: 1;
+  padding: 40px 40px 80px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .fullscreen-header {
+    padding: 0 16px;
+  }
+  
+  .fullscreen-header-badge {
+    display: none;
+  }
+
+  .fullscreen-content {
+    padding: 20px 16px 60px;
+  }
+}
