@@ -46,14 +46,6 @@ export default function Settings() {
         <p>Configure your AaisuuSync platform preferences and integrations.</p>
       </div>
 
-      <div className="settings-plan">
-        <div className="settings-plan-info">
-          <h4>AaisuuSync Pro</h4>
-          <p>Full access to all AI automation features & unlimited agents.</p>
-        </div>
-        <span className="settings-plan-badge">PRO PLAN</span>
-      </div>
-
       {/* Profile */}
       <div className="settings-section">
         <div className="glass-card settings-section-card">

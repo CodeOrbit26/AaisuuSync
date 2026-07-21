@@ -17,9 +17,9 @@ import './Sidebar.css';
 const navItems = [
   { path: '/', icon: HiOutlineViewGrid, label: 'Dashboard' },
   { path: '/accounts', icon: HiOutlineUserGroup, label: 'Accounts' },
-  { path: '/linkedin-automation', icon: HiOutlineLink, label: 'LinkedIn Automation', badge: 'NEW' },
+  { path: '/linkedin-automation', icon: HiOutlineLink, label: 'LinkedIn Automation' },
   { path: '/reel-automation', icon: HiOutlineFilm, label: 'Reel Automation' },
-  { path: '/yt-automation', icon: YTIcon, label: 'YT Automation', badge: 'NEW' },
+  { path: '/yt-automation', icon: YTIcon, label: 'YT Automation' },
   { path: '/instagram-dm', icon: HiOutlineChatAlt2, label: 'Instagram DM' },
   { path: '/settings', icon: HiOutlineCog, label: 'Settings' },
 ];
@@ -91,7 +91,6 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="sidebar-user-avatar">{user.initials}</div>
           <div className="sidebar-user-info">
             <h4>{user.name}</h4>
-            <span>{user.plan}</span>
           </div>
           <button className="sidebar-logout-btn" onClick={handleLogout} aria-label="Logout" title="Logout">
             <HiOutlineLogout />
@@ -101,4 +100,5 @@ export default function Sidebar({ isOpen, onClose }) {
     </aside>
   );
 }
+
 
