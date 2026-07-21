@@ -573,11 +573,27 @@ Return JSON format exactly like this:
           setBlueprints={setBlueprints} 
           setToastMessage={setToastMessage}
           selectedAccount={selectedAccount}
+          isGenerating={isGenerating}
+          activeBlueprint={activeBlueprint}
         />
       )}
       {activeTab === 'matrix' && <MatrixTab activeBlueprint={activeBlueprint} setActiveBlueprint={setActiveBlueprint} blueprints={blueprints} setBlueprints={setBlueprints} setActiveTab={setActiveTab} setPipelineFilter={setPipelineFilter} apiKeys={apiKeys} saveApiKeys={saveApiKeys} isGenerating={isGenerating} setIsGenerating={setIsGenerating} setToastMessage={setToastMessage} captions={captions} blueprintPrompts={blueprintPrompts} />}
       {activeTab === 'agent-rules' && <AgentRulesTab rules={rules} setRules={setRules} captions={captions} setCaptions={setCaptions} setToastMessage={setToastMessage} blueprintPrompts={blueprintPrompts} setBlueprintPrompts={setBlueprintPrompts} />}
       {activeTab === 'workflow' && <WorkflowTab isGenerating={isGenerating} />}
+
+      {/* Persistant Generation Toast Notification */}
+      {isGenerating && createPortal(
+        <div style={{ position: 'fixed', top: '24px', right: '24px', background: 'rgba(20, 20, 30, 0.95)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'white', padding: '1.25rem', borderRadius: '12px', zIndex: 100000, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', animation: 'slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transition: 'all 0.3s', backdropFilter: 'blur(10px)', minWidth: '320px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <div style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="spinner-loader" style={{ width: '20px', height: '20px', borderTopColor: '#fbbf24', borderWidth: '3px', margin: 0 }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h4 style={{ margin: '0 0 4px 0', fontSize: '1.02rem', fontWeight: 700, color: '#fbbf24' }}>Reel Synthesis Engine</h4>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#92949c', lineHeight: '1.4' }}>Compiling Pexels HD video background loops, syncs LRC song lyrics, and rendering vertical 1080x1920 reel...</p>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Toast Notification */}
       {toastMessage && createPortal(
@@ -600,7 +616,7 @@ Return JSON format exactly like this:
 }
 
 /* --- Pipeline Tab --- */
-function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMessage, selectedAccount }) {
+function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMessage, selectedAccount, isGenerating, activeBlueprint }) {
   const [playingReel, setPlayingReel] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -641,6 +657,22 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
 
   // Collect all generated reels from all blueprints
   const allReels = [];
+
+  if (isGenerating) {
+    allReels.push({
+      id: 'generating_temp',
+      name: 'Generating viral video package...',
+      duration: '15s',
+      hook: '--',
+      date: new Date().toISOString().split('T')[0],
+      status: 'generating',
+      blueprint: activeBlueprint || 'Lyrics',
+      lyrics: 'Compiling Pexels HD video background loops, syncs LRC song lyrics, and rendering vertical 1080x1920 reel...',
+      viralHashtags: '#processing #reels #ai',
+      viralReachHashtags: ''
+    });
+  }
+
   Object.keys(blueprints).forEach(bpName => {
     const bp = blueprints[bpName];
     if (bp && bp.generated) {
@@ -657,7 +689,7 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
     ? allReels.filter(r => r.status === 'failed')
     : filter === 'verified'
     ? allReels.filter(r => r.status === 'verified')
-    : allReels.filter(r => r.status === 'upcoming' || r.status === 'scheduled');
+    : allReels.filter(r => r.status === 'upcoming' || r.status === 'scheduled' || r.status === 'generating');
 
   const handleDelete = (reelId, blueprintName) => {
     const bp = blueprints[blueprintName];
@@ -673,7 +705,7 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
   };
 
   const filterTabs = [
-    { id: 'upcoming', label: 'Upcoming', icon: <HiOutlineClock />, count: allReels.filter(r => r.status === 'upcoming' || r.status === 'scheduled').length },
+    { id: 'upcoming', label: 'Upcoming', icon: <HiOutlineClock />, count: allReels.filter(r => r.status === 'upcoming' || r.status === 'scheduled' || r.status === 'generating').length },
     { id: 'verified', label: 'Verified', icon: <HiOutlineShieldCheck />, count: allReels.filter(r => r.status === 'verified').length },
     { id: 'published', label: 'Published', icon: <HiOutlineCheckCircle />, count: allReels.filter(r => r.status === 'ready').length },
     { id: 'failed', label: 'Failed', icon: <HiOutlineXCircle />, count: allReels.filter(r => r.status === 'failed').length },
@@ -854,8 +886,9 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
             <div key={reel.id} className="pipeline-reel-card glass-card">
               {/* Interactive phone-frame preview */}
               <div 
-                className="pipeline-phone-frame interactive"
+                className={`pipeline-phone-frame ${reel.status === 'generating' ? '' : 'interactive'}`}
                 onClick={() => {
+                  if (reel.status === 'generating') return;
                   const isSame = playingReel?.id === reel.id;
                   if (isSame) {
                     setIsPlaying(!isPlaying);
@@ -871,11 +904,18 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                   }
                 }}
               >
-                <div className="pipeline-phone-overlay">
-                  {playingReel?.id === reel.id && isPlaying ? <HiOutlinePause className="play-icon" /> : <HiOutlinePlay className="play-icon" />}
-                </div>
+                {reel.status !== 'generating' && (
+                  <div className="pipeline-phone-overlay">
+                    {playingReel?.id === reel.id && isPlaying ? <HiOutlinePause className="play-icon" /> : <HiOutlinePlay className="play-icon" />}
+                  </div>
+                )}
                 <div className="pipeline-phone-screen">
-                  {reel.videoUrl && (
+                  {reel.status === 'generating' ? (
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(20,20,30,0.85)', gap: '12px', zIndex: 5, padding: '10px' }}>
+                      <span className="spinner-loader" style={{ width: '24px', height: '24px', borderTopColor: '#fbbf24', borderWidth: '3px' }} />
+                      <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#fbbf24', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rendering Video...</span>
+                    </div>
+                  ) : reel.videoUrl ? (
                     <video
                       className="pipeline-background-video"
                       src={window.resolveUrl(reel.videoUrl)}
@@ -894,7 +934,7 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                         opacity: 0.6
                       }}
                     />
-                  )}
+                  ) : null}
                   <div className="pipeline-lyrics-static">
                     {reel.lyrics.split('\n')
                       .filter(line => line.trim())
@@ -917,7 +957,12 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
                 {/* Badges Row */}
                 <div className="pipeline-reel-badges">
                   <span className="pipeline-badge-pill outline">{reel.blueprint.toUpperCase()}</span>
-                  {reel.status === 'upcoming' ? (
+                  {reel.status === 'generating' ? (
+                    <span className="pipeline-badge-pill status-generating" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 8px' }}>
+                      <span className="spinner-loader" style={{ width: '10px', height: '10px', borderTopColor: '#fbbf24', borderWidth: '1.5px', margin: 0 }} />
+                      GENERATING...
+                    </span>
+                  ) : reel.status === 'upcoming' ? (
                     <span className="pipeline-badge-pill upload-icon-only" style={{ padding: '4px 8px', cursor: 'pointer', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' }} onClick={() => handleUpload(reel.id, reel.blueprint)}>
                       <HiOutlineUpload size={16} />
                     </span>
@@ -944,34 +989,43 @@ function PipelineTab({ filter, setFilter, blueprints, setBlueprints, setToastMes
 
                 {/* Actions Grid */}
                 <div className="pipeline-reel-actions-grid">
-                  <button className={`grid-action-btn info ${showingInfo && playingReel?.id === reel.id ? 'active' : ''}`} onClick={() => {
-                    const isNew = playingReel?.id !== reel.id;
-                    if (isNew) {
-                      setPlayingReel(reel);
-                      setVideoError(false);
-                      setCurrentTime(0);
-                    }
-                    setIsPlaying(false);
-                    setShowingInfo(isNew ? true : !showingInfo);
-                  }}>
-                    <HiOutlineInformationCircle /> Info
-                  </button>
-                  
-                  {/* Primary Action */}
-                  {reel.status === 'verified' || reel.status === 'scheduled' || reel.status === 'ready' ? (
-                    <button className="grid-action-btn upload" onClick={() => handleUpload(reel.id, reel.blueprint)} disabled={uploadingReels[reel.id] || publishAccounts.length === 0}>
-                      <HiOutlineUpload /> Upload
+                  {reel.status === 'generating' ? (
+                    <button className="grid-action-btn info disabled" style={{ gridColumn: 'span 4', cursor: 'not-allowed', opacity: 0.6, background: '#1c1d24', border: '1px solid rgba(255,255,255,0.05)', color: '#5f616b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} disabled>
+                      <span className="spinner-loader" style={{ width: '12px', height: '12px', borderTopColor: '#fbbf24', borderWidth: '2px' }} />
+                      Synthesis Queue Active...
                     </button>
                   ) : (
-                    <button className="grid-action-btn check" onClick={() => handleVerify(reel.id, reel.blueprint)}>
-                      <HiOutlineCheck /> Verify
-                    </button>
-                  )}
+                    <>
+                      <button className={`grid-action-btn info ${showingInfo && playingReel?.id === reel.id ? 'active' : ''}`} onClick={() => {
+                        const isNew = playingReel?.id !== reel.id;
+                        if (isNew) {
+                          setPlayingReel(reel);
+                          setVideoError(false);
+                          setCurrentTime(0);
+                        }
+                        setIsPlaying(false);
+                        setShowingInfo(isNew ? true : !showingInfo);
+                      }}>
+                        <HiOutlineInformationCircle /> Info
+                      </button>
+                      
+                      {/* Primary Action */}
+                      {reel.status === 'verified' || reel.status === 'scheduled' || reel.status === 'ready' ? (
+                        <button className="grid-action-btn upload" onClick={() => handleUpload(reel.id, reel.blueprint)} disabled={uploadingReels[reel.id] || publishAccounts.length === 0}>
+                          <HiOutlineUpload /> Upload
+                        </button>
+                      ) : (
+                        <button className="grid-action-btn check" onClick={() => handleVerify(reel.id, reel.blueprint)}>
+                          <HiOutlineCheck /> Verify
+                        </button>
+                      )}
 
-                  {/* Download */}
-                  <button className="grid-action-btn download" onClick={() => handleDownload(reel)}>
-                    <HiOutlineDownload /> Download
-                  </button>
+                      {/* Download */}
+                      <button className="grid-action-btn download" onClick={() => handleDownload(reel)}>
+                        <HiOutlineDownload /> Download
+                      </button>
+                    </>
+                  )}
 
                   {/* Delete */}
                   <button className="grid-action-btn delete" onClick={() => handleDelete(reel.id, reel.blueprint)}>
@@ -1532,25 +1586,26 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                 <select
                   id="vibeFilterSelect"
                   style={{
-                    background: 'rgba(0,0,0,0.3)',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    padding: '12px 16px',
-                    borderRadius: '8px',
+                    background: '#14151a',
+                    color: '#e4e5eb',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    padding: '0 16px',
+                    borderRadius: '12px',
                     fontSize: '0.9rem',
                     cursor: 'pointer',
                     outline: 'none',
                     minWidth: '160px',
                     height: '45px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-                    e.currentTarget.style.background = 'rgba(0,0,0,0.4)';
+                    e.currentTarget.style.background = '#1a1b22';
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                    e.currentTarget.style.background = 'rgba(0,0,0,0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                    e.currentTarget.style.background = '#14151a';
                   }}
                 >
                   <option value="random">🎲 Random Vibe</option>
@@ -1564,7 +1619,27 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                   type="text" 
                   id="promptSourceInput" 
                   placeholder="Optional: Enter a specific song name (e.g. 'Tauba Tauba')" 
-                  style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: '12px 16px', borderRadius: '8px', fontSize: '0.9rem', height: '45px', boxSizing: 'border-box' }} 
+                  style={{ 
+                    flex: 1, 
+                    background: '#14151a', 
+                    color: '#fff', 
+                    border: '1px solid rgba(255,255,255,0.08)', 
+                    padding: '0 16px', 
+                    borderRadius: '12px', 
+                    fontSize: '0.9rem', 
+                    height: '45px', 
+                    boxSizing: 'border-box',
+                    outline: 'none',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }} 
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                    e.currentTarget.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 />
                 <button 
                   className="generating-btn" 
@@ -1573,9 +1648,26 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                     document.getElementById('promptSourceInput')?.value,
                     document.getElementById('vibeFilterSelect')?.value
                   )}
-                  style={hasLyrics ? { cursor: 'pointer', boxShadow: '0 0 12px rgba(34, 197, 94, 0.25)', whiteSpace: 'nowrap', margin: 0, height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { whiteSpace: 'nowrap', margin: 0, height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  disabled={!hasLyrics || isGenerating}
+                  style={{
+                    height: '45px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '12px',
+                    margin: 0
+                  }}
                 >
-                  {isGenerating ? '▶ AI Generating...' : hasLyrics ? '▶ Generate Reel' : 'Need Lyrics'}
+                  {isGenerating ? (
+                    <>
+                      <span className="spinner-loader" style={{ width: '12px', height: '12px', borderTopColor: 'white', borderWidth: '2px', margin: 0 }} />
+                      AI Generating...
+                    </>
+                  ) : hasLyrics ? (
+                    <>▶ Generate Reel</>
+                  ) : (
+                    <>Need Lyrics</>
+                  )}
                 </button>
               </div>
               <div className="synth-poll-left" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
