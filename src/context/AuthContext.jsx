@@ -57,10 +57,14 @@ export function AuthProvider({ children }) {
       const session = localStorage.getItem('aaisu_session');
       if (session) {
         const parsed = JSON.parse(session);
-        // Verify user still exists
         const users = getUsers();
-        const exists = users.find(u => u.id === parsed.id);
-        if (exists) return parsed;
+        const exists = users.find(u => u.id === parsed.id || u.email === parsed.email);
+        if (exists) {
+          return {
+            ...parsed,
+            plan: 'AaisuuSync Free'
+          };
+        }
       }
     } catch {}
     return null;
@@ -107,7 +111,7 @@ export function AuthProvider({ children }) {
       email: trimmedEmail,
       initials,
       passwordHash: simpleHash(password),
-      plan: 'AaisuuSync Pro',
+      plan: 'AaisuuSync Free',
       createdAt: new Date().toISOString(),
     };
 

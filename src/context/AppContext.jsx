@@ -318,13 +318,13 @@ export function AppProvider({ children }) {
     email: currentUser.email,
     avatar: null,
     initials: currentUser.initials,
-    plan: currentUser.plan || 'AaisuuSync Pro',
+    plan: 'AaisuuSync Free',
   } : {
     name: 'Guest',
     email: '',
     avatar: null,
     initials: 'G',
-    plan: 'Free',
+    plan: 'AaisuuSync Free',
   };
 
   const currentModel = AI_MODELS.find((m) => m.id === activeModel) || AI_MODELS[0];
