@@ -778,7 +778,7 @@ export async function apiMiddleware(req, res, next) {
               const API_KEYS = [envKey, clientKey].filter(k => !isInvalidKey(k));
 
               if (API_KEYS.length === 0) {
-                const errMsg = "No valid Gemini API Key configured in Render Environment Variables or Client Settings. Please set GEMINI_API_KEY in Render settings.";
+                const errMsg = "No valid Gemini API Key found. Please configure your key in Settings -> API Credentials (or set GEMINI_API_KEY environment variable).";
                 updateWorkflowStatus({
                   status: 'failed',
                   logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[ERROR] ${errMsg}`, type: 'error' }]

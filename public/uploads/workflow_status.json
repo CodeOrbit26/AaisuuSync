@@ -1,311 +1,306 @@
 {
-  "status": "failed",
+  "status": "completed",
   "stage": "final_output",
   "logs": [
     {
-      "timestamp": "6:07:05 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[SYSTEM] POST /api/generate-viral-reel request received using keys: Key #1 (CLIENT): AIzaSyDu...ting",
       "type": "info"
     },
     {
-      "timestamp": "6:07:05 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[INPUT] Specific song override: None (Random song selection)",
       "type": "info"
     },
     {
-      "timestamp": "6:07:05 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[SYSTEM] Active category filter option configured: \"Random Selection\"",
       "type": "info"
     },
     {
-      "timestamp": "6:07:05 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[GEMINI] Dispatching Song Recommendation query (Prompt 1).",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[DATABASE] Parsing song recommendations from LLM response.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
-      "message": "[DATABASE] Querying Audio Memory pool. Found 0 logged records.",
+      "timestamp": "6:51:41 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 1 logged records.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...",
       "type": "warn"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[DATABASE] Parsing song recommendations from LLM response.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
-      "message": "[DATABASE] Querying Audio Memory pool. Found 0 logged records.",
+      "timestamp": "6:51:41 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 1 logged records.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...",
       "type": "warn"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[DATABASE] Parsing song recommendations from LLM response.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
-      "message": "[DATABASE] Querying Audio Memory pool. Found 0 logged records.",
+      "timestamp": "6:51:41 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 1 logged records.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:06 PM",
+      "timestamp": "6:51:41 PM",
       "message": "[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...",
       "type": "warn"
     },
     {
-      "timestamp": "6:07:07 PM",
+      "timestamp": "6:51:42 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
+      "timestamp": "6:51:42 PM",
       "message": "[DATABASE] Parsing song recommendations from LLM response.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
-      "message": "[DATABASE] Querying Audio Memory pool. Found 0 logged records.",
+      "timestamp": "6:51:42 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 1 logged records.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
+      "timestamp": "6:51:42 PM",
       "message": "[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...",
       "type": "warn"
     },
     {
-      "timestamp": "6:07:07 PM",
+      "timestamp": "6:51:42 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
+      "timestamp": "6:51:42 PM",
       "message": "[DATABASE] Parsing song recommendations from LLM response.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
-      "message": "[DATABASE] Querying Audio Memory pool. Found 0 logged records.",
+      "timestamp": "6:51:42 PM",
+      "message": "[DATABASE] Querying Audio Memory pool. Found 1 logged records.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
+      "timestamp": "6:51:42 PM",
       "message": "[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...",
       "type": "warn"
     },
     {
-      "timestamp": "6:07:07 PM",
-      "message": "[GEMINI] Suggestion complete: \"Gypsy\"",
+      "timestamp": "6:51:42 PM",
+      "message": "[GEMINI] Suggestion complete: \"Kitab\"",
       "type": "success"
     },
     {
-      "timestamp": "6:07:07 PM",
-      "message": "[SYSTEM] Drop time start: 15s. YouTube Search: \"Gypsy GD Kaur official audio\"",
+      "timestamp": "6:51:42 PM",
+      "message": "[SYSTEM] Drop time start: 15s. YouTube Search: \"Kitab female version official audio\"",
       "type": "info"
     },
     {
-      "timestamp": "6:07:07 PM",
-      "message": "[AUDIO] Downloading audio stream natively via Node.js for \"Gypsy GD Kaur official audio\"...",
+      "timestamp": "6:51:42 PM",
+      "message": "[AUDIO] Downloading audio stream natively via Node.js for \"Kitab female version official audio\"...",
       "type": "info"
     },
     {
-      "timestamp": "6:07:34 PM",
-      "message": "[AUDIO] Audio stream acquired successfully (\"Gypsy\").",
-      "type": "success"
+      "timestamp": "6:52:22 PM",
+      "message": "[AUDIO] Processing audio stream for (\"Kitab\").",
+      "type": "info"
     },
     {
-      "timestamp": "6:07:34 PM",
+      "timestamp": "6:52:22 PM",
       "message": "[SYSTEM] Audio stream downloaded successfully.",
       "type": "success"
     },
     {
-      "timestamp": "6:07:34 PM",
+      "timestamp": "6:52:22 PM",
       "message": "[SHELL] Executing ffmpeg to trim 15s clip starting at 0s.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:34 PM",
-      "message": "[CMD] \"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784637427718.mp3\" -ss 0 -t 15 -c copy \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784637427718.mp3\"",
+      "timestamp": "6:52:22 PM",
+      "message": "[CMD] \"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784640102229.mp3\" -ss 0 -t 15 -c copy \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784640102229.mp3\"",
       "type": "info"
     },
     {
-      "timestamp": "6:07:35 PM",
+      "timestamp": "6:52:22 PM",
       "message": "[SYSTEM] Audio trimmed and validated. File size: 60053 bytes.",
       "type": "success"
     },
     {
-      "timestamp": "6:07:35 PM",
+      "timestamp": "6:52:22 PM",
       "message": "[GEMINI] Sending trimmed audio for transcription & timestamping (Prompt 2).",
       "type": "info"
     },
     {
-      "timestamp": "6:07:35 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:35 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[GEMINI] Audio transcript processed successfully.",
       "type": "success"
     },
     {
-      "timestamp": "6:07:35 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[PARSER] Slicing transcript line breaks and validating LRC timestamps.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:35 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[GEMINI] Generating Viral Hashtags (Prompt 3).",
       "type": "info"
     },
     {
-      "timestamp": "6:07:36 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:36 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[GEMINI] Viral hashtags generated successfully.",
       "type": "success"
     },
     {
-      "timestamp": "6:07:36 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[VISUAL] Mapping 6 lyric cues to typographic layers.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:36 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[STYLE] Setting layout: 1080x1920 Portait. Styling: 'Caveat' Font, weight 500, HSL Pink accents, 15px gap.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:36 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[ASSET] Retrieving Google Fonts 'Caveat' styles. Background color constraint: Solid black (#000000).",
       "type": "info"
     },
     {
-      "timestamp": "6:07:36 PM",
+      "timestamp": "6:52:23 PM",
       "message": "[PUPPETEER] Launching headless browser for canvas frame generation.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:25 PM",
       "message": "[PUPPETEER] Navigating viewport to canvas. Halting for fonts loading...",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[PUPPETEER] Custom font confirmed loaded. Capturing 75 frames (static)...",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[PUPPETEER] Captured frame 31/75",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[PUPPETEER] Captured frame 61/75",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[PUPPETEER] Captured frame 75/75",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[PUPPETEER] Headless browser closed. Canvas composition complete.",
       "type": "success"
     },
     {
-      "timestamp": "6:07:38 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[SHELL] Initializing ffmpeg rendering pipeline to stitch screenshots and trimmed audio.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:38 PM",
-      "message": "[CMD] \"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -framerate 5 -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/frames_1784637427718/frame_%03d.jpg\" -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784637427718.mp3\" -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -t 15 \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784637427718.mp4\"",
+      "timestamp": "6:52:26 PM",
+      "message": "[CMD] \"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -framerate 5 -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/frames_1784640102229/frame_%03d.jpg\" -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784640102229.mp3\" -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -t 15 \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784640102229.mp4\"",
       "type": "info"
     },
     {
-      "timestamp": "6:07:39 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[FFMPEG] Stitching completed successfully.",
       "type": "success"
     },
     {
-      "timestamp": "6:07:39 PM",
+      "timestamp": "6:52:26 PM",
       "message": "[SYSTEM] Rendering metrics: 1080x1920, 10 FPS, H.264 video, AAC audio.",
       "type": "info"
     },
     {
-      "timestamp": "6:07:39 PM",
-      "message": "[SUCCESS] Reel generated successfully in 33.6s!",
+      "timestamp": "6:52:26 PM",
+      "message": "[SUCCESS] Reel generated successfully in 45.7s!",
       "type": "success"
-    },
-    {
-      "timestamp": "6:34:02 PM",
-      "message": "[ERROR] No valid Gemini API Key configured in Render Environment Variables or Client Settings. Please set GEMINI_API_KEY in Render settings.",
-      "type": "error"
     }
   ],
   "executionData": {
-    "startTime": 1784637425540,
+    "startTime": 1784640101086,
     "promptSource": "None",
     "vibe": "Random Selection",
     "apiKeysValidated": true,
-    "songName": "Gypsy",
-    "youtubeSearchQuery": "Gypsy GD Kaur official audio",
+    "songName": "Kitab",
+    "youtubeSearchQuery": "Kitab female version official audio",
     "viralHookStartTime": 15,
     "syncedLyrics": "[00:00.00] Husn tera tauba tauba\n[00:03.00] Husn tera tauba tauba\n[00:06.00] Oh le liya kudi ne dil sadda\n[00:09.00] Hale thoda saaf jeha ni lagda\n[00:12.00] Husn tera tauba tauba\n[00:14.00] 😭🤍💫",
     "prompt3": "",
     "viralHashtags": "#aesthetic #lyrics #reels #explorepage #feelitreelit #trendingreels #hindisongs #lofi",
     "viralReachHashtags": "#explore #foryou #viralreels #aesthetic #trending",
-    "youtubeCmd": "/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp \"ytsearch1:Gypsy GD Kaur official audio\" -x --audio-format mp3 --ffmpeg-location \"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" --no-playlist --no-check-certificates --extractor-args \"youtube:player_client=android,web\" --geo-bypass -o \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784637427718.mp3\"",
-    "trimCmd": "\"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784637427718.mp3\" -ss 0 -t 15 -c copy \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784637427718.mp3\"",
+    "youtubeCmd": "\"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/youtube-dl-exec/bin/yt-dlp\" \"ytsearch1:Kitab female version official audio\" -x --audio-format mp3 --ffmpeg-location \"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" --no-playlist --no-check-certificates --extractor-args \"youtube:player_client=android,web\" --geo-bypass -o \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784640102229.mp3\"",
+    "trimCmd": "\"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784640102229.mp3\" -ss 0 -t 15 -c copy \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784640102229.mp3\"",
     "puppeteerHtml": "\n                      <html>\n                        <head>\n                          <link href=\"https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap\" rel=\"stylesheet\">\n                          <style>\n                            * { margin: 0; padding: 0; box-sizing: border-box; }\n                            body {\n                              background: black;\n                              display: flex;\n                              flex-direction: column;\n                              align-items: center;\n                              justify-content: center;\n                              height: 100vh;\n                              font-family: 'Caveat', cursive;\n                              overflow: hidden;\n                              text-transform: uppercase;\n                            }\n                            #lyrics-container {\n                              display: flex;\n                              flex-direction: column;\n                              align-items: center;\n                              gap: 6px;\n                              text-align: center;\n                              padding: 0 30px;\n                            }\n                            .lyric-line {\n                              color: #f094c4;\n                              font-size: 38px;\n                              font-weight: 700;\n                              letter-spacing: 0.04em;\n                              line-height: 1.3;\n                            }\n                            #watermark {\n                              position: absolute;\n                              bottom: 18px;\n                              color: rgba(255,255,255,0.25);\n                              font-size: 13px;\n                              font-weight: 500;\n                              letter-spacing: 0.25em;\n                              text-transform: uppercase;\n                            }\n                          </style>\n                        </head>\n                        <body>\n                          <div id=\"lyrics-container\"></div>\n                          <div id=\"watermark\">AAISUUSYNC</div>\n                          <script>\n                            const lyrics = [{\"time\":0,\"text\":\"Husn tera tauba tauba\"},{\"time\":3,\"text\":\"Husn tera tauba tauba\"},{\"time\":6,\"text\":\"Oh le liya kudi ne dil sadda\"},{\"time\":9,\"text\":\"Hale thoda saaf jeha ni lagda\"},{\"time\":12,\"text\":\"Husn tera tauba tauba\"},{\"time\":14,\"text\":\"😭🤍💫\"}];\n                            const container = document.getElementById('lyrics-container');\n                            lyrics.forEach(l => {\n                              const div = document.createElement('div');\n                              div.className = 'lyric-line';\n                              div.innerText = l.text;\n                              container.appendChild(div);\n                            });\n                          </script>\n                        </body>\n                      </html>\n                    ",
-    "ffmpegCmd": "\"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -framerate 5 -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/frames_1784637427718/frame_%03d.jpg\" -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784637427718.mp3\" -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -t 15 \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784637427718.mp4\"",
+    "ffmpegCmd": "\"/Users/abhay/Desktop/My Personal/AaisuuSync/node_modules/ffmpeg-static/ffmpeg\" -y -framerate 5 -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/frames_1784640102229/frame_%03d.jpg\" -i \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_trimmed_1784640102229.mp3\" -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -t 15 \"/Users/abhay/Desktop/My Personal/AaisuuSync/public/uploads/viral_reel_1784640102229.mp4\"",
     "resolution": "1080x1920",
     "fps": 10,
     "bitrate": "Adaptive",
     "format": "mp4",
     "renderingProgress": 75,
     "renderingTotal": 150,
-    "videoUrl": "/uploads/viral_reel_1784637427718.mp4",
-    "audioUrl": "/uploads/viral_reel_trimmed_1784637427718.mp3",
-    "prompt1": "You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring trending Hindi or Haryanvi songs (ONLY Hindi or Haryanvi, NO English).\nSTRICT REQUIREMENT: Absolutely DO NOT suggest any of these previously generated songs from Audio Memory: Tauba Tauba, Achyutam Keshavam. Provide completely fresh, different songs. For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }",
-    "dbTotalSongs": 0,
+    "videoUrl": "/uploads/viral_reel_1784640102229.mp4",
+    "audioUrl": "/uploads/viral_reel_trimmed_1784640102229.mp3",
+    "prompt1": "You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring trending Hindi or Haryanvi songs (ONLY Hindi or Haryanvi, NO English).\nSTRICT REQUIREMENT: Absolutely DO NOT suggest any of these previously generated songs from Audio Memory: Tauba Tauba, Achyutam Keshavam, Gypsy. Provide completely fresh, different songs. For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }",
+    "dbTotalSongs": 1,
     "prompt2": "Listen to this 15-second audio clip. Transcribe the lyrics exactly as they are sung in the audio.\nCRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.\nReturn the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].\nIMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫\n\nReturn JSON format exactly like this: { \"syncedLyrics\": \"string\" }",
-    "totalElapsedTime": "33.6s"
+    "totalElapsedTime": "45.7s"
   },
-  "updatedAt": 1784639042426
+  "updatedAt": 1784640146804
 }
