@@ -28,6 +28,7 @@ const navItems = [
   { path: '/reel-automation', icon: HiOutlineFilm, label: 'Reel Automation' },
   { path: '/yt-automation', icon: YTIcon, label: 'YT Automation' },
   { path: '/instagram-dm', icon: HiOutlineChatAlt2, label: 'Instagram DM' },
+  { path: '/settings', icon: HiOutlineCog, label: 'Settings' },
 ];
 
 function YTIcon() {

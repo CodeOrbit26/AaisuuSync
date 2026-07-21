@@ -85,11 +85,6 @@ export default function Settings() {
       <div className="settings-modal-card">
         {/* Left Sidebar Tabs */}
         <div className="settings-sidebar">
-          <div className="settings-sidebar-header">
-            <button className="settings-close-icon" aria-label="Close settings">
-              <HiOutlineX />
-            </button>
-          </div>
           <nav className="settings-sidebar-nav">
             {navItems.map((item) => {
               const Icon = item.icon;
