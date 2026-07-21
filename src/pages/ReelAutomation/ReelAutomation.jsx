@@ -1634,7 +1634,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
                 <input 
                   type="text" 
                   id="promptSourceInput" 
-                  placeholder="Optional: Enter a specific song name (e.g. 'Tauba Tauba')" 
+                  placeholder="Optional: Enter a specific song name..." 
                   style={{ 
                     flex: 1, 
                     background: '#14151a', 
