@@ -30,6 +30,7 @@ import {
 import Tabs from '../../components/Tabs/Tabs';
 import Modal from '../../components/Modal/Modal';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import './LinkedInAutomation.css';
 
 const mainTabs = [
@@ -64,6 +65,9 @@ const generationSteps = [
 ];
 
 export default function LinkedInAutomation() {
+  const { currentUser } = useAuth();
+  const uid = currentUser?.id || '';
+  const uk = (key) => uid ? `${uid}_${key}` : key;
   const [activeTab, setActiveTab] = useState('pipeline');
   const [systemOn, setSystemOn] = useState(false);
   const { connectedAccounts, connectLinkedIn, disconnectLinkedIn, currentModel } = useApp();
@@ -150,23 +154,23 @@ export default function LinkedInAutomation() {
 
   // Load scheduled posts from localStorage or initial
   const [scheduledPosts, setScheduledPosts] = useState(() => {
-    const saved = localStorage.getItem('aaisu_linkedin_scheduled');
+    const saved = localStorage.getItem(uk('aaisu_linkedin_scheduled'));
     return saved ? JSON.parse(saved) : initialScheduled;
   });
 
   // Load published posts from localStorage or initial
   const [publishedPosts, setPublishedPosts] = useState(() => {
-    const saved = localStorage.getItem('aaisu_linkedin_published');
+    const saved = localStorage.getItem(uk('aaisu_linkedin_published'));
     return saved ? JSON.parse(saved) : initialPublished;
   });
 
   // Save to localStorage whenever states change
   useEffect(() => {
-    localStorage.setItem('aaisu_linkedin_scheduled', JSON.stringify(scheduledPosts));
+    localStorage.setItem(uk('aaisu_linkedin_scheduled'), JSON.stringify(scheduledPosts));
   }, [scheduledPosts]);
 
   useEffect(() => {
-    localStorage.setItem('aaisu_linkedin_published', JSON.stringify(publishedPosts));
+    localStorage.setItem(uk('aaisu_linkedin_published'), JSON.stringify(publishedPosts));
   }, [publishedPosts]);
 
   // AI Post Writer Form States

@@ -37,6 +37,7 @@ import {
 import { createPortal } from 'react-dom';
 import Tabs from '../../components/Tabs/Tabs';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import './ReelAutomation.css';
 import WorkflowTab from '../Workflow/Workflow';
 
@@ -85,11 +86,15 @@ const LEARNING_PROPERTIES = [
 ];
 
 export default function ReelAutomation() {
+  const { currentUser } = useAuth();
+  const uid = currentUser?.id || '';
+  const uk = (key) => uid ? `${uid}_${key}` : key;
+
   const [activeTab, setActiveTab] = useState('pipeline');
   const [pipelineFilter, setPipelineFilter] = useState('upcoming');
   const [activeBlueprint, setActiveBlueprint] = useState('Lyrics');
   const [systemOn, setSystemOn] = useState(() => {
-    return localStorage.getItem('aaisuu_system_on') === 'true';
+    return localStorage.getItem(uk('aaisuu_system_on')) === 'true';
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [autoPostStatus, setAutoPostStatus] = useState({ lastPosted: null, nextPostTime: null, isPosting: false });
@@ -98,7 +103,7 @@ export default function ReelAutomation() {
   const [toastMessage, setToastMessage] = useState('');
 
   const [captions, setCaptions] = useState(() => {
-    const saved = localStorage.getItem('aaisuu_agent_captions');
+    const saved = localStorage.getItem(uk('aaisuu_agent_captions'));
     return saved ? JSON.parse(saved) : [
       "Some memories never leave 🤍✨",
       "Still thinking about you 🫣💕",
@@ -108,7 +113,7 @@ export default function ReelAutomation() {
   });
 
   const [rules, setRules] = useState(() => {
-    const saved = localStorage.getItem('aaisuu_agent_rules');
+    const saved = localStorage.getItem(uk('aaisuu_agent_rules'));
     return saved ? JSON.parse(saved) : [
       { id: 'rule_1', title: 'Caption Emojis constraints', priority: 'HIGH', category: 'Caption & Emojis', status: 'Valid', enabled: true, description: 'Ensures the generated captions contain at most 3 contextual emojis and avoid excessive emoji spamming.' },
       { id: 'rule_2', title: 'Typographic Font Face constraints', priority: 'HIGH', category: 'Visual Aesthetics', status: 'Valid', enabled: true, description: 'Filters out fonts that do not fit the aesthetics. Prioritizes clean serif and retro sans-serif faces.' },
@@ -118,7 +123,7 @@ export default function ReelAutomation() {
   });
 
   useEffect(() => {
-    localStorage.setItem('aaisuu_agent_captions', JSON.stringify(captions));
+    localStorage.setItem(uk('aaisuu_agent_captions'), JSON.stringify(captions));
   }, [captions]);
 
   const [blueprintPrompts, setBlueprintPrompts] = useState(() => {
@@ -180,14 +185,14 @@ Return JSON format exactly like this:
       }
     };
 
-    const saved = localStorage.getItem('aaisuu_blueprint_prompts');
+    const saved = localStorage.getItem(uk('aaisuu_blueprint_prompts'));
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         const prompt3IsStale = parsed.Lyrics && parsed.Lyrics.prompt3 && (parsed.Lyrics.prompt3.includes('thumbnail') || !parsed.Lyrics.prompt3.includes('the reel composition'));
         // Force a reset if the saved prompt1 still expects a single songName JSON return or prompt3 is stale
         if ((parsed.Lyrics && parsed.Lyrics.prompt1 && parsed.Lyrics.prompt1.includes('"songName":')) || prompt3IsStale) {
-          localStorage.removeItem('aaisuu_blueprint_prompts');
+          localStorage.removeItem(uk('aaisuu_blueprint_prompts'));
         } else {
           // Merge default prompt3 if missing
           Object.keys(defaultPrompts).forEach(key => {
@@ -207,24 +212,24 @@ Return JSON format exactly like this:
   });
 
   useEffect(() => {
-    localStorage.setItem('aaisuu_blueprint_prompts', JSON.stringify(blueprintPrompts));
+    localStorage.setItem(uk('aaisuu_blueprint_prompts'), JSON.stringify(blueprintPrompts));
   }, [blueprintPrompts]);
 
   useEffect(() => {
-    localStorage.setItem('aaisuu_system_on', systemOn ? 'true' : 'false');
+    localStorage.setItem(uk('aaisuu_system_on'), systemOn ? 'true' : 'false');
   }, [systemOn]);
 
   useEffect(() => {
-    localStorage.setItem('aaisuu_agent_rules', JSON.stringify(rules));
+    localStorage.setItem(uk('aaisuu_agent_rules'), JSON.stringify(rules));
   }, [rules]);
 
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(() => {
-    return localStorage.getItem('aaisuu_selected_account') || 'all';
+    return localStorage.getItem(uk('aaisuu_selected_account')) || 'all';
   });
   
   useEffect(() => {
-    localStorage.setItem('aaisuu_selected_account', selectedAccount);
+    localStorage.setItem(uk('aaisuu_selected_account'), selectedAccount);
   }, [selectedAccount]);
 
   const dropdownRef = useRef(null);
