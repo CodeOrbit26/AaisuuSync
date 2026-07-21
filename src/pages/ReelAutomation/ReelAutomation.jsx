@@ -2757,28 +2757,57 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
 
       {viewModal.show && createPortal(
         <div className="modal-backdrop" onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}>
-          <div className="modal-card animate-scale-up" style={{ maxWidth: '650px', width: '90%' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)' }}>
+          <div className="modal-card animate-scale-up" onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', margin: 0, fontSize: '1.1rem' }}>
                 <HiOutlineEye /> {viewModal.blueprint} Blueprint Reference Specs
               </h3>
-              <button className="btn-close" onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}>×</button>
+              <button 
+                type="button"
+                className="btn-close" 
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.4rem', cursor: 'pointer' }}
+                onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}
+              >×</button>
             </div>
-            <div className="modal-body" style={{ padding: '16px 0', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {viewModal.image && (
-                <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.4)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <img src={viewModal.image} alt="Reference Layout" style={{ maxHeight: '280px', borderRadius: '8px', objectFit: 'contain' }} />
+            <div className="modal-body" style={{ padding: '0', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {Boolean(viewModal.image) && (
+                <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.5)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <img src={viewModal.image} alt="Reference Layout" style={{ maxHeight: '220px', maxWidth: '100%', borderRadius: '8px', objectFit: 'contain' }} />
                 </div>
               )}
-              {viewModal.summary && (
-                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '12px 16px', borderRadius: '8px' }}>
-                  <strong style={{ color: '#10b981', display: 'block', marginBottom: '4px', fontSize: '0.85rem' }}>AI VISUAL SPECS</strong>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: '1.5' }}>{viewModal.summary}</p>
+
+              <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '14px 16px', borderRadius: '10px' }}>
+                <strong style={{ color: '#10b981', display: 'block', marginBottom: '6px', fontSize: '0.8rem', letterSpacing: '0.05em' }}>AI VISUAL SPECS</strong>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: '#e2e8f0', lineHeight: '1.5' }}>
+                  {viewModal.summary || "A minimalist, emotional aesthetic featuring bright neon pink, handwritten-style Hinglish lyrics right-aligned on a stark black background."}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <strong style={{ color: 'var(--accent-primary)', fontSize: '0.85rem' }}>GENERATED SYSTEM PROMPTS</strong>
+                <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                  <strong style={{ color: '#a78bfa' }}>Prompt 1 (Song Selection):</strong> {prompt1Text || 'Default Song Selection Rules'}
                 </div>
-              )}
+                <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                  <strong style={{ color: '#a78bfa' }}>Prompt 2 (Lyrics Sync):</strong> {prompt2Text || 'Default Lyrics Sync Rules'}
+                </div>
+                <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                  <strong style={{ color: '#a78bfa' }}>Prompt 3 (Visual Specs):</strong> {prompt3Text || 'Default Visual Specs Rules'}
+                </div>
+                <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px', fontSize: '0.8rem', color: '#cbd5e1' }}>
+                  <strong style={{ color: '#a78bfa' }}>Prompt 4 (Hashtags):</strong> {prompt4Text || 'Default Hashtag Strategy Rules'}
+                </div>
+              </div>
             </div>
-            <div className="modal-actions-row" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="agent-action-btn active" onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}>Close Preview</button>
+            <div className="modal-actions-row" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <button 
+                type="button"
+                className="agent-action-btn active" 
+                style={{ background: 'var(--accent-primary)', border: 'none', color: '#fff', padding: '8px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                onClick={() => setViewModal({ show: false, image: null, summary: '', blueprint: '' })}
+              >
+                Close Preview
+              </button>
             </div>
           </div>
         </div>,
