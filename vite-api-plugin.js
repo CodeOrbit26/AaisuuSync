@@ -1,7 +1,7 @@
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import puppeteer from 'puppeteer';
 import dns from 'dns';
 import { setDefaultAutoSelectFamily } from 'net';
@@ -1617,7 +1617,14 @@ Return JSON format exactly like this:
                     fs.copyFileSync(defaultAudioPath, outputPath);
                     if (selectedSong) selectedSong.viralHookStartTime = 0;
                   } else {
-                    fs.writeFileSync(outputPath, Buffer.alloc(50000));
+                    try {
+                      const genCmd = `"${ffmpegBin}" -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 15 -q:a 9 -acodec libmp3lame "${outputPath}"`;
+                      execSync(genCmd);
+                    } catch (genErr) {
+                      console.error('[Audio Safeguard] Failed to generate valid fallback MP3 via ffmpeg:', genErr.message);
+                      // Fallback: copy default if available or write minimal audio header
+                      fs.writeFileSync(outputPath, Buffer.from('ID3\x03\x00\x00\x00\x00\x00\x00', 'binary'));
+                    }
                     if (selectedSong) selectedSong.viralHookStartTime = 0;
                   }
                 }
