@@ -9,6 +9,9 @@ import ReelAutomation from './pages/ReelAutomation/ReelAutomation';
 import YTAutomation from './pages/YTAutomation/YTAutomation';
 import InstagramDM from './pages/InstagramDM/InstagramDM';
 import Settings from './pages/Settings/Settings';
+import UpgradePlan from './pages/UpgradePlan/UpgradePlan';
+import GetHelp from './pages/GetHelp/GetHelp';
+import LearnMore from './pages/LearnMore/LearnMore';
 import Login from './pages/Auth/Login';
 import Signup from './pages/Auth/Signup';
 import './App.css';
@@ -45,6 +48,9 @@ export default function App() {
         <Route path="/yt-automation" element={<YTAutomation />} />
         <Route path="/instagram-dm" element={<InstagramDM />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/upgrade" element={<UpgradePlan />} />
+        <Route path="/get-help" element={<GetHelp />} />
+        <Route path="/learn-more" element={<LearnMore />} />
       </Route>
 
       {/* Catch-all → redirect to login */}

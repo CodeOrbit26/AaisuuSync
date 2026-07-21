@@ -167,7 +167,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 <span className="popover-item-left"><HiOutlineGlobeAlt /> Language</span>
                 <HiOutlineChevronRight className="popover-item-arrow" />
               </button>
-              <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
+              <button className="profile-popover-item" onClick={() => { setShowProfileMenu(false); navigate('/get-help'); }}>
                 <span className="popover-item-left"><HiOutlineQuestionMarkCircle /> Get help</span>
               </button>
             </div>
@@ -175,13 +175,13 @@ export default function Sidebar({ isOpen, onClose }) {
             <div className="profile-popover-divider"></div>
 
             <div className="profile-popover-section">
-              <button className="profile-popover-item highlight" onClick={() => { setShowProfileMenu(false); navigate('/settings'); }}>
+              <button className="profile-popover-item highlight" onClick={() => { setShowProfileMenu(false); navigate('/upgrade'); }}>
                 <span className="popover-item-left"><HiOutlineArrowCircleUp /> Upgrade plan</span>
               </button>
               <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
                 <span className="popover-item-left"><HiOutlineDownload /> Get apps and extensions</span>
               </button>
-              <button className="profile-popover-item" onClick={() => setShowProfileMenu(false)}>
+              <button className="profile-popover-item" onClick={() => { setShowProfileMenu(false); navigate('/learn-more'); }}>
                 <span className="popover-item-left"><HiOutlineInformationCircle /> Learn more</span>
                 <HiOutlineChevronRight className="popover-item-arrow" />
               </button>

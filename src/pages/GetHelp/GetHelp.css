@@ -1,0 +1,327 @@
+/* ============================================
+   Get Help Page — Dark Charcoal Obsidian Theme
+   ============================================ */
+
+.help-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: pageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Hero Header */
+.help-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.help-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 5px 12px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+
+.help-hero h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.help-hero p {
+  font-size: 0.9rem;
+  color: #92949c;
+  max-width: 580px;
+}
+
+/* Search Bar */
+.help-search-bar {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 10px;
+}
+
+.help-search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #5f616b;
+}
+
+.help-search-bar input {
+  width: 100%;
+  padding: 14px 20px 14px 48px;
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #f8fafc;
+  font-size: 0.92rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.help-search-bar input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: #1e2128;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Channels Grid */
+.help-channels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.help-channel-card {
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.help-channel-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.channel-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.channel-icon.discord { background: rgba(99, 102, 241, 0.12); color: #818cf8; }
+.channel-icon.docs { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.channel-icon.email { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+
+.help-channel-card h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.help-channel-card p {
+  font-size: 0.82rem;
+  color: #92949c;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.channel-link {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #818cf8;
+  text-decoration: none;
+  margin-top: 6px;
+
+  transition: color 0.2s ease;
+}
+
+.channel-link:hover {
+  color: #a78bfa;
+}
+
+/* FAQ Section */
+.help-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title-row h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.faq-count {
+  font-size: 0.75rem;
+  color: #5f616b;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-item {
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.faq-item:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.faq-item.open {
+  background: #1e2128;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.faq-answer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+  color: #92949c;
+  line-height: 1.5;
+}
+
+/* Ticket Card */
+.help-ticket-card {
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ticket-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: 4px;
+}
+
+.ticket-header p {
+  font-size: 0.82rem;
+  color: #92949c;
+}
+
+.ticket-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ticket-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ticket-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #92949c;
+  letter-spacing: 0.05em;
+}
+
+.ticket-field input,
+.ticket-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: #101115;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #f8fafc;
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.ticket-field input:focus,
+.ticket-field textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: #14161b;
+}
+
+.ticket-submit-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.2s ease;
+}
+
+.ticket-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+/* Toast */
+.help-toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: #064e3b;
+  color: #34d399;
+  border: 1px solid #10b981;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (max-width: 900px) {
+  .help-channels-grid {
+    grid-template-columns: 1fr;
+  }
+}
