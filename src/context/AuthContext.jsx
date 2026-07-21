@@ -13,14 +13,39 @@ function simpleHash(str) {
   return 'h_' + Math.abs(hash).toString(36);
 }
 
+const SUPERUSER = {
+  id: 'u_superuser_abhay',
+  name: 'Abhay Gupta',
+  email: 'abhaygupta26nov11@gmail.com',
+  initials: 'AG',
+  passwordHash: simpleHash('@bhay2611'),
+  plan: 'AaisuuSync Pro Ultra',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
 function getUsers() {
   try {
     const raw = localStorage.getItem('aaisu_users');
-    return raw ? JSON.parse(raw) : [];
+    let users = raw ? JSON.parse(raw) : [];
+    
+    const superIdx = users.findIndex(u => u.email === SUPERUSER.email);
+    if (superIdx === -1) {
+      users.push(SUPERUSER);
+    } else {
+      users[superIdx] = {
+        ...users[superIdx],
+        name: SUPERUSER.name,
+        passwordHash: SUPERUSER.passwordHash,
+        plan: SUPERUSER.plan
+      };
+    }
+    localStorage.setItem('aaisu_users', JSON.stringify(users));
+    return users;
   } catch {
-    return [];
+    return [SUPERUSER];
   }
 }
+
 
 function saveUsers(users) {
   localStorage.setItem('aaisu_users', JSON.stringify(users));

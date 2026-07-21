@@ -17,7 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
 
 export default function Login() {
-  const { login, signup, authError, setAuthError } = useAuth();
+  const { login, authError, setAuthError } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,20 +34,6 @@ export default function Login() {
     if (success) {
       navigate('/', { replace: true });
     }
-    setLoading(false);
-  };
-
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    setAuthError('');
-    await new Promise(r => setTimeout(r, 400));
-
-    // Try to login as demo user, if doesn't exist, create automatically
-    let success = login('demo@aaisuusync.pro', 'demo1234');
-    if (!success) {
-      signup('Demo Creator', 'demo@aaisuusync.pro', 'demo1234');
-    }
-    navigate('/', { replace: true });
     setLoading(false);
   };
 
@@ -136,21 +122,8 @@ export default function Login() {
               <p>Sign in to manage your automated content agents</p>
             </div>
 
-            <button 
-              type="button" 
-              className="auth-demo-btn"
-              onClick={handleDemoLogin}
-              disabled={loading}
-            >
-              <HiOutlineSparkles className="demo-icon" />
-              <span>One-Click Demo Account Sign In</span>
-            </button>
-
-            <div className="auth-divider">
-              <span>Or sign in with email</span>
-            </div>
-
             <form className="auth-form" onSubmit={handleSubmit}>
+
               {authError && (
                 <div className="auth-error">
                   <HiOutlineExclamationCircle className="auth-error-icon" />
