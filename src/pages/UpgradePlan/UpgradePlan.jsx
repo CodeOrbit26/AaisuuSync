@@ -19,11 +19,12 @@ import './UpgradePlan.css';
 export default function UpgradePlan() {
   const navigate = useNavigate();
   const { user } = useApp();
-  const { currentUser } = useAuth();
+  const { currentUser, updateUserPlan } = useAuth();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
   const [upgradedSuccess, setUpgradedSuccess] = useState(false);
 
   const handleSelectPlan = (planName) => {
+    updateUserPlan(planName);
     setUpgradedSuccess(planName);
     setTimeout(() => setUpgradedSuccess(false), 4000);
   };
@@ -87,9 +88,18 @@ export default function UpgradePlan() {
             <div className="feature-item disabled"><span>Custom LRC Lyrics Auto-Sync (Pro)</span></div>
           </div>
 
-          <button className="plan-action-btn current" disabled>
-            Current Active Plan
-          </button>
+          {user.plan === 'AaisuuSync Free' ? (
+            <button className="plan-action-btn current" disabled>
+              Current Active Plan
+            </button>
+          ) : (
+            <button 
+              className="plan-action-btn"
+              onClick={() => handleSelectPlan('AaisuuSync Free')}
+            >
+              Downgrade to Free
+            </button>
+          )}
         </div>
 
         {/* Pro Plan (Featured) */}
@@ -114,12 +124,18 @@ export default function UpgradePlan() {
             <div className="feature-item"><HiOutlineCheck className="check-icon highlight" /> <span>Local Ollama + GPT-4 Model Support</span></div>
           </div>
 
-          <button 
-            className="plan-action-btn pro-btn"
-            onClick={() => handleSelectPlan('AaisuuSync Pro')}
-          >
-            Upgrade to Pro
-          </button>
+          {user.plan === 'AaisuuSync Pro' ? (
+            <button className="plan-action-btn current" disabled>
+              Current Active Plan
+            </button>
+          ) : (
+            <button 
+              className="plan-action-btn pro-btn"
+              onClick={() => handleSelectPlan('AaisuuSync Pro')}
+            >
+              Upgrade to Pro
+            </button>
+          )}
         </div>
 
         {/* Enterprise Plan */}
@@ -142,12 +158,18 @@ export default function UpgradePlan() {
             <div className="feature-item"><HiOutlineCheck className="check-icon" /> <span>Multi-User Team Isolation</span></div>
           </div>
 
-          <button 
-            className="plan-action-btn enterprise-btn"
-            onClick={() => handleSelectPlan('Agency & Enterprise')}
-          >
-            Contact Sales
-          </button>
+          {user.plan === 'Agency & Scale' || user.plan === 'Agency & Enterprise' ? (
+            <button className="plan-action-btn current" disabled>
+              Current Active Plan
+            </button>
+          ) : (
+            <button 
+              className="plan-action-btn enterprise-btn"
+              onClick={() => handleSelectPlan('Agency & Scale')}
+            >
+              Upgrade to Enterprise
+            </button>
+          )}
         </div>
 
       </div>

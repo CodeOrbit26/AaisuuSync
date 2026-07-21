@@ -339,7 +339,7 @@ export function AppProvider({ children }) {
     email: currentUser.email,
     avatar: null,
     initials: currentUser.initials,
-    plan: 'AaisuuSync Free',
+    plan: currentUser.plan || 'AaisuuSync Free',
   } : {
     name: 'Guest',
     email: '',

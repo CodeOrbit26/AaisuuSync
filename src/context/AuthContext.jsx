@@ -19,7 +19,7 @@ const SUPERUSER = {
   email: 'abhaygupta26nov11@gmail.com',
   initials: 'AG',
   passwordHash: simpleHash('@bhay2611'),
-  plan: 'AaisuuSync Free',
+  plan: 'AaisuuSync Pro',
   createdAt: '2026-01-01T00:00:00.000Z',
 };
 
@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
         if (exists) {
           return {
             ...parsed,
-            plan: 'AaisuuSync Free'
+            plan: exists.plan || 'AaisuuSync Free'
           };
         }
       }
@@ -158,6 +158,19 @@ export function AuthProvider({ children }) {
     setAuthError('');
   };
 
+  const updateUserPlan = (planName) => {
+    if (!currentUser) return;
+    const users = getUsers();
+    const updatedUsers = users.map((u) => {
+      if (u.id === currentUser.id) {
+        return { ...u, plan: planName };
+      }
+      return u;
+    });
+    saveUsers(updatedUsers);
+    setCurrentUser((prev) => ({ ...prev, plan: planName }));
+  };
+
   const value = {
     currentUser,
     isAuthenticated,
@@ -166,6 +179,7 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
+    updateUserPlan,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
