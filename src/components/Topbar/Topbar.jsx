@@ -1,41 +1,55 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
-import { HiOutlineSearch, HiOutlineBell, HiOutlineMenu } from 'react-icons/hi';
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  HiOutlineViewGrid,
-  HiOutlineUserGroup,
-  HiOutlineFilm,
-  HiOutlineChatAlt2,
-  HiOutlineCog,
-  HiOutlineLink,
+  HiOutlineSearch,
+  HiOutlineBell,
+  HiOutlineMenu,
+  HiOutlineCheckCircle,
+  HiOutlineExclamationCircle,
+  HiOutlineInformationCircle,
+  HiOutlineTrash,
+  HiOutlineArrowRight
 } from 'react-icons/hi';
 import { useApp } from '../../context/AppContext';
 import './Topbar.css';
 
-const pageMeta = {
-  '/': { title: 'System Overview', subtitle: 'AaisuuSync AI Infrastructure is Online & Secure', icon: HiOutlineViewGrid },
-  '/accounts': { title: 'Account Management', subtitle: 'Manage and connect your automation accounts', icon: HiOutlineUserGroup },
-  '/linkedin-automation': { title: 'LinkedIn Automation', subtitle: 'Automate your LinkedIn outreach and engagement', icon: HiOutlineLink },
-  '/reel-automation': { title: 'Reel Synthesis Engine', subtitle: 'Assemble stunning automated vertical videos', icon: HiOutlineFilm },
-  '/yt-automation': { title: 'YouTube Automation', subtitle: 'Create, publish, and analyze videos & shorts with AI', icon: HiOutlineFilm },
-  '/instagram-dm': { title: 'Instagram DM', subtitle: 'Reply to customers automatically using AI', icon: HiOutlineChatAlt2 },
-  '/settings': { title: 'Settings', subtitle: 'Configure your AaisuuSync platform', icon: HiOutlineCog },
-};
-
-function SidebarToggleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-    </svg>
-  );
-}
-
 export default function Topbar({ onMenuToggle }) {
   const location = useLocation();
-  const { notifications, sidebarCollapsed, toggleSidebar } = useApp();
-  const meta = pageMeta[location.pathname] || pageMeta['/'];
-  const Icon = meta.icon;
+  const navigate = useNavigate();
+  const { notifications, clearNotifications, markNotificationsAsRead } = useApp();
+
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const handleToggleDropdown = () => {
+    if (!showDropdown) {
+      markNotificationsAsRead();
+    }
+    setShowDropdown(!showDropdown);
+  };
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getIcon = (type) => {
+    switch (type) {
+      case 'success':
+        return <HiOutlineCheckCircle className="notif-dropdown-icon success" />;
+      case 'warning':
+        return <HiOutlineExclamationCircle className="notif-dropdown-icon warning" />;
+      case 'info':
+      default:
+        return <HiOutlineInformationCircle className="notif-dropdown-icon info" />;
+    }
+  };
 
   return (
     <header className="topbar">
@@ -50,12 +64,82 @@ export default function Topbar({ onMenuToggle }) {
           <HiOutlineSearch className="topbar-search-icon" />
           <input type="text" placeholder="Search anything..." />
         </div>
-        <button className="topbar-btn" id="notifications-btn" aria-label="Notifications">
-          <HiOutlineBell />
-          {notifications.count > 0 && (
-            <span className="topbar-btn-badge">{notifications.count}</span>
+
+        {/* Notifications Button & Dropdown Wrapper */}
+        <div className="notifications-wrapper" ref={dropdownRef}>
+          <button
+            className={`topbar-btn ${showDropdown ? 'active' : ''}`}
+            id="notifications-btn"
+            aria-label="Notifications"
+            onClick={handleToggleDropdown}
+          >
+            <HiOutlineBell />
+            {notifications.count > 0 && (
+              <span className="topbar-btn-badge">{notifications.count}</span>
+            )}
+          </button>
+
+          {/* Premium Glassmorphic Dropdown Popover */}
+          {showDropdown && (
+            <div className="notif-dropdown">
+              <div className="notif-dropdown-header">
+                <h3>Notifications</h3>
+                {notifications.items.length > 0 && (
+                  <button 
+                    className="notif-clear-btn"
+                    onClick={clearNotifications}
+                  >
+                    <HiOutlineTrash /> Clear All
+                  </button>
+                )}
+              </div>
+
+              <div className="notif-dropdown-list">
+                {notifications.items.length === 0 ? (
+                  <div className="notif-dropdown-empty">
+                    <HiOutlineBell className="empty-bell" />
+                    <p>No new notifications</p>
+                  </div>
+                ) : (
+                  notifications.items.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className={`notif-dropdown-item ${item.type}`}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        // Navigate based on type
+                        if (item.type === 'warning') navigate('/accounts');
+                        else if (item.type === 'success') navigate('/reel-automation');
+                        else navigate('/notifications');
+                      }}
+                    >
+                      {getIcon(item.type)}
+                      <div className="notif-item-content">
+                        <p>{item.message}</p>
+                        <span>{item.time}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {notifications.items.length > 0 && (
+                <div className="notif-dropdown-footer">
+                  <button 
+                    className="notif-view-all"
+                    onClick={() => {
+                      setShowDropdown(false);
+                      navigate('/notifications');
+                    }}
+                  >
+                    <span>View all notifications</span>
+                    <HiOutlineArrowRight />
+                  </button>
+                </div>
+              )}
+            </div>
           )}
-        </button>
+        </div>
       </div>
     </header>
   );

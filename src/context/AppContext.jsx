@@ -41,6 +41,27 @@ export function AppProvider({ children }) {
     ],
   });
 
+  const addNotification = (type, message) => {
+    setNotifications((prev) => {
+      const newItems = [
+        { id: Date.now(), type, message, time: 'Just now' },
+        ...prev.items,
+      ];
+      return {
+        count: prev.count + 1,
+        items: newItems.slice(0, 15),
+      };
+    });
+  };
+
+  const clearNotifications = () => {
+    setNotifications({ count: 0, items: [] });
+  };
+
+  const markNotificationsAsRead = () => {
+    setNotifications((prev) => ({ ...prev, count: 0 }));
+  };
+
   const [apiKeys, setApiKeys] = useState(() => {
     const defaultKeys = {
       gemini: '',
@@ -332,7 +353,7 @@ export function AppProvider({ children }) {
 
   const value = {
     sidebarCollapsed, setSidebarCollapsed, toggleSidebar,
-    notifications, setNotifications,
+    notifications, setNotifications, addNotification, clearNotifications, markNotificationsAsRead,
     systemStatus,
     user,
     activeModel, setActiveModel, currentModel, AI_MODELS,

@@ -1,0 +1,195 @@
+/* ============================================
+   Notifications Page — Dark Charcoal Obsidian Theme
+   ============================================ */
+
+.notifications-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.notif-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-btn {
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #92949c;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #262932;
+  color: #ffffff;
+}
+
+.header-left h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.header-left p {
+  font-size: 0.88rem;
+  color: #92949c;
+  margin-top: 2px;
+}
+
+.clear-all-page-btn {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  color: #ff6b6b;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-all-page-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.clear-all-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Page Content */
+.notif-page-content {
+  background: #181a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.notif-page-empty {
+  padding: 80px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-bell-icon {
+  font-size: 3rem;
+  color: #5f616b;
+}
+
+.notif-page-empty h3 {
+  font-size: 1.15rem;
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.notif-page-empty p {
+  font-size: 0.85rem;
+  color: #92949c;
+  max-width: 320px;
+}
+
+/* List Items */
+.notif-page-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-page-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s ease;
+}
+
+.notif-page-item:last-child {
+  border-bottom: none;
+}
+
+.notif-page-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.notif-page-item-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.notif-page-icon {
+  font-size: 1.5rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.notif-page-icon.success { color: #10b981; }
+.notif-page-icon.warning { color: #f59e0b; }
+.notif-page-icon.info { color: #3b82f6; }
+
+.notif-page-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notif-page-msg {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #e3e4e8;
+}
+
+.notif-page-time {
+  font-size: 0.75rem;
+  color: #5f616b;
+}
+
+/* Pipeline badge */
+.pipeline-status-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  padding: 4px 10px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pipeline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a78bfa;
+}

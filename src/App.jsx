@@ -12,6 +12,7 @@ import Settings from './pages/Settings/Settings';
 import UpgradePlan from './pages/UpgradePlan/UpgradePlan';
 import GetHelp from './pages/GetHelp/GetHelp';
 import LearnMore from './pages/LearnMore/LearnMore';
+import Notifications from './pages/Notifications/Notifications';
 import Login from './pages/Auth/Login';
 import Signup from './pages/Auth/Signup';
 import './App.css';
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/upgrade" element={<UpgradePlan />} />
         <Route path="/get-help" element={<GetHelp />} />
         <Route path="/learn-more" element={<LearnMore />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
 
       {/* Catch-all → redirect to login */}
