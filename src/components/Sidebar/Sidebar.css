@@ -67,9 +67,9 @@
 }
 
 .sidebar-brand-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
   background: var(--accent-gradient);
   display: flex;
   align-items: center;
