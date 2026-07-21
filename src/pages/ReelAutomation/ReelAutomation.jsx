@@ -1946,14 +1946,16 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
     }
   };
 
+  const DEFAULT_PROMPT3_SPECS = "This reel style features a minimalist black background with vibrant, light pink, handwritten-style text. The mood is intimate and emotional, with lyrics presented in short, centered-right lines, culminating in a simple heart symbol.";
+  const DEFAULT_PROMPT4_HASHTAGS = "You are an Instagram Reels virality expert. Based on the selected song name [SONG_NAME] and lyrics snippet [LYRICS], generate a list of 8-10 highly targeted viral hashtags.";
+
   // Sync prompts text when active blueprint changes
   useEffect(() => {
-    if (blueprintPrompts && blueprintPrompts[selectedPromptBp]) {
-      setPrompt1Text(blueprintPrompts[selectedPromptBp].prompt1 || '');
-      setPrompt2Text(blueprintPrompts[selectedPromptBp].prompt2 || '');
-      setPrompt3Text(blueprintPrompts[selectedPromptBp].prompt3 || blueprintPrompts[selectedPromptBp].aestheticSummary || '');
-      setPrompt4Text(blueprintPrompts[selectedPromptBp].prompt4 || '');
-    }
+    const current = blueprintPrompts?.[selectedPromptBp] || {};
+    setPrompt1Text(current.prompt1 || "Instructs the AI on how to select a trending song, format the search query, and pick the timestamp.");
+    setPrompt2Text(current.prompt2 || "Instructs the AI on how to listen to the audio, output HINGLISH lyrics, slice them, and select emojis.");
+    setPrompt3Text(current.prompt3 || current.aestheticSummary || DEFAULT_PROMPT3_SPECS);
+    setPrompt4Text(current.prompt4 || DEFAULT_PROMPT4_HASHTAGS);
   }, [selectedPromptBp, blueprintPrompts]);
 
   const hasChanges = prompt1Text !== (blueprintPrompts[selectedPromptBp]?.prompt1 || '') ||
@@ -2369,74 +2371,95 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
                 </p>
 
                 <div className="bp-screenshot-body">
-                  {blueprintScreenshots[selectedPromptBp] ? (
-                    <div className="bp-preview-container">
-                      <img src={blueprintScreenshots[selectedPromptBp]} alt={`${selectedPromptBp} reference`} className="bp-preview-img" />
-                      <div className="bp-preview-actions">
-                        {(visionSummaries[selectedPromptBp] || (blueprintPrompts[selectedPromptBp] && (blueprintPrompts[selectedPromptBp].prompt1 || blueprintPrompts[selectedPromptBp].prompt3))) ? (
-                          <button
-                            type="button"
-                            className="btn-analyze-ai"
-                            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', borderColor: 'transparent' }}
-                            onClick={() => setViewModal({
-                              show: true,
-                              image: blueprintScreenshots[selectedPromptBp],
-                              summary: visionSummaries[selectedPromptBp] || blueprintPrompts[selectedPromptBp]?.aestheticSummary || '',
-                              blueprint: selectedPromptBp
-                            })}
-                          >
-                            <HiOutlineEye className="btn-icon" />
-                            <span>View Visual Specs & Prompts</span>
-                          </button>
+                  {(() => {
+                    const activeVisualSummary = visionSummaries[selectedPromptBp] || 
+                                                blueprintPrompts[selectedPromptBp]?.aestheticSummary || 
+                                                blueprintPrompts[selectedPromptBp]?.prompt3 || 
+                                                "A minimalist, emotional aesthetic featuring bright neon pink, handwritten-style Hinglish lyrics right-aligned on a stark black background, conveying a heartfelt and slightly edgy mood.";
+
+                    return (
+                      <>
+                        {blueprintScreenshots[selectedPromptBp] ? (
+                          <div className="bp-preview-container">
+                            <img 
+                              src={blueprintScreenshots[selectedPromptBp]} 
+                              alt={`${selectedPromptBp} reference`} 
+                              className="bp-preview-img"
+                              style={{ cursor: 'pointer' }}
+                              title="Click to view full preview & prompts"
+                              onClick={() => setViewModal({
+                                show: true,
+                                image: blueprintScreenshots[selectedPromptBp],
+                                summary: activeVisualSummary,
+                                blueprint: selectedPromptBp
+                              })}
+                            />
+                            <div className="bp-preview-actions">
+                              <button
+                                type="button"
+                                className="btn-analyze-ai"
+                                style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', borderColor: 'transparent' }}
+                                onClick={() => setViewModal({
+                                  show: true,
+                                  image: blueprintScreenshots[selectedPromptBp],
+                                  summary: activeVisualSummary,
+                                  blueprint: selectedPromptBp
+                                })}
+                              >
+                                <HiOutlineEye className="btn-icon" />
+                                <span>View Visual Specs & Prompts</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="btn-analyze-ai"
+                                onClick={handleAnalyzeBpScreenshot}
+                                disabled={isAnalyzingBpScreenshot}
+                              >
+                                {isAnalyzingBpScreenshot ? (
+                                  <>
+                                    <div className="spinner-border" />
+                                    <span>Scanning...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <HiOutlineSparkles className="btn-icon" />
+                                    <span>Re-Analyze AI</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                className="btn-remove-img"
+                                onClick={() => {
+                                  setBlueprintScreenshots(prev => ({ ...prev, [selectedPromptBp]: null }));
+                                  setVisionSummaries(prev => ({ ...prev, [selectedPromptBp]: '' }));
+                                }}
+                              >
+                                <HiOutlineTrash className="btn-icon" />
+                                <span>Remove</span>
+                              </button>
+                            </div>
+                          </div>
                         ) : (
-                          <button
-                            type="button"
-                            className="btn-analyze-ai"
-                            onClick={handleAnalyzeBpScreenshot}
-                            disabled={isAnalyzingBpScreenshot}
-                          >
-                            {isAnalyzingBpScreenshot ? (
-                              <>
-                                <div className="spinner-border" />
-                                <span>Scanning Layout...</span>
-                              </>
-                            ) : (
-                              <>
-                                <HiOutlineSparkles className="btn-icon" />
-                                <span>Analyze & Generate Prompts</span>
-                              </>
-                            )}
-                          </button>
+                          <label className="bp-upload-dropzone">
+                            <input type="file" accept="image/*" onChange={handleBpScreenshotUpload} hidden />
+                            <HiOutlineUpload className="dropzone-icon" />
+                            <span className="dropzone-text">Click or drop a screenshot for <strong>{selectedPromptBp}</strong> layout</span>
+                            <span className="dropzone-sub">Supports PNG, JPG, WebP</span>
+                          </label>
                         )}
 
-                        <button
-                          type="button"
-                          className="btn-remove-img"
-                          onClick={() => {
-                            setBlueprintScreenshots(prev => ({ ...prev, [selectedPromptBp]: null }));
-                            setVisionSummaries(prev => ({ ...prev, [selectedPromptBp]: '' }));
-                          }}
-                        >
-                          <HiOutlineTrash className="btn-icon" />
-                          <span>Remove</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <label className="bp-upload-dropzone">
-                      <input type="file" accept="image/*" onChange={handleBpScreenshotUpload} hidden />
-                      <HiOutlineUpload className="dropzone-icon" />
-                      <span className="dropzone-text">Click or drop a screenshot for <strong>{selectedPromptBp}</strong> layout</span>
-                      <span className="dropzone-sub">Supports PNG, JPG, WebP</span>
-                    </label>
-                  )}
-
-                  {visionSummaries[selectedPromptBp] && (
-                    <div className="bp-vision-summary">
-                      <span className="summary-tag">AI Visual Specs</span>
-                      <p>{visionSummaries[selectedPromptBp]}</p>
-                    </div>
-                  )}
+                        {activeVisualSummary && (
+                          <div className="bp-vision-summary">
+                            <span className="summary-tag">AI VISUAL SPECS</span>
+                            <p>{activeVisualSummary}</p>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
