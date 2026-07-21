@@ -1768,6 +1768,7 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
   const [prompt1Text, setPrompt1Text] = useState('');
   const [prompt2Text, setPrompt2Text] = useState('');
   const [prompt3Text, setPrompt3Text] = useState('');
+  const [prompt4Text, setPrompt4Text] = useState('');
 
   // Audio Memory State
   const [audioMemory, setAudioMemory] = useState([]);
@@ -1894,20 +1895,39 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
 
       const p1 = data.prompt1 || prompt1Text;
       const p2 = data.prompt2 || prompt2Text;
-      const p3 = data.prompt3 || prompt3Text;
+      const p3 = data.prompt3 || data.aestheticSummary || prompt3Text;
+      const p4 = data.prompt4 || prompt4Text;
 
       if (data.prompt1) setPrompt1Text(data.prompt1);
       if (data.prompt2) setPrompt2Text(data.prompt2);
-      if (data.prompt3) setPrompt3Text(data.prompt3);
+      if (data.prompt3 || data.aestheticSummary) setPrompt3Text(data.prompt3 || data.aestheticSummary);
+      if (data.prompt4) setPrompt4Text(data.prompt4);
+
+      const updatedBlueprintObj = {
+        prompt1: (p1 || '').trim(),
+        prompt2: (p2 || '').trim(),
+        prompt3: (p3 || '').trim(),
+        prompt4: (p4 || '').trim(),
+        aestheticSummary: data.aestheticSummary || visionSummaries[selectedPromptBp] || '',
+        referenceImage: screenshot || null
+      };
 
       setBlueprintPrompts(prev => ({
         ...prev,
-        [selectedPromptBp]: {
-          prompt1: (p1 || '').trim(),
-          prompt2: (p2 || '').trim(),
-          prompt3: (p3 || '').trim()
-        }
+        [selectedPromptBp]: updatedBlueprintObj
       }));
+
+      // Persist to backend database file
+      try {
+        fetch('/api/blueprint-prompts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blueprintName: selectedPromptBp,
+            prompts: updatedBlueprintObj
+          })
+        });
+      } catch (e) {}
 
       if (data.aestheticSummary) {
         setVisionSummaries(prev => ({
@@ -1916,7 +1936,7 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
         }));
       }
 
-      setToastMessage(`AI Vision successfully analyzed reference screenshot & saved prompts for ${selectedPromptBp}!`);
+      setToastMessage(`AI Vision successfully analyzed reference screenshot & saved 4 prompts for ${selectedPromptBp}!`);
     } catch (err) {
       setErrorModal({ show: true, message: err.message });
     } finally {
@@ -1929,25 +1949,45 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
     if (blueprintPrompts && blueprintPrompts[selectedPromptBp]) {
       setPrompt1Text(blueprintPrompts[selectedPromptBp].prompt1 || '');
       setPrompt2Text(blueprintPrompts[selectedPromptBp].prompt2 || '');
-      setPrompt3Text(blueprintPrompts[selectedPromptBp].prompt3 || '');
+      setPrompt3Text(blueprintPrompts[selectedPromptBp].prompt3 || blueprintPrompts[selectedPromptBp].aestheticSummary || '');
+      setPrompt4Text(blueprintPrompts[selectedPromptBp].prompt4 || '');
     }
   }, [selectedPromptBp, blueprintPrompts]);
 
   const hasChanges = prompt1Text !== (blueprintPrompts[selectedPromptBp]?.prompt1 || '') ||
                      prompt2Text !== (blueprintPrompts[selectedPromptBp]?.prompt2 || '') ||
-                     prompt3Text !== (blueprintPrompts[selectedPromptBp]?.prompt3 || '');
+                     prompt3Text !== (blueprintPrompts[selectedPromptBp]?.prompt3 || '') ||
+                     prompt4Text !== (blueprintPrompts[selectedPromptBp]?.prompt4 || '');
 
   const handleSavePrompts = (e) => {
     e.preventDefault();
+    const updatedBlueprintObj = {
+      prompt1: prompt1Text.trim(),
+      prompt2: prompt2Text.trim(),
+      prompt3: prompt3Text.trim(),
+      prompt4: prompt4Text.trim(),
+      aestheticSummary: visionSummaries[selectedPromptBp] || '',
+      referenceImage: blueprintScreenshots[selectedPromptBp] || null
+    };
+
     setBlueprintPrompts(prev => ({
       ...prev,
-      [selectedPromptBp]: {
-        prompt1: prompt1Text.trim(),
-        prompt2: prompt2Text.trim(),
-        prompt3: prompt3Text.trim()
-      }
+      [selectedPromptBp]: updatedBlueprintObj
     }));
-    setToastMessage(`Prompts for ${selectedPromptBp} blueprint updated!`);
+
+    // Persist to backend database file
+    try {
+      fetch('/api/blueprint-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blueprintName: selectedPromptBp,
+          prompts: updatedBlueprintObj
+        })
+      });
+    } catch (e) {}
+
+    setToastMessage(`Prompts for ${selectedPromptBp} blueprint updated & saved to database!`);
   };
 
   // Categories
@@ -2400,13 +2440,24 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
               </div>
 
               <div className="form-group">
-                <label>Prompt 3: Viral Hashtags</label>
-                <span className="field-hint">Instructs the AI on how to generate highly targeted viral hashtags based on the song's theme. Use [SONG_NAME] and [LYRICS] as placeholders.</span>
+                <label>Prompt 3: AI Visual Specs & Typography Style</label>
+                <span className="field-hint">Instructs the AI on the visual layout, background style, font alignment, line spacing, and color palette extracted from the reference screenshot.</span>
                 <textarea
                   rows={6}
                   value={prompt3Text}
                   onChange={(e) => setPrompt3Text(e.target.value)}
-                  placeholder="Enter prompt 3..."
+                  placeholder="Enter visual specs & typography rules..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Prompt 4: Viral Reach & Hashtag Generation Strategy</label>
+                <span className="field-hint">Instructs the AI on how to generate highly targeted viral hashtags based on the song's theme. Use [SONG_NAME] and [LYRICS] as placeholders.</span>
+                <textarea
+                  rows={6}
+                  value={prompt4Text}
+                  onChange={(e) => setPrompt4Text(e.target.value)}
+                  placeholder="Enter hashtag generation strategy..."
                 />
               </div>
 

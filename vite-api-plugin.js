@@ -1881,19 +1881,21 @@ Return the result in strict JSON format:
               const prompt = `You are an expert AI Reel Automation Engineer. Analyze this screenshot of a social media reel layout (${bpName} layout style).
 Observe its visual style, font placement, line length, color theme, mood, and caption presentation.
 
-Based on your visual analysis, generate 3 highly optimized system prompts for Gemini AI to replicate this EXACT reel style:
+Based on your visual analysis, generate 4 highly optimized system prompts for Gemini AI to replicate this EXACT reel style:
 
 1. "aestheticSummary": A concise 1-2 sentence description of the visual aesthetic (colors, font, mood, layout).
 2. "prompt1": System prompt instructing Gemini how to select a trending/viral song matching this aesthetic, specify the search query, and choose the drop timestamp.
 3. "prompt2": System prompt instructing Gemini how to listen to audio, output HINGLISH lyrics, slice lines into 1-4 word fragments, sync LRC timestamps, and choose an emoji palette matching this screenshot's vibe.
-4. "prompt3": System prompt instructing Gemini how to generate viral hashtags for this style.
+4. "prompt3": Detailed system prompt capturing the exact AI Visual Specs, typography rules, background styling, text alignment, line height, and color palette from this screenshot.
+5. "prompt4": System prompt instructing Gemini how to generate highly targeted viral hashtags for this style.
 
 Return strict JSON format:
 {
   "aestheticSummary": "string",
   "prompt1": "string",
   "prompt2": "string",
-  "prompt3": "string"
+  "prompt3": "string",
+  "prompt4": "string"
 }`;
 
               const contents = [{
@@ -1944,19 +1946,58 @@ Return strict JSON format:
 
               const parsed = JSON.parse(resultText);
 
+              // Auto-save analyzed prompts to persistent database
+              const bpDbFile = path.join(process.cwd(), 'public', 'uploads', 'blueprint_prompts_db.json');
+              let bpDb = {};
+              try {
+                if (fs.existsSync(bpDbFile)) {
+                  bpDb = JSON.parse(fs.readFileSync(bpDbFile, 'utf8'));
+                }
+              } catch (e) {}
+
+              bpDb[bpName] = {
+                prompt1: parsed.prompt1 || '',
+                prompt2: parsed.prompt2 || '',
+                prompt3: parsed.prompt3 || parsed.aestheticSummary || '',
+                prompt4: parsed.prompt4 || '',
+                aestheticSummary: parsed.aestheticSummary || '',
+                referenceImage: image,
+                updatedAt: new Date().toISOString()
+              };
+
+              try {
+                fs.writeFileSync(bpDbFile, JSON.stringify(bpDb, null, 2), 'utf8');
+              } catch (e) {}
+
               updateWorkflowStatus({
                 logs: [
                   { timestamp: new Date().toLocaleTimeString(), message: `[VISION] Blueprint screenshot analyzed successfully for "${bpName}"!`, type: 'success' },
-                  { timestamp: new Date().toLocaleTimeString(), message: `[VISION] Extracted Aesthetic: "${parsed.aestheticSummary}"`, type: 'success' }
-                ]
+                  { timestamp: new Date().toLocaleTimeString(), message: `[VISION] Extracted Aesthetic: "${parsed.aestheticSummary}"`, type: 'success' },
+                  { timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Saved 4 prompts & reference screenshot to blueprint database file.`, type: 'success' }
+                ],
+                executionData: {
+                  blueprintName: bpName,
+                  aestheticSummary: parsed.aestheticSummary,
+                  prompt1: parsed.prompt1,
+                  prompt2: parsed.prompt2,
+                  prompt3: parsed.prompt3 || parsed.aestheticSummary,
+                  prompt4: parsed.prompt4,
+                  referenceImage: image
+                }
               });
 
               res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify(parsed));
-
-            } catch (e) {
+              res.end(JSON.stringify({
+                aestheticSummary: parsed.aestheticSummary,
+                prompt1: parsed.prompt1,
+                prompt2: parsed.prompt2,
+                prompt3: parsed.prompt3 || parsed.aestheticSummary,
+                prompt4: parsed.prompt4,
+                referenceImage: image
+              }));
+            } catch (err) {
               res.statusCode = 500;
-              res.end(JSON.stringify({ error: e.message }));
+              res.end(JSON.stringify({ error: 'Vision analysis error: ' + err.message }));
             }
           });
           return;

@@ -92,7 +92,7 @@ const STAGES = [
 export default function WorkflowTab({ isGenerating }) {
   const [activeStep, setActiveStep] = useState('input_processing');
   const [copiedText, setCopiedText] = useState('');
-  const [expandedPrompts, setExpandedPrompts] = useState({ prompt1: false, prompt2: false, prompt3: false });
+  const [expandedPrompts, setExpandedPrompts] = useState({ prompt1: false, prompt2: false, prompt3: false, prompt4: false });
   const [audioMemoryCount, setAudioMemoryCount] = useState(0);
   const [statusData, setStatusData] = useState({
     status: 'idle',
@@ -395,13 +395,13 @@ export default function WorkflowTab({ isGenerating }) {
                       className="workflow-accordion-header" 
                       onClick={() => setExpandedPrompts(prev => ({ ...prev, prompt3: !prev.prompt3 }))}
                     >
-                      <span>Viral Hashtags Prompt (Prompt 3)</span>
+                      <span>AI Visual Specs & Layout Styling Prompt (Prompt 3)</span>
                       <div className="workflow-accordion-header-right">
                         <button 
                           className="workflow-copy-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            copyToClipboard(currentData.prompt3 || 'Generate hashtags based on song composition...', 'prompt3');
+                            copyToClipboard(currentData.prompt3 || 'Visual Specs: Minimalist black backdrop, cursive pink text, short centered lines...', 'prompt3');
                           }}
                         >
                           {copiedText === 'prompt3' ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
@@ -411,7 +411,34 @@ export default function WorkflowTab({ isGenerating }) {
                     </div>
                     {expandedPrompts.prompt3 && (
                       <div className="workflow-accordion-body">
-                        <pre>{currentData.prompt3 || 'You are an Instagram Reels virality expert. Based on the selected song name and the lyrics snippet, generate a list of 8-10 highly targeted viral hashtags.'}</pre>
+                        <pre>{currentData.prompt3 || 'Detailed AI Visual Specs: Layout style features high-contrast typography, handwritten font face, short word fragments per line, and subtle retro glow.'}</pre>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Collapsible Prompt 4 */}
+                  <div className="workflow-accordion glass-card">
+                    <div 
+                      className="workflow-accordion-header" 
+                      onClick={() => setExpandedPrompts(prev => ({ ...prev, prompt4: !prev.prompt4 }))}
+                    >
+                      <span>Viral Strategy & Hashtags Prompt (Prompt 4)</span>
+                      <div className="workflow-accordion-header-right">
+                        <button 
+                          className="workflow-copy-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(currentData.prompt4 || 'You are an Instagram Reels virality expert. Generate highly targeted hashtags...', 'prompt4');
+                          }}
+                        >
+                          {copiedText === 'prompt4' ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
+                        </button>
+                        {expandedPrompts.prompt4 ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
+                      </div>
+                    </div>
+                    {expandedPrompts.prompt4 && (
+                      <div className="workflow-accordion-body">
+                        <pre>{currentData.prompt4 || 'You are an Instagram Reels virality expert. Based on the selected song name and lyrics snippet, generate 8-10 high-reach viral hashtags.'}</pre>
                       </div>
                     )}
                   </div>
