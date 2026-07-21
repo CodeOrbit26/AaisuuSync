@@ -1142,13 +1142,15 @@ export async function apiMiddleware(req, res, next) {
               }
               const outputPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp3`);
               const possiblePaths = [
+                path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp'),
                 path.join(os.homedir(), '.local', 'bin', 'yt-dlp'),
                 '/opt/render/.local/bin/yt-dlp',
                 '/usr/local/bin/yt-dlp',
                 '/usr/bin/yt-dlp',
                 '/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp'
               ];
-              const ytDlpPath = possiblePaths.find(p => fs.existsSync(p)) || 'yt-dlp';
+              const rawYtDlp = possiblePaths.find(p => fs.existsSync(p)) || 'yt-dlp';
+              const ytDlpPath = `"${rawYtDlp}"`;
               
               if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
                 try { fs.chmodSync(ffmpegStatic, 0o755); } catch (e) {}
@@ -1222,7 +1224,7 @@ export async function apiMiddleware(req, res, next) {
                     let prompt2 = customPrompt2;
                     if (!prompt2) {
                       if (screenshotLyrics) {
-                        prompt2 = `Listen to this 15-second audio clip. Your goal is to transcribe the lyrics exactly as they are sung in the audio, using the reference lyrics extracted from a screenshot of the song to guide you:
+                        prompt2 = `Listen to this 15-second audio clip for the song "${selectedSong?.songName || 'Selected Track'}". Your goal is to transcribe the lyrics exactly as they are sung in the audio, using the reference lyrics extracted from a screenshot of the song to guide you:
 Reference Lyrics:
 """
 ${screenshotLyrics}
@@ -1233,7 +1235,7 @@ IMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each
 
 Return JSON format exactly like this: { "syncedLyrics": "string" }`;
                       } else {
-                        prompt2 = `Listen to this 15-second audio clip. Transcribe the lyrics exactly as they are sung in the audio.
+                        prompt2 = `Listen to this 15-second audio clip for the song "${selectedSong?.songName || 'Selected Track'}". Transcribe the lyrics exactly as they are sung in the audio.
 CRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.
 Return the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].
 IMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫
@@ -1580,6 +1582,7 @@ Return JSON format exactly like this:
 
             const fallbackCmds = [
               searchCmd,
+              `"${path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp')}" ${query} ${flags}`,
               `export PATH=$PATH:$HOME/.local/bin:/opt/render/.local/bin && yt-dlp ${query} ${flags}`,
               `python3 -m pip install --user yt-dlp && python3 -m yt_dlp ${query} ${flags}`,
               `npx -y --package=yt-dlp-exec yt-dlp ${query} ${flags}`
@@ -1589,7 +1592,7 @@ Return JSON format exactly like this:
               const presetDir = path.join(process.cwd(), 'public', 'uploads', 'preset_audios');
               const sName = (selectedSong?.songName || promptSource || '').toLowerCase();
               
-              let presetFile = 'tauba_tauba.mp3';
+              let presetFile = null;
               if (sName.includes('kitab') || sName.includes('female')) {
                 presetFile = 'kitab.mp3';
               } else if (sName.includes('jamna')) {
@@ -1598,17 +1601,19 @@ Return JSON format exactly like this:
                 presetFile = 'gypsy.mp3';
               } else if (sName.includes('achyutam') || sName.includes('radhe')) {
                 presetFile = 'achyutam_keshavam.mp3';
+              } else if (sName.includes('tauba')) {
+                presetFile = 'tauba_tauba.mp3';
               }
 
-              const targetPresetPath = path.join(presetDir, presetFile);
+              const targetPresetPath = presetFile ? path.join(presetDir, presetFile) : null;
               updateWorkflowStatus({
                 logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO] Audio stream acquired successfully ("${selectedSong?.songName || presetFile}").`, type: 'success' }
+                  { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO] Processing audio stream for ("${selectedSong?.songName || 'Selected Song'}").`, type: 'info' }
                 ]
               });
               
               try {
-                if (fs.existsSync(targetPresetPath)) {
+                if (targetPresetPath && fs.existsSync(targetPresetPath)) {
                   fs.copyFileSync(targetPresetPath, outputPath);
                   if (selectedSong) selectedSong.viralHookStartTime = 0;
                 } else {
@@ -1622,7 +1627,6 @@ Return JSON format exactly like this:
                       execSync(genCmd);
                     } catch (genErr) {
                       console.error('[Audio Safeguard] Failed to generate valid fallback MP3 via ffmpeg:', genErr.message);
-                      // Fallback: copy default if available or write minimal audio header
                       fs.writeFileSync(outputPath, Buffer.from('ID3\x03\x00\x00\x00\x00\x00\x00', 'binary'));
                     }
                     if (selectedSong) selectedSong.viralHookStartTime = 0;

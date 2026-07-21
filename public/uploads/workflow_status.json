@@ -1,5 +1,5 @@
 {
-  "status": "completed",
+  "status": "failed",
   "stage": "final_output",
   "logs": [
     {
@@ -271,6 +271,11 @@
       "timestamp": "6:07:39 PM",
       "message": "[SUCCESS] Reel generated successfully in 33.6s!",
       "type": "success"
+    },
+    {
+      "timestamp": "6:34:02 PM",
+      "message": "[ERROR] No valid Gemini API Key configured in Render Environment Variables or Client Settings. Please set GEMINI_API_KEY in Render settings.",
+      "type": "error"
     }
   ],
   "executionData": {
@@ -302,5 +307,5 @@
     "prompt2": "Listen to this 15-second audio clip. Transcribe the lyrics exactly as they are sung in the audio.\nCRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.\nReturn the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].\nIMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫\n\nReturn JSON format exactly like this: { \"syncedLyrics\": \"string\" }",
     "totalElapsedTime": "33.6s"
   },
-  "updatedAt": 1784637459126
+  "updatedAt": 1784639042426
 }
