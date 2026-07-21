@@ -1842,6 +1842,138 @@ Return the result in strict JSON format:
             }
           });
           return;
+        } else if (pathname === '/api/analyze-blueprint-screenshot' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              const { image, blueprintName, apiKey } = JSON.parse(body);
+              if (!image) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ error: 'No image provided' }));
+                return;
+              }
+
+              updateWorkflowStatus({
+                status: 'processing',
+                stage: 'input_processing',
+                clearLogs: true,
+                logs: [
+                  { timestamp: new Date().toLocaleTimeString(), message: `[VISION] Reference reel screenshot received for "${blueprintName || 'Lyrics'}" blueprint. Starting Gemini AI Vision analysis...`, type: 'info' }
+                ]
+              });
+
+              let mimeType = 'image/png';
+              let base64Data = image;
+              if (image.startsWith('data:')) {
+                const match = image.match(/^data:([^;]+);base64,(.*)$/);
+                if (match) {
+                  mimeType = match[1];
+                  base64Data = match[2];
+                }
+              }
+
+              const envKey = process.env.GEMINI_API_KEY || '';
+              const isRevokedKey = (k) => !k || k === 'your_gemini_api_key_here';
+              const API_KEYS = [envKey, apiKey].filter(k => !isRevokedKey(k));
+
+              if (API_KEYS.length === 0) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ error: 'No Gemini API Key provided' }));
+                return;
+              }
+
+              const geminiDirectCallVision = async (apiKey, modelName, contents, generationConfig = {}) => {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const body = { contents, generationConfig };
+                const resp = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(body)
+                });
+                if (!resp.ok) {
+                  const errBody = await resp.text();
+                  throw new Error(`[${resp.status}] ${errBody}`);
+                }
+                const data = await resp.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                  return { response: { text: () => data.candidates[0].content.parts.map(p => p.text).join('') } };
+                }
+                throw new Error('No candidates returned from Gemini API');
+              };
+
+              const bpName = blueprintName || 'Lyrics';
+              const prompt = `You are an expert AI Reel Automation Engineer. Analyze this screenshot of a social media reel layout (${bpName} layout style).
+Observe its visual style, font placement, line length, color theme, mood, and caption presentation.
+
+Based on your visual analysis, generate 3 highly optimized system prompts for Gemini AI to replicate this EXACT reel style:
+
+1. "aestheticSummary": A concise 1-2 sentence description of the visual aesthetic (colors, font, mood, layout).
+2. "prompt1": System prompt instructing Gemini how to select a trending/viral song matching this aesthetic, specify the search query, and choose the drop timestamp.
+3. "prompt2": System prompt instructing Gemini how to listen to audio, output HINGLISH lyrics, slice lines into 1-4 word fragments, sync LRC timestamps, and choose an emoji palette matching this screenshot's vibe.
+4. "prompt3": System prompt instructing Gemini how to generate viral hashtags for this style.
+
+Return strict JSON format:
+{
+  "aestheticSummary": "string",
+  "prompt1": "string",
+  "prompt2": "string",
+  "prompt3": "string"
+}`;
+
+              const contents = [{
+                parts: [
+                  { text: prompt },
+                  { inlineData: { data: base64Data, mimeType: mimeType } }
+                ]
+              }];
+
+              let resultText = '';
+              let success = false;
+              let errorMsg = '';
+              const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+
+              for (const key of API_KEYS) {
+                if (success) break;
+                for (const modelName of modelsToTry) {
+                  try {
+                    updateWorkflowStatus({
+                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[VISION] Analyzing blueprint layout using model: ${modelName}`, type: 'info' }]
+                    });
+                    const response = await geminiDirectCallVision(key, modelName, contents, { responseMimeType: "application/json", temperature: 0.3 });
+                    resultText = response.response.text();
+                    success = true;
+                    break;
+                  } catch (err) {
+                    errorMsg = err.message;
+                  }
+                }
+              }
+
+              if (!success) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: `Vision analysis failed: ${errorMsg}` }));
+                return;
+              }
+
+              const parsed = JSON.parse(resultText);
+
+              updateWorkflowStatus({
+                logs: [
+                  { timestamp: new Date().toLocaleTimeString(), message: `[VISION] Blueprint screenshot analyzed successfully for "${bpName}"!`, type: 'success' },
+                  { timestamp: new Date().toLocaleTimeString(), message: `[VISION] Extracted Aesthetic: "${parsed.aestheticSummary}"`, type: 'success' }
+                ]
+              });
+
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(parsed));
+
+            } catch (e) {
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: e.message }));
+            }
+          });
+          return;
         } else if (pathname === '/api/workflow-status' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
           if (fs.existsSync(WORKFLOW_STATUS_PATH)) {

@@ -1816,6 +1816,74 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
     }
   };
 
+  // Screenshot & Vision AI State for Blueprints
+  const [blueprintScreenshots, setBlueprintScreenshots] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`u_${currentUserKey}_bp_screenshots`);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const [visionSummaries, setVisionSummaries] = useState({});
+  const [isAnalyzingBpScreenshot, setIsAnalyzingBpScreenshot] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`u_${currentUserKey}_bp_screenshots`, JSON.stringify(blueprintScreenshots));
+    } catch (e) {}
+  }, [blueprintScreenshots, currentUserKey]);
+
+  const handleBpScreenshotUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      setBlueprintScreenshots(prev => ({
+        ...prev,
+        [selectedPromptBp]: base64
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAnalyzeBpScreenshot = async () => {
+    const screenshot = blueprintScreenshots[selectedPromptBp];
+    if (!screenshot) return;
+
+    setIsAnalyzingBpScreenshot(true);
+    try {
+      const res = await fetch('/api/analyze-blueprint-screenshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: screenshot,
+          blueprintName: selectedPromptBp,
+          apiKey: apiKeys?.gemini
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to analyze blueprint screenshot');
+
+      if (data.prompt1) setPrompt1Text(data.prompt1);
+      if (data.prompt2) setPrompt2Text(data.prompt2);
+      if (data.prompt3) setPrompt3Text(data.prompt3);
+
+      if (data.aestheticSummary) {
+        setVisionSummaries(prev => ({
+          ...prev,
+          [selectedPromptBp]: data.aestheticSummary
+        }));
+      }
+
+      setToastMessage(`AI Vision successfully extracted prompt rules for ${selectedPromptBp}!`);
+    } catch (err) {
+      setErrorModal({ show: true, message: err.message });
+    } finally {
+      setIsAnalyzingBpScreenshot(false);
+    }
+  };
+
   // Sync prompts text when active blueprint changes
   useEffect(() => {
     if (blueprintPrompts && blueprintPrompts[selectedPromptBp]) {
@@ -2203,6 +2271,70 @@ function AgentRulesTab({ rules, setRules, captions, setCaptions, setToastMessage
               <div className="prompts-editor-header">
                 <h3>Editing {selectedPromptBp} Prompts</h3>
                 <span>These prompts will be sent to the Gemini AI during generation</span>
+              </div>
+
+              {/* Reference Style Screenshot & AI Vision Analyzer */}
+              <div className="bp-screenshot-card glass-card">
+                <div className="bp-screenshot-header">
+                  <div className="bp-screenshot-title">
+                    <HiOutlineCamera className="bp-icon" />
+                    <h4>{selectedPromptBp} Style Reference Screenshot</h4>
+                  </div>
+                  <span className="bp-screenshot-badge">GEMINI VISION AI</span>
+                </div>
+                <p className="bp-screenshot-subtitle">
+                  Upload a screenshot or sample layout image of how reels in this blueprint style should look. Gemini Vision will analyze the typography, font style, and visual layout to generate tailored LLM system prompts automatically.
+                </p>
+
+                <div className="bp-screenshot-body">
+                  {blueprintScreenshots[selectedPromptBp] ? (
+                    <div className="bp-preview-container">
+                      <img src={blueprintScreenshots[selectedPromptBp]} alt={`${selectedPromptBp} reference`} className="bp-preview-img" />
+                      <div className="bp-preview-actions">
+                        <button
+                          type="button"
+                          className="btn-analyze-ai"
+                          onClick={handleAnalyzeBpScreenshot}
+                          disabled={isAnalyzingBpScreenshot}
+                        >
+                          {isAnalyzingBpScreenshot ? (
+                            <>
+                              <div className="spinner-border" />
+                              <span>Scanning Layout...</span>
+                            </>
+                          ) : (
+                            <>
+                              <HiOutlineSparkles className="btn-icon" />
+                              <span>Analyze & Generate Prompts</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-remove-img"
+                          onClick={() => setBlueprintScreenshots(prev => ({ ...prev, [selectedPromptBp]: null }))}
+                        >
+                          <HiOutlineTrash className="btn-icon" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="bp-upload-dropzone">
+                      <input type="file" accept="image/*" onChange={handleBpScreenshotUpload} hidden />
+                      <HiOutlineUpload className="dropzone-icon" />
+                      <span className="dropzone-text">Click or drop a screenshot for <strong>{selectedPromptBp}</strong> layout</span>
+                      <span className="dropzone-sub">Supports PNG, JPG, WebP</span>
+                    </label>
+                  )}
+
+                  {visionSummaries[selectedPromptBp] && (
+                    <div className="bp-vision-summary">
+                      <span className="summary-tag">AI Visual Specs</span>
+                      <p>{visionSummaries[selectedPromptBp]}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">

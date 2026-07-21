@@ -93,6 +93,7 @@ export default function WorkflowTab({ isGenerating }) {
   const [activeStep, setActiveStep] = useState('input_processing');
   const [copiedText, setCopiedText] = useState('');
   const [expandedPrompts, setExpandedPrompts] = useState({ prompt1: false, prompt2: false, prompt3: false });
+  const [audioMemoryCount, setAudioMemoryCount] = useState(0);
   const [statusData, setStatusData] = useState({
     status: 'idle',
     stage: 'idle',
@@ -135,6 +136,15 @@ export default function WorkflowTab({ isGenerating }) {
 
   useEffect(() => {
     fetchStatus();
+    fetch('/api/audio-memory')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAudioMemoryCount(data.length);
+        }
+      })
+      .catch(() => {});
+      
     // Poll every 1s when generating
     let interval;
     if (isGenerating || statusData.status === 'processing') {
@@ -285,7 +295,7 @@ export default function WorkflowTab({ isGenerating }) {
                   <div className="workflow-stats-grid">
                     <div className="workflow-stat-card border-pink">
                       <h5>Audio Memory Size</h5>
-                      <p className="text-neon-pink">{currentData.dbTotalSongs || '40'} Songs</p>
+                      <p className="text-neon-pink">{(currentData.dbTotalSongs !== undefined ? currentData.dbTotalSongs : audioMemoryCount)} Songs</p>
                     </div>
                     <div className="workflow-stat-card border-blue">
                       <h5>Checking Candidates</h5>
