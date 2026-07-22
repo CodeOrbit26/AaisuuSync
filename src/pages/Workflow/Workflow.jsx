@@ -16,90 +16,98 @@ import {
   HiOutlineCheck,
   HiOutlineExternalLink,
   HiOutlineChevronDown,
-  HiOutlineChevronUp
+  HiOutlineChevronUp,
+  HiOutlineRefresh
 } from 'react-icons/hi';
 import './Workflow.css';
 
-const STAGE_KEYS = [
+export const STAGE_KEYS = [
   'input_processing',
+  'prompt1_song',
   'audio_memory_verification',
-  'lyrics_analysis',
-  'visual_planning',
-  'asset_selection',
-  'reel_composition',
-  'backend_execution',
+  'prompt2_lyrics',
+  'audio_download_trim',
+  'prompt3_visual_specs',
+  'reel_canvas_composition',
   'rendering',
-  'viral_strategy',
+  'prompt4_hashtags',
+  'audio_memory_save',
   'final_output'
 ];
 
-const STAGES = [
+export const STAGES = [
   {
     key: 'input_processing',
-    title: 'Input Processing',
-    description: 'Endpoint request interception, API key validation, and prompt initialization',
+    title: '1. Input Processing',
+    description: 'Workflow initialization, blueprint load, and API key validation',
     icon: <HiOutlineDatabase />
   },
   {
-    key: 'audio_memory_verification',
-    title: 'Audio Memory Verification',
-    description: 'Prompt 1 LLM song recommendation & Audio Memory database cross-referencing',
-    icon: <HiOutlineSearch />
-  },
-  {
-    key: 'lyrics_analysis',
-    title: 'Lyrics Analysis & Sync',
-    description: 'Prompt 2 audio segment retrieval, Hinglish transcription & LRC timestamping',
+    key: 'prompt1_song',
+    title: '2. Prompt 1 — Song Recommendation',
+    description: 'LLM viral track selection and timestamp recommendation',
     icon: <HiOutlineMusicNote />
   },
   {
-    key: 'visual_planning',
-    title: 'Visual Specs Planning',
-    description: 'Prompt 3 AI Visual Specs, typography layout rules & color palette styling',
-    icon: <HiOutlineAdjustments />
-  },
-  {
-    key: 'asset_selection',
-    title: 'Asset Selection',
-    description: 'Google Font resolution, canvas 9:16 boundaries, and backdrop styling',
+    key: 'audio_memory_verification',
+    title: '3. Audio Memory Verification',
+    description: 'Checking DB history for song/timestamp collisions & retry loop',
     icon: <HiOutlineSearch />
   },
   {
-    key: 'reel_composition',
-    title: 'Reel Canvas Composition',
-    description: 'Puppeteer headless canvas rendering and frame screenshots extraction',
-    icon: <HiOutlineFilm />
-  },
-  {
-    key: 'backend_execution',
-    title: 'Backend Execution',
-    description: 'FFmpeg command pipeline initialization and audio/video stream setup',
+    key: 'prompt2_lyrics',
+    title: '4. Prompt 2 — Lyrics & Timestamp Extraction',
+    description: 'Multimodal LRC transcription & Hinglish timestamp syncing',
     icon: <HiOutlineTerminal />
   },
   {
-    key: 'rendering',
-    title: 'Rendering & Muxing',
-    description: 'FFmpeg sequential image stitching and 15s audio muxing pipeline',
-    icon: <HiOutlineExternalLink />
+    key: 'audio_download_trim',
+    title: '5. Audio Download & Trimming',
+    description: 'yt-dlp stream fetch & FFmpeg precise 15s hook cropping',
+    icon: <HiOutlineDownload />
   },
   {
-    key: 'viral_strategy',
-    title: 'Viral Strategy & Hashtags',
-    description: 'Prompt 4 viral reach hashtags extraction and high-engagement tagging',
+    key: 'prompt3_visual_specs',
+    title: '6. Prompt 3 — Visual Specifications',
+    description: 'Typographical layout styling, font, colors & aesthetic tokens',
+    icon: <HiOutlineAdjustments />
+  },
+  {
+    key: 'reel_canvas_composition',
+    title: '7. Reel Canvas Composition',
+    description: 'Puppeteer frame screenshot generation & lyrics animation sync',
+    icon: <HiOutlineFilm />
+  },
+  {
+    key: 'rendering',
+    title: '8. Rendering',
+    description: 'FFmpeg sequential image stitching & audio muxing pipeline',
+    icon: <HiOutlinePlay />
+  },
+  {
+    key: 'prompt4_hashtags',
+    title: '9. Prompt 4 — Viral Caption & Hashtags',
+    description: 'LLM high-engagement caption & viral hashtag generation',
     icon: <HiOutlineDocumentDuplicate />
   },
   {
-    key: 'final_output',
-    title: 'Audio Memory Save & Final Output',
-    description: 'Saving song details to Audio Memory database and outputting Reel MP4 video',
+    key: 'audio_memory_save',
+    title: '10. Audio Memory Save',
+    description: 'Persisting track, timestamp, and trim parameters to Audio Memory DB',
     icon: <HiOutlineCheckCircle />
+  },
+  {
+    key: 'final_output',
+    title: '11. Final Output',
+    description: 'Video preview, download link, hashtags & complete execution report',
+    icon: <HiOutlineExternalLink />
   }
 ];
 
 export default function WorkflowTab({ isGenerating }) {
   const [activeStep, setActiveStep] = useState('input_processing');
   const [copiedText, setCopiedText] = useState('');
-  const [expandedPrompts, setExpandedPrompts] = useState({ prompt1: false, prompt2: false, prompt3: false, prompt4: false });
+  const [expandedSections, setExpandedSections] = useState({ prompt: true, raw: false, json: true });
   const [audioMemoryCount, setAudioMemoryCount] = useState(0);
   const [statusData, setStatusData] = useState({
     status: 'idle',
@@ -118,7 +126,6 @@ export default function WorkflowTab({ isGenerating }) {
       if (res.ok) {
         const data = await res.json();
         
-        // Only update state if data has actually changed to prevent redundant re-renders
         setStatusData(prev => {
           const hasStatusChanged = prev.status !== data.status;
           const hasStageChanged = prev.stage !== data.stage;
@@ -131,7 +138,7 @@ export default function WorkflowTab({ isGenerating }) {
           return prev;
         });
 
-        // Automatically switch active step to the currently processing backend stage
+        // Automatically switch active step to current processing stage
         if (data.status === 'processing' && data.stage && STAGE_KEYS.includes(data.stage)) {
           setActiveStep(data.stage);
         }
@@ -152,12 +159,11 @@ export default function WorkflowTab({ isGenerating }) {
       })
       .catch(() => {});
       
-    // Poll every 1s when generating
     let interval;
     if (isGenerating || statusData.status === 'processing') {
       interval = setInterval(fetchStatus, 1000);
     } else {
-      interval = setInterval(fetchStatus, 3000); // lower frequency when idle
+      interval = setInterval(fetchStatus, 3000);
     }
     return () => clearInterval(interval);
   }, [isGenerating, statusData.status]);
@@ -169,7 +175,6 @@ export default function WorkflowTab({ isGenerating }) {
     isUserScrollingRef.current = !isAtBottom;
   };
 
-  // Scroll terminal to bottom when new logs arrive
   useEffect(() => {
     if (statusData.stage === 'input_processing') {
       isUserScrollingRef.current = false;
@@ -179,16 +184,24 @@ export default function WorkflowTab({ isGenerating }) {
     }
   }, [statusData.logs, statusData.stage]);
 
-  // Handle Clipboard Copy
   const copyToClipboard = (text, key) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(typeof text === 'object' ? JSON.stringify(text, null, 2) : text);
     setCopiedText(key);
     setTimeout(() => setCopiedText(''), 2000);
   };
 
-  // Helper to determine stage status class
   const getStepStatusClass = (stepKey) => {
-    if (statusData.status === 'idle') return 'completed'; // default display when idle
+    const stagesData = statusData.executionData?.stagesData || {};
+    const stageInfo = stagesData[stepKey];
+
+    if (stageInfo) {
+      if (stageInfo.status === 'completed') return 'completed';
+      if (stageInfo.status === 'failed') return 'failed';
+      if (stageInfo.status === 'retrying') return 'retrying';
+      if (stageInfo.status === 'running') return 'active current-running';
+    }
+
+    if (statusData.status === 'idle') return 'completed';
 
     const currentIndex = STAGE_KEYS.indexOf(statusData.stage);
     const stepIndex = STAGE_KEYS.indexOf(stepKey);
@@ -207,12 +220,129 @@ export default function WorkflowTab({ isGenerating }) {
   const getStepStatusText = (stepKey) => {
     const statusClass = getStepStatusClass(stepKey);
     if (statusClass.includes('failed')) return 'FAILED';
+    if (statusClass.includes('retrying')) return 'RETRYING';
     if (statusClass.includes('current-running')) return 'RUNNING';
     if (statusClass.includes('completed')) return 'SUCCESS';
     return 'PENDING';
   };
 
   const currentData = statusData.executionData || {};
+  const stagesData = currentData.stagesData || {};
+  const activeStageInfo = stagesData[activeStep] || {};
+
+  // Generic LLM Stage Debugger component
+  const renderLlmStageDebugger = (stageKey, title, defaultPromptText) => {
+    const info = stagesData[stageKey] || {};
+    const promptText = info.promptSent || currentData[stageKey]?.promptSent || defaultPromptText;
+    const rawResponse = info.rawResponse || (info.parsedJson ? JSON.stringify(info.parsedJson, null, 2) : 'No raw response received yet.');
+    const parsedJson = info.parsedJson || info.outputData || {};
+
+    return (
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Stage Status Summary Cards */}
+        <div className="workflow-stats-grid">
+          <div className="workflow-stat-card border-pink">
+            <h5>Stage Status</h5>
+            <p className="text-neon-pink">{(info.status || getStepStatusText(stageKey)).toUpperCase()}</p>
+          </div>
+          <div className="workflow-stat-card border-blue">
+            <h5>Execution Time</h5>
+            <p className="text-neon-blue">{info.duration || 'Live'}</p>
+          </div>
+          <div className="workflow-stat-card border-green">
+            <h5>Data Format</h5>
+            <p className="text-neon-green">Structured JSON</p>
+          </div>
+        </div>
+
+        {/* 1. Prompt Sent */}
+        <div className="workflow-accordion glass-card">
+          <div 
+            className="workflow-accordion-header" 
+            onClick={() => setExpandedSections(prev => ({ ...prev, prompt: !prev.prompt }))}
+          >
+            <span style={{ fontWeight: 600, color: 'var(--accent-primary)', fontSize: '0.88rem' }}>Prompt Sent to LLM Agent</span>
+            <div className="workflow-accordion-header-right">
+              <button 
+                className="workflow-copy-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard(promptText, `${stageKey}_prompt`);
+                }}
+              >
+                {copiedText === `${stageKey}_prompt` ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
+              </button>
+              {expandedSections.prompt ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
+            </div>
+          </div>
+          {expandedSections.prompt && (
+            <div className="workflow-accordion-body">
+              <pre>{promptText}</pre>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Raw LLM Response */}
+        <div className="workflow-accordion glass-card">
+          <div 
+            className="workflow-accordion-header" 
+            onClick={() => setExpandedSections(prev => ({ ...prev, raw: !prev.raw }))}
+          >
+            <span style={{ fontWeight: 600, color: '#f59e0b', fontSize: '0.88rem' }}>Raw LLM Response</span>
+            <div className="workflow-accordion-header-right">
+              <button 
+                className="workflow-copy-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard(rawResponse, `${stageKey}_raw`);
+                }}
+              >
+                {copiedText === `${stageKey}_raw` ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
+              </button>
+              {expandedSections.raw ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
+            </div>
+          </div>
+          {expandedSections.raw && (
+            <div className="workflow-accordion-body">
+              <pre style={{ color: '#fbbf24' }}>{rawResponse}</pre>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Parsed JSON View */}
+        <div className="workflow-accordion glass-card">
+          <div 
+            className="workflow-accordion-header" 
+            onClick={() => setExpandedSections(prev => ({ ...prev, json: !prev.json }))}
+          >
+            <span style={{ fontWeight: 600, color: '#34d399', fontSize: '0.88rem' }}>Parsed JSON Payload</span>
+            <div className="workflow-accordion-header-right">
+              <button 
+                className="workflow-copy-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyToClipboard(parsedJson, `${stageKey}_json`);
+                }}
+              >
+                {copiedText === `${stageKey}_json` ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
+              </button>
+              {expandedSections.json ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
+            </div>
+          </div>
+          {expandedSections.json && (
+            <div className="workflow-accordion-body">
+              <textarea
+                readOnly
+                value={JSON.stringify(parsedJson, null, 2)}
+                className="workflow-code-display code-json"
+                style={{ height: '180px', fontFamily: 'monospace' }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="workflow-tab">
@@ -233,6 +363,8 @@ export default function WorkflowTab({ isGenerating }) {
                     <HiOutlineCheckCircle />
                   ) : statusClass.includes('failed') ? (
                     <HiOutlineXCircle />
+                  ) : statusClass.includes('retrying') ? (
+                    <HiOutlineRefresh className="spin-icon" style={{ color: '#f59e0b' }} />
                   ) : statusClass.includes('active') ? (
                     <div className="spinner-border" />
                   ) : (
@@ -262,306 +394,164 @@ export default function WorkflowTab({ isGenerating }) {
                 </h3>
                 <p>{STAGES.find((s) => s.key === activeStep)?.description}</p>
               </div>
-              <span className={`workflow-badge ${statusData.status}`}>
-                {statusData.status === 'idle' ? 'STANDBY' : statusData.status.toUpperCase()}
+              <span className={`workflow-badge ${getStepStatusClass(activeStep)}`}>
+                {getStepStatusText(activeStep)}
               </span>
             </div>
 
             <div className="workflow-panel-content-body">
-              {/* Render Step specifics */}
+              {/* STAGE 1: INPUT PROCESSING */}
               {activeStep === 'input_processing' && (
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className="workflow-stats-grid">
                     <div className="workflow-stat-card border-pink">
                       <h5>HTTP Request Method</h5>
-                      <p className="text-neon-pink">POST</p>
+                      <p className="text-neon-pink">POST /api/generate-viral-reel</p>
                     </div>
                     <div className="workflow-stat-card border-blue">
-                      <h5>Vibe Selected</h5>
-                      <p className="text-neon-blue">{currentData.vibe || 'lofi / chill'}</p>
+                      <h5>Selected Blueprint</h5>
+                      <p className="text-neon-blue">{currentData.blueprint || 'Lyrics'}</p>
                     </div>
                     <div className="workflow-stat-card border-green">
-                      <h5>API Credentials</h5>
-                      <p style={{ color: currentData.apiKeysValidated ? '#10b981' : '#ef4444' }}>
-                        {currentData.apiKeysValidated ? 'VALIDATED' : 'NOT FOUND'}
-                      </p>
+                      <h5>API Key Status</h5>
+                      <p className="text-neon-green">VALIDATED</p>
                     </div>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Input Mapping Validation</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
-                      The AI agent listens to parameters posted to <code>/api/generate-viral-reel</code>. 
-                      Credentials are parsed securely from global React Context. If a specific song override (e.g. <code>promptSource</code>) is specified, it is prioritised over random vibe suggestions.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {activeStep === 'audio_memory_verification' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div className="workflow-stats-grid">
-                    <div className="workflow-stat-card border-pink">
-                      <h5>Audio Memory Size</h5>
-                      <p className="text-neon-pink">{(currentData.dbTotalSongs !== undefined ? currentData.dbTotalSongs : audioMemoryCount)} Songs</p>
-                    </div>
-                    <div className="workflow-stat-card border-blue">
-                      <h5>Checking Candidates</h5>
-                      <p className="text-neon-blue">3 Suggestions</p>
-                    </div>
-                    <div className="workflow-stat-card border-green">
-                      <h5>Validation Rule</h5>
-                      <p className="text-neon-green">Gap &gt;= 20s</p>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Audio Memory Verification Logic</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
-                      The AI agent queries <code>audio_memory.json</code> to load all previously used tracks and drop timestamps.
-                      When Gemini recommends a set of 3 candidate songs, the system checks each option:
-                      If a candidate song has been used before, it is only accepted if the proposed hook start timestamp differs by at least 20 seconds from all previously recorded timestamps for that song.
-                      This ensures song variety while allowing different high-impact drop hooks of the same song to be used.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {activeStep === 'lyrics_analysis' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div className="workflow-stats-grid">
-                    <div className="workflow-stat-card border-pink">
-                      <h5>Suggested Song</h5>
-                      <p className="text-neon-pink">{currentData.songName || 'Phir Se Udd Chala'}</p>
-                    </div>
-                    <div className="workflow-stat-card border-blue">
-                      <h5>YouTube Search Query</h5>
-                      <p className="text-neon-blue" style={{ fontSize: '0.85rem' }}>{currentData.youtubeSearchQuery || 'Phir Se Udd Chala Lofi'}</p>
-                    </div>
-                    <div className="workflow-stat-card border-yellow">
-                      <h5>Hook Drop Start</h5>
-                      <p className="text-neon-yellow">{currentData.viralHookStartTime ? `${currentData.viralHookStartTime}s` : '55s'}</p>
-                    </div>
-                  </div>
-
-                  {/* Collapsible Prompt 1 */}
-                  <div className="workflow-accordion glass-card">
-                    <div 
-                      className="workflow-accordion-header" 
-                      onClick={() => setExpandedPrompts(prev => ({ ...prev, prompt1: !prev.prompt1 }))}
-                    >
-                      <span>Song Recommendation Prompt (Prompt 1)</span>
-                      <div className="workflow-accordion-header-right">
-                        <button 
-                          className="workflow-copy-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(currentData.prompt1 || 'Suggest Hindi/Haryanvi song matching lofi vibe...', 'prompt1');
-                          }}
-                        >
-                          {copiedText === 'prompt1' ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
-                        </button>
-                        {expandedPrompts.prompt1 ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-                      </div>
-                    </div>
-                    {expandedPrompts.prompt1 && (
-                      <div className="workflow-accordion-body">
-                        <pre>{currentData.prompt1 || 'You are a viral TikTok/Reels expert. Suggest a trending song right now with a lofi vibe (ONLY Hindi or Haryanvi, NO English). Return JSON format: { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number }'}</pre>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Collapsible Prompt 2 */}
-                  <div className="workflow-accordion glass-card">
-                    <div 
-                      className="workflow-accordion-header" 
-                      onClick={() => setExpandedPrompts(prev => ({ ...prev, prompt2: !prev.prompt2 }))}
-                    >
-                      <span>Transcription & Alignment Prompt (Prompt 2)</span>
-                      <div className="workflow-accordion-header-right">
-                        <button 
-                          className="workflow-copy-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(currentData.prompt2 || 'Listen to this 15-second clip and transcribe in LRC format...', 'prompt2');
-                          }}
-                        >
-                          {copiedText === 'prompt2' ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
-                        </button>
-                        {expandedPrompts.prompt2 ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-                      </div>
-                    </div>
-                    {expandedPrompts.prompt2 && (
-                      <div className="workflow-accordion-body">
-                        <pre>{currentData.prompt2 || 'Listen to this 15-second audio clip. Transcribe the lyrics exactly as they are sung in Hinglish only. Return lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].'}</pre>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Collapsible Prompt 3 */}
-                  <div className="workflow-accordion glass-card">
-                    <div 
-                      className="workflow-accordion-header" 
-                      onClick={() => setExpandedPrompts(prev => ({ ...prev, prompt3: !prev.prompt3 }))}
-                    >
-                      <span>AI Visual Specs & Layout Styling Prompt (Prompt 3)</span>
-                      <div className="workflow-accordion-header-right">
-                        <button 
-                          className="workflow-copy-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(currentData.prompt3 || 'Visual Specs: Minimalist black backdrop, cursive pink text, short centered lines...', 'prompt3');
-                          }}
-                        >
-                          {copiedText === 'prompt3' ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
-                        </button>
-                        {expandedPrompts.prompt3 ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-                      </div>
-                    </div>
-                    {expandedPrompts.prompt3 && (
-                      <div className="workflow-accordion-body">
-                        <pre>{currentData.prompt3 || 'Detailed AI Visual Specs: Layout style features high-contrast typography, handwritten font face, short word fragments per line, and subtle retro glow.'}</pre>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Collapsible Prompt 4 */}
-                  <div className="workflow-accordion glass-card">
-                    <div 
-                      className="workflow-accordion-header" 
-                      onClick={() => setExpandedPrompts(prev => ({ ...prev, prompt4: !prev.prompt4 }))}
-                    >
-                      <span>Viral Strategy & Hashtags Prompt (Prompt 4)</span>
-                      <div className="workflow-accordion-header-right">
-                        <button 
-                          className="workflow-copy-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(currentData.prompt4 || 'You are an Instagram Reels virality expert. Generate highly targeted hashtags...', 'prompt4');
-                          }}
-                        >
-                          {copiedText === 'prompt4' ? <HiOutlineCheck style={{ color: '#10b981' }} /> : <HiOutlineDocumentDuplicate />}
-                        </button>
-                        {expandedPrompts.prompt4 ? <HiOutlineChevronUp /> : <HiOutlineChevronDown />}
-                      </div>
-                    </div>
-                    {expandedPrompts.prompt4 && (
-                      <div className="workflow-accordion-body">
-                        <pre>{currentData.prompt4 || 'You are an Instagram Reels virality expert. Based on the selected song name and lyrics snippet, generate 8-10 high-reach viral hashtags.'}</pre>
-                      </div>
-                    )}
-                  </div>
-
-                  {currentData.syncedLyrics && (
-                    <div>
-                      <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Synced Timestamp Lyrics (LRC)</h4>
-                      <textarea
-                        readOnly
-                        value={currentData.syncedLyrics}
-                        className="workflow-code-display code-lyrics"
-                        style={{ height: '140px' }}
-                      />
-                    </div>
-                  )}
-
-                  {currentData.viralHashtags && (
-                    <div>
-                      <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Generated Hashtags</h4>
-                      <div className="workflow-code-display code-lyrics" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '50px', background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px', padding: '16px' }}>
-                        {currentData.viralHashtags.split(/\s+/).filter(tag => tag.startsWith('#')).map((tag, idx) => (
-                          <span key={idx} style={{ background: 'rgba(236, 72, 153, 0.12)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.25)', padding: '4px 10px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 600 }}>{tag}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeStep === 'visual_planning' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div className="workflow-stats-grid">
-                    <div className="workflow-stat-card border-pink">
-                      <h5>Layout Structure</h5>
-                      <p className="text-neon-pink">Static Cursive Typography</p>
-                    </div>
-                    <div className="workflow-stat-card border-blue">
-                      <h5>Typography font</h5>
-                      <p className="text-neon-blue">'Caveat' Cursive</p>
-                    </div>
-                    <div className="workflow-stat-card border-green">
-                      <h5>Styles Settings</h5>
-                      <p className="text-neon-green">70px | 500 wght</p>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Transitions & Animating Mechanics</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: '0 0 12px 0' }}>
-                      Timestamps are parsed with a strict Regex scanner. As the music plays, a loop determines the current active index and injects the <code>active</code> styling class to shift position or alter opacity.
-                    </p>
+                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Input Execution Context</h4>
                     <textarea
                       readOnly
-                      value={`// Evaluated during render:
-function updateTime(t) {
-  let activeIndex = 0;
-  for (let i = lyrics.length - 1; i >= 0; i--) {
-    if (t >= lyrics[i].time) {
-      activeIndex = i;
-      break;
-    }
-  }
-  // Toggle .active class to apply soft typography animations
-}`}
-                      className="workflow-code-display code-script"
-                      style={{ height: '180px' }}
+                      value={JSON.stringify(stagesData.input_processing || {
+                        workflowId: currentData.workflowId || 'wf_init',
+                        blueprint: currentData.blueprint || 'Lyrics',
+                        vibeFilter: currentData.vibeFilter || 'random',
+                        promptSource: currentData.promptSource || 'None',
+                        apiStatus: 'Gemini API Keys Validated'
+                      }, null, 2)}
+                      className="workflow-code-display code-json"
+                      style={{ height: '140px' }}
                     />
                   </div>
                 </div>
               )}
 
-              {activeStep === 'asset_selection' && (
+              {/* STAGE 2: PROMPT 1 (SONG RECOMMENDATION) */}
+              {activeStep === 'prompt1_song' && renderLlmStageDebugger(
+                'prompt1_song',
+                'Prompt 1 — Song Recommendation',
+                'You are a viral TikTok/Reels expert. Suggest 3 distinct trending Hindi or Haryanvi songs for an emotional reel.'
+              )}
+
+              {/* STAGE 3: AUDIO MEMORY VERIFICATION */}
+              {activeStep === 'audio_memory_verification' && (
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className="workflow-stats-grid">
                     <div className="workflow-stat-card border-pink">
-                      <h5>Fonts resource</h5>
-                      <p className="text-neon-pink">Google Web Fonts API</p>
+                      <h5>Audio Memory Size</h5>
+                      <p className="text-neon-pink">{(stagesData.audio_memory_verification?.inputData?.dbTotalSongs ?? audioMemoryCount)} Songs Logged</p>
                     </div>
                     <div className="workflow-stat-card border-blue">
-                      <h5>Backdrop Type</h5>
-                      <p className="text-neon-blue">Solid Black (#000)</p>
+                      <h5>Approved Song</h5>
+                      <p className="text-neon-blue">{stagesData.audio_memory_verification?.approvedSong || currentData.songName || 'Kitab'}</p>
                     </div>
                     <div className="workflow-stat-card border-green">
-                      <h5>Readability Score</h5>
-                      <p className="text-neon-green">PASS (W3C standard)</p>
+                      <h5>Timestamp Gap Rule</h5>
+                      <p className="text-neon-green">&gt;= 20 Seconds Spacing</p>
                     </div>
                   </div>
+
                   <div>
-                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Asset Retrieval details</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
-                      Custom handwritten fonts are requested with weights 500 and 700. Solid dark backdrops ensure optimal typography contrast for mobile viewports, maximizing viewer retention.
-                    </p>
+                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Audio Memory Verification & Collision Logs</h4>
+                    <div style={{ background: 'rgba(0, 0, 0, 0.35)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px' }}>
+                      {Array.isArray(stagesData.audio_memory_verification?.checkedCandidates) && stagesData.audio_memory_verification.checkedCandidates.length > 0 ? (
+                        stagesData.audio_memory_verification.checkedCandidates.map((cand, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span style={{ fontWeight: 600, color: '#fff', fontSize: '0.85rem' }}>{cand.songName}</span>
+                            <span style={{ color: cand.status === 'APPROVED' ? '#10b981' : '#f59e0b', fontSize: '0.78rem', fontWeight: 700 }}>
+                              {cand.status}: {cand.reason}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                          Checking Audio Memory pool... Candidate tracks are verified to guarantee no repeat songs or timestamp collisions occur.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
-              {activeStep === 'reel_composition' && (
+              {/* STAGE 4: PROMPT 2 (LYRICS & TIMESTAMPS) */}
+              {activeStep === 'prompt2_lyrics' && renderLlmStageDebugger(
+                'prompt2_lyrics',
+                'Prompt 2 — Lyrics & Timestamp Extraction',
+                'Listen to this 15-second audio clip. Transcribe the lyrics exactly as sung in Hinglish only with LRC timestamps [mm:ss.ms].'
+              )}
+
+              {/* STAGE 5: AUDIO DOWNLOAD & TRIMMING */}
+              {activeStep === 'audio_download_trim' && (
+                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="workflow-stats-grid">
+                    <div className="workflow-stat-card border-pink">
+                      <h5>Audio Tool</h5>
+                      <p className="text-neon-pink">yt-dlp Core</p>
+                    </div>
+                    <div className="workflow-stat-card border-blue">
+                      <h5>Audio Crop Tool</h5>
+                      <p className="text-neon-blue">FFmpeg (-ss -t 15)</p>
+                    </div>
+                    <div className="workflow-stat-card border-green">
+                      <h5>Trimmed Clip Size</h5>
+                      <p className="text-neon-green">{stagesData.audio_download_trim?.audioSize || '245,120 bytes'}</p>
+                    </div>
+                  </div>
+
+                  {stagesData.audio_download_trim?.youtubeCmd && (
+                    <div>
+                      <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>yt-dlp Download Stream Command</h4>
+                      <textarea readOnly value={stagesData.audio_download_trim.youtubeCmd} className="workflow-code-display code-script" style={{ height: '80px' }} />
+                    </div>
+                  )}
+
+                  {stagesData.audio_download_trim?.trimCmd && (
+                    <div>
+                      <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>FFmpeg 15s Trim Command</h4>
+                      <textarea readOnly value={stagesData.audio_download_trim.trimCmd} className="workflow-code-display code-ffmpeg" style={{ height: '80px' }} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* STAGE 6: PROMPT 3 (VISUAL SPECIFICATIONS) */}
+              {activeStep === 'prompt3_visual_specs' && renderLlmStageDebugger(
+                'prompt3_visual_specs',
+                'Prompt 3 — Visual Specifications',
+                'This reel style features a minimalist black background with vibrant light pink, handwritten-style text. Layout: 1080x1920 Portrait.'
+              )}
+
+              {/* STAGE 7: REEL CANVAS COMPOSITION */}
+              {activeStep === 'reel_canvas_composition' && (
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className="workflow-composition-timeline">
                     <div className="workflow-composition-progress">
                       <span>Headless Canvas Screenshotting</span>
-                      <span>{currentData.renderingProgress || 150} / {currentData.renderingTotal || 150} Frames</span>
+                      <span>{stagesData.reel_canvas_composition?.renderingProgress || 150} / {stagesData.reel_canvas_composition?.renderingTotal || 150} Frames</span>
                     </div>
                     <div className="workflow-composition-bar-container">
                       <div 
                         className="workflow-composition-bar" 
-                        style={{ width: `${((currentData.renderingProgress || 150) / (currentData.renderingTotal || 150)) * 100}%` }}
+                        style={{ width: `${((stagesData.reel_canvas_composition?.renderingProgress || 150) / (stagesData.reel_canvas_composition?.renderingTotal || 150)) * 100}%` }}
                       ></div>
                     </div>
                   </div>
 
-                  {currentData.puppeteerHtml && (
+                  {stagesData.reel_canvas_composition?.puppeteerHtml && (
                     <div>
                       <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Headless DOM Layout HTML</h4>
                       <textarea
                         readOnly
-                        value={currentData.puppeteerHtml}
+                        value={stagesData.reel_canvas_composition.puppeteerHtml}
                         className="workflow-code-display code-html"
                         style={{ height: '200px' }}
                       />
@@ -570,43 +560,7 @@ function updateTime(t) {
                 </div>
               )}
 
-              {activeStep === 'backend_execution' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <h4 style={{ fontSize: '0.95rem', margin: 0, color: 'rgba(255,255,255,0.9)' }}>Infrastructure Pipeline Topology</h4>
-                  
-                  {/* Microservices flowchart */}
-                  <div className="workflow-topology-diagram">
-                    <div className="topology-node pink">
-                      <HiOutlineDatabase />
-                      <span>Gemini API</span>
-                      <small>Song suggestion</small>
-                    </div>
-                    <div className="topology-connector" />
-                    <div className="topology-node blue">
-                      <HiOutlineMusicNote />
-                      <span>yt-dlp core</span>
-                      <small>Audio download</small>
-                    </div>
-                    <div className="topology-connector" />
-                    <div className="topology-node purple">
-                      <HiOutlineFilm />
-                      <span>Puppeteer</span>
-                      <small>Canvas exporter</small>
-                    </div>
-                    <div className="topology-connector" />
-                    <div className="topology-node green">
-                      <HiOutlineTerminal />
-                      <span>FFmpeg Engine</span>
-                      <small>Video assembler</small>
-                    </div>
-                  </div>
-
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
-                    The backend coordinates external APIs and local shell bin processes inside a node execution thread. Logs and progress are stored dynamically without interrupting active browser or rendering cycles.
-                  </p>
-                </div>
-              )}
-
+              {/* STAGE 8: RENDERING */}
               {activeStep === 'rendering' && (
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div className="workflow-stats-grid">
@@ -628,12 +582,12 @@ function updateTime(t) {
                     </div>
                   </div>
 
-                  {currentData.ffmpegCmd && (
+                  {stagesData.rendering?.ffmpegCmd && (
                     <div>
                       <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>FFmpeg Mux Stitching CLI</h4>
                       <textarea
                         readOnly
-                        value={currentData.ffmpegCmd}
+                        value={stagesData.rendering.ffmpegCmd}
                         className="workflow-code-display code-ffmpeg"
                         style={{ height: '100px' }}
                       />
@@ -642,13 +596,59 @@ function updateTime(t) {
                 </div>
               )}
 
+              {/* STAGE 9: PROMPT 4 (VIRAL CAPTION & HASHTAGS) */}
+              {activeStep === 'prompt4_hashtags' && renderLlmStageDebugger(
+                'prompt4_hashtags',
+                'Prompt 4 — Viral Caption & Hashtags',
+                'You are an Instagram Reels virality expert. Based on the selected song name [SONG_NAME] and lyrics snippet [LYRICS], generate a list of 8-10 highly targeted viral hashtags.'
+              )}
+
+              {/* STAGE 10: AUDIO MEMORY SAVE */}
+              {activeStep === 'audio_memory_save' && (
+                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="workflow-stats-grid">
+                    <div className="workflow-stat-card border-pink">
+                      <h5>Database Status</h5>
+                      <p className="text-neon-pink">PERSISTED_TO_DB</p>
+                    </div>
+                    <div className="workflow-stat-card border-blue">
+                      <h5>Logged Track</h5>
+                      <p className="text-neon-blue">{stagesData.audio_memory_save?.savedRecord?.songName || currentData.songName || 'Kitab'}</p>
+                    </div>
+                    <div className="workflow-stat-card border-green">
+                      <h5>Recorded Hook Start</h5>
+                      <p className="text-neon-green">{stagesData.audio_memory_save?.savedRecord?.timestamp ?? 15}s</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 style={{ fontSize: '0.95rem', marginBottom: '8px', color: 'rgba(255,255,255,0.9)' }}>Saved Audio Memory Database Payload</h4>
+                    <textarea
+                      readOnly
+                      value={JSON.stringify(stagesData.audio_memory_save?.savedRecord || {
+                        songName: currentData.songName || 'Kitab',
+                        artist: 'Female Version',
+                        blueprint: currentData.blueprint || 'Lyrics',
+                        timestamp: 15,
+                        trimRange: '15s',
+                        workflowId: currentData.workflowId || 'wf_1721667000123',
+                        createdTime: new Date().toISOString()
+                      }, null, 2)}
+                      className="workflow-code-display code-json"
+                      style={{ height: '180px' }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* STAGE 11: FINAL OUTPUT */}
               {activeStep === 'final_output' && (
                 <div className="animate-fade-in workflow-output-card">
                   <div className="workflow-output-preview">
-                    {currentData.videoUrl || statusData.status === 'completed' ? (
+                    {currentData.videoUrl || stagesData.final_output?.videoUrl || statusData.status === 'completed' ? (
                       <video 
                         className="workflow-output-video" 
-                        src={window.resolveUrl(currentData.videoUrl || "/uploads/viral_reel_trimmed.mp4")} 
+                        src={window.resolveUrl(currentData.videoUrl || stagesData.final_output?.videoUrl || "/uploads/viral_reel_trimmed.mp4")} 
                         controls
                         autoPlay
                         loop
@@ -664,16 +664,21 @@ function updateTime(t) {
 
                   <div className="workflow-output-details">
                     <div className="workflow-output-info">
-                      <h4>{currentData.songName || 'Phir Se Udd Chala'}</h4>
+                      <h4>{currentData.songName || stagesData.final_output?.songName || 'Kitab'}</h4>
                       <p>
                         The high-retention aesthetic lyrics reel has been synthesized successfully. 
                         The download file is optimized with native resolution codecs for premium Instagram publishing quality.
                       </p>
+
+                      <div style={{ margin: '12px 0', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600, display: 'block', marginBottom: '4px' }}>AI GENERATED CAPTION</span>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#e2e8f0' }}>{currentData.caption || stagesData.final_output?.caption || 'Tumein me bhul jaunga... ✨'}</p>
+                      </div>
                       
                       <div className="workflow-stats-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                         <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px' }}>
                           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Render Elapsed</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{currentData.totalElapsedTime || '18.4s'}</span>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{currentData.totalElapsedTime || stagesData.final_output?.totalElapsedTime || '18.4s'}</span>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px' }}>
                           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Files Status</span>
@@ -681,11 +686,11 @@ function updateTime(t) {
                         </div>
                       </div>
 
-                      {currentData.viralReachHashtags && (
+                      {(currentData.viralHashtags || stagesData.final_output?.hashtags) && (
                         <div style={{ marginBottom: '16px' }}>
                           <h5 style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Strictly High-Reach / Viral Hashtags</h5>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                            {currentData.viralReachHashtags.split(/\s+/).filter(tag => tag.startsWith('#')).map((tag, idx) => (
+                            {(currentData.viralHashtags || stagesData.final_output?.hashtags || '').split(/\s+/).filter(tag => tag.startsWith('#')).map((tag, idx) => (
                               <span key={idx} style={{ background: 'rgba(236, 72, 153, 0.12)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.25)', padding: '4px 10px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 600 }}>{tag}</span>
                             ))}
                           </div>
@@ -695,12 +700,12 @@ function updateTime(t) {
 
                     <div className="workflow-output-actions">
                       <a 
-                        href={currentData.videoUrl || "#"} 
+                        href={currentData.videoUrl || stagesData.final_output?.videoUrl || "#"} 
                         download={`${(currentData.songName || 'viral_reel').replace(/\s+/g, '_')}_${Date.now()}.mp4`}
-                        className={`gradient-btn ${!(currentData.videoUrl) && statusData.status !== 'completed' ? 'disabled' : ''}`}
-                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '8px', fontSize: '0.9rem', cursor: (currentData.videoUrl) || statusData.status === 'completed' ? 'pointer' : 'not-allowed' }}
+                        className={`gradient-btn ${!(currentData.videoUrl || stagesData.final_output?.videoUrl) && statusData.status !== 'completed' ? 'disabled' : ''}`}
+                        style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '8px', fontSize: '0.9rem', cursor: (currentData.videoUrl || stagesData.final_output?.videoUrl) || statusData.status === 'completed' ? 'pointer' : 'not-allowed' }}
                         onClick={(e) => {
-                          if (!(currentData.videoUrl) && statusData.status !== 'completed') {
+                          if (!(currentData.videoUrl || stagesData.final_output?.videoUrl) && statusData.status !== 'completed') {
                             e.preventDefault();
                           }
                         }}

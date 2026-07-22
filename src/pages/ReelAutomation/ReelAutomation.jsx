@@ -1409,6 +1409,7 @@ function MatrixTab({ activeBlueprint, setActiveBlueprint, blueprints, setBluepri
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             apiKey: resolvedKey,
+            blueprintName: activeBlueprint,
             promptSource: customPromptSource || null,
             screenshotLyrics: screenshotLyrics || null,
             prompt1: bpPrompts.prompt1 || null,

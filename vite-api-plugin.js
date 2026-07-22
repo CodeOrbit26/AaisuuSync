@@ -158,6 +158,34 @@ function writeSongsHistory(history) {
   } catch(e) {}
 }
 
+const BLUEPRINT_PROMPTS_PATH = path.join(process.cwd(), 'blueprint_prompts.json');
+const DEFAULT_BLUEPRINT_PROMPTS = {
+  Lyrics: {
+    prompt1: `You are a viral TikTok/Reels expert. Suggest 3 distinct trending Hindi or Haryanvi songs for an emotional reel. For each song, give the song name, YouTube search query, and hook start time in seconds.\nReturn JSON format: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`,
+    prompt2: `Listen to this 15-second audio clip. Transcribe the lyrics exactly as sung in Hinglish only. Return lyrics in strict LRC format [mm:ss.ms]. The very last line MUST be 2-4 aesthetic emojis from: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙.\nReturn JSON format: { "syncedLyrics": "string" }`,
+    prompt3: `This reel style features a minimalist black background with vibrant light pink, handwritten-style text. Layout: 1080x1920 Portrait Centered-Right. Alignment: Right. Font: Caveat 48px.\nReturn JSON format: { "layout": "1080x1920 Portrait", "font": "Caveat", "fontSize": "48px", "alignment": "right", "background": "#050508", "effects": "Neon HSL Pink" }`,
+    prompt4: `You are an Instagram Reels virality expert. Based on the selected song name [SONG_NAME] and lyrics snippet [LYRICS], generate a list of 8-10 highly targeted viral hashtags.\nReturn JSON format: { "caption": "string", "hashtags": ["string"] }`
+  }
+};
+
+function readBlueprintPrompts() {
+  if (fs.existsSync(BLUEPRINT_PROMPTS_PATH)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(BLUEPRINT_PROMPTS_PATH, 'utf8'));
+      return { ...DEFAULT_BLUEPRINT_PROMPTS, ...data };
+    } catch (e) {}
+  }
+  return DEFAULT_BLUEPRINT_PROMPTS;
+}
+
+function writeBlueprintPrompts(promptsObj) {
+  try {
+    fs.writeFileSync(BLUEPRINT_PROMPTS_PATH, JSON.stringify(promptsObj, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Failed to write blueprint prompts:', e);
+  }
+}
+
 // Global Puppeteer trackers for automated Instagram login sync
 let igBrowser = null;
 let igPage = null;
@@ -758,11 +786,42 @@ export async function apiMiddleware(req, res, next) {
           return;
         }
 
+        if (pathname === '/api/blueprint-prompts') {
+          if (req.method === 'GET') {
+            res.statusCode = 200;
+            res.end(JSON.stringify(readBlueprintPrompts()));
+            return;
+          }
+          if (req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk => { body += chunk; });
+            req.on('end', () => {
+              try {
+                const parsed = JSON.parse(body);
+                const bpName = parsed.blueprintName || 'Lyrics';
+                const currentAll = readBlueprintPrompts();
+                currentAll[bpName] = {
+                  ...currentAll[bpName],
+                  ...(parsed.prompts || parsed)
+                };
+                writeBlueprintPrompts(currentAll);
+                res.statusCode = 200;
+                res.end(JSON.stringify({ success: true, blueprintName: bpName, prompts: currentAll[bpName] }));
+              } catch (e) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ error: e.message }));
+              }
+            });
+            return;
+          }
+        }
+
         if (pathname === '/api/generate-viral-reel' && req.method === 'POST') {
           let body = '';
           req.on('data', chunk => { body += chunk; });
           req.on('end', async () => {
             const startTime = Date.now();
+            const workflowId = `wf_${Date.now()}`;
             try {
               const parsed = JSON.parse(body);
               const clientKey = parsed.apiKey; 
@@ -773,17 +832,14 @@ export async function apiMiddleware(req, res, next) {
               const customPrompt3 = parsed.prompt3;
               const customPrompt4 = parsed.prompt4;
               const vibeFilter = parsed.vibeFilter || 'random';
-              
+              const bpName = parsed.blueprintName || 'Lyrics';
+
               const envKey = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
               const isInvalidKey = (k) => !k || k === 'your_gemini_api_key_here';
               const API_KEYS = [envKey, clientKey].filter(k => !isInvalidKey(k));
 
               if (API_KEYS.length === 0) {
                 const errMsg = "No valid Gemini API Key found. Please configure your key in Settings -> API Credentials (or set GEMINI_API_KEY environment variable).";
-                updateWorkflowStatus({
-                  status: 'failed',
-                  logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[ERROR] ${errMsg}`, type: 'error' }]
-                });
                 res.statusCode = 401;
                 res.end(JSON.stringify({ error: errMsg }));
                 return;
@@ -791,46 +847,51 @@ export async function apiMiddleware(req, res, next) {
 
               const keyInfo = API_KEYS.map((k, idx) => `Key #${idx+1} (${k === envKey ? 'RENDER_ENV' : 'CLIENT'}): ${k.substring(0, 8)}...${k.slice(-4)}`).join(', ');
 
-              let viralHashtags = '#aesthetic #lyrics #reels #explorepage #feelitreelit #trendingreels #hindisongs #lofi';
+              // Load Single Source of Truth Blueprint Prompts
+              const allBpPrompts = readBlueprintPrompts();
+              const bpPrompts = allBpPrompts[bpName] || {
+                prompt1: "You are a viral TikTok/Reels expert. Suggest trending songs featuring Hindi or Haryanvi vibes. Return JSON: { \"songs\": [ { \"songName\": \"string\", \"youtubeSearchQuery\": \"string\", \"viralHookStartTime\": number } ] }",
+                prompt2: "Listen to the audio. Transcribe the lyrics exactly as they are sung in HINGLISH. Return JSON: { \"syncedLyrics\": \"string\" }",
+                prompt3: "Based on the song and lyrics, suggest layout and visual specs. Return JSON: { \"layout\": \"string\", \"font\": \"string\" }",
+                prompt4: "Generate an engaging caption and viral hashtags. Return JSON: { \"caption\": \"string\", \"hashtags\": [\"#tag1\"] }"
+              };
 
-              // 1. Initialize input processing status
-              updateWorkflowStatus({
-                status: 'processing',
-                stage: 'input_processing',
-                clearLogs: !screenshotLyrics,
-                logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] POST /api/generate-viral-reel request received using keys: ${keyInfo || 'NONE'}`, type: 'info' },
-                  screenshotLyrics ? { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Using lyrics extracted from screenshot: "${screenshotLyrics.substring(0, 60)}..."`, type: 'success' } : null,
-                  { timestamp: new Date().toLocaleTimeString(), message: `[INPUT] Specific song override: ${promptSource || 'None (Random song selection)'}`, type: 'info' }
-                ].filter(Boolean),
-                executionData: {
-                  startTime,
-                  promptSource: promptSource || 'None',
-                  vibe: '',
-                  apiKeysValidated: API_KEYS.length > 0,
-                  songName: '',
-                  youtubeSearchQuery: '',
-                  viralHookStartTime: 0,
-                  syncedLyrics: '',
-                  prompt3: '',
-                  viralHashtags: '',
-                  viralReachHashtags: '',
-                  youtubeCmd: '',
-                  trimCmd: '',
-                  puppeteerHtml: '',
-                  ffmpegCmd: '',
-                  resolution: '1080x1920',
-                  fps: 10,
-                  bitrate: 'Adaptive',
-                  format: 'mp4',
-                  renderingProgress: 0,
-                  renderingTotal: 150,
-                  videoUrl: '',
-                  audioUrl: ''
-                }
-              });
+              const activePrompt1Text = customPrompt1 || bpPrompts.prompt1;
+              const activePrompt2Text = customPrompt2 || bpPrompts.prompt2;
+              const activePrompt3Text = customPrompt3 || bpPrompts.prompt3;
+              const activePrompt4Text = customPrompt4 || bpPrompts.prompt4;
 
-              // Clean direct fetch helper - passes API key via URL parameter ?key=
+              const stagesData = {};
+
+              const updateStageStatus = (stageKey, status, extraData = {}, logItems = []) => {
+                const now = Date.now();
+                const prevStage = stagesData[stageKey] || { startTime: now };
+                const sTime = prevStage.startTime || now;
+                const duration = (status === 'completed' || status === 'failed') ? `${((now - sTime) / 1000).toFixed(2)}s` : null;
+
+                stagesData[stageKey] = {
+                  ...prevStage,
+                  status,
+                  startTime: sTime,
+                  ...(duration ? { endTime: now, duration } : {}),
+                  ...extraData
+                };
+
+                updateWorkflowStatus({
+                  status: status === 'failed' ? 'failed' : (stageKey === 'final_output' && status === 'completed' ? 'completed' : 'processing'),
+                  stage: stageKey,
+                  logs: logItems,
+                  executionData: {
+                    workflowId,
+                    blueprint: bpName,
+                    vibeFilter,
+                    promptSource: promptSource || 'None',
+                    stagesData,
+                    ...extraData
+                  }
+                });
+              };
+
               const geminiDirectCall = async (apiKey, modelName, contents, generationConfig = {}) => {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
                 const body = { contents, generationConfig };
@@ -850,736 +911,155 @@ export async function apiMiddleware(req, res, next) {
                 throw new Error('No candidates returned from Gemini API');
               };
 
-              // Helper to attempt official models (gemini-2.0-flash, gemini-1.5-flash) and return instant fallback on rate limit to prevent 502 timeouts
               const generateWithFallback = async (prompt, inlineData = null) => {
                 const generationConfig = { responseMimeType: "application/json", temperature: 1.0 };
                 const contents = [{ parts: inlineData ? [{ text: prompt }, inlineData] : [{ text: prompt }] }];
-                const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
+                const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest"];
 
                 for (const modelName of modelsToTry) {
                   for (let keyIdx = 0; keyIdx < API_KEYS.length; keyIdx++) {
                     try {
                       return await geminiDirectCall(API_KEYS[keyIdx], modelName, contents, generationConfig);
                     } catch (e) {
-                      console.warn(`[Gemini] Model ${modelName} with key #${keyIdx + 1} unavailable/rate-limited: ${e.message}`);
+                      console.warn(`[Gemini] Model ${modelName} with key #${keyIdx + 1} unavailable: ${e.message}`);
                     }
                   }
                 }
 
-                // Instant Unbreakable Fallback - Zero delay, zero HTTP timeout
-                console.warn('[Gemini Safeguard] API quota busy or rate-limited. Returning instant curated fallback payload.');
-                updateWorkflowStatus({
-                  logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API quota busy. Activated instant aesthetic reel safeguard.`, type: 'info' }]
-                });
-                
+                console.warn('[Gemini Safeguard] Returning curated fallback payload.');
                 let targetSong = promptSource || "Tauba Tauba";
                 let targetQuery = promptSource ? `${promptSource} official audio` : "Tauba Tauba Karan Aujla official audio";
 
                 if (!promptSource && (vibeFilter === 'sad' || vibeFilter === 'sad_trending')) {
                   targetSong = "Kitab";
                   targetQuery = "Kitab female version official audio";
-                } else if (!promptSource && vibeFilter === 'devotional') {
-                  targetSong = "Achyutam Keshavam";
-                  targetQuery = "Achyutam Keshavam official audio";
                 }
 
                 let fallbackJson = JSON.stringify({
-                  songs: [{
-                    songName: targetSong,
-                    youtubeSearchQuery: targetQuery,
-                    viralHookStartTime: targetSong.toLowerCase().includes('tauba') ? 34 : 15
-                  }]
+                  songs: [{ songName: targetSong, youtubeSearchQuery: targetQuery, viralHookStartTime: 15 }]
                 });
 
                 if (prompt && (prompt.includes('syncedLyrics') || prompt.includes('Transcribe'))) {
                   fallbackJson = JSON.stringify({ syncedLyrics: getFallbackLyrics(targetSong) });
-                } else if (prompt && prompt.includes('hashtags')) {
-                  fallbackJson = '{"hashtags":"#viral #trending #reelsinstagram #explore #foryou"}';
+                } else if (prompt && (prompt.includes('hashtags') || prompt.includes('Prompt 4'))) {
+                  fallbackJson = JSON.stringify({ caption: `${targetSong} ✨`, hashtags: ["#viral", "#trending", "#reelsinstagram", "#explore"] });
+                } else if (prompt && (prompt.includes('layout') || prompt.includes('Prompt 3'))) {
+                  fallbackJson = JSON.stringify({ layout: "1080x1920 Portrait", font: "Caveat", fontSize: "48px", alignment: "right", background: "#050508" });
                 }
+
                 return { response: { text: () => fallbackJson } };
               };
 
-              const buildPrompt1 = (vibeFilter, promptSource, historyList = [], audioMemory = []) => {
-                if (promptSource) {
-                  return `You are a viral TikTok/Reels expert. Give me details for the song "${promptSource}".\nReturn JSON format exactly like this: { "songs": [ { "songName": "${promptSource}", "youtubeSearchQuery": "${promptSource} official audio", "viralHookStartTime": 15 } ] }`;
-                }
-                let chosenVibePrompt = 'trending Hindi or Haryanvi songs';
-                if (vibeFilter === 'sad') {
-                  chosenVibePrompt = 'sad, emotional Hindi/Haryanvi songs';
-                } else if (vibeFilter === 'sad_trending') {
-                  chosenVibePrompt = 'trending sad/lofi Hindi or Haryanvi songs';
-                } else if (vibeFilter === 'chatpatee') {
-                  chosenVibePrompt = 'upbeat, chatpatee, energetic Hindi or Haryanvi dance songs';
-                } else if (vibeFilter === 'devotional') {
-                  chosenVibePrompt = 'devotional, Krishna, or spiritual songs';
-                } else if (vibeFilter === 'retro_remix') {
-                  chosenVibePrompt = 'retro 90s classic Hindi songs or viral slowed/reverb remixes';
-                }
+              // ----------------------------------------------------
+              // STAGE 1: INPUT PROCESSING
+              // ----------------------------------------------------
+              updateStageStatus('input_processing', 'completed', {
+                requestStatus: '200 OK (Processing)',
+                blueprint: bpName,
+                inputData: { blueprint: bpName, vibeFilter, promptSource, screenshotLyrics: !!screenshotLyrics },
+                outputData: { workflowId }
+              }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[STAGE 1/11] Input Processing initialized. Workflow ID: ${workflowId}`, type: 'info' }
+              ]);
 
-                const loggedNames = audioMemory.map(a => a.songName).filter(Boolean);
-                const excludeList = [...new Set([...historyList, ...loggedNames])];
-                const excludeText = excludeList.length > 0 ? `\nSTRICT REQUIREMENT: Absolutely DO NOT suggest any of these previously generated songs from Audio Memory: ${excludeList.slice(-20).join(', ')}. Provide completely fresh, different songs.` : '';
+              // ----------------------------------------------------
+              // STAGE 2: PROMPT 1 (SONG RECOMMENDATION)
+              // ----------------------------------------------------
+              let prompt1Text = activePrompt1Text;
+              if (promptSource) {
+                prompt1Text = `You are a viral TikTok/Reels expert. Give me details for the song "${promptSource}".\nReturn JSON format: { "songs": [ { "songName": "${promptSource}", "youtubeSearchQuery": "${promptSource} official audio", "viralHookStartTime": 15 } ] }`;
+              }
 
-                return `You are a viral TikTok/Reels expert. Suggest 3 distinct trending songs right now featuring ${chosenVibePrompt} (ONLY Hindi or Haryanvi, NO English).${excludeText} For each song, give me the song name, the exact YouTube search query to find the official audio, and the exact start time in seconds of the best 15-second drop/hook.\nReturn JSON format exactly like this: { "songs": [ { "songName": "string", "youtubeSearchQuery": "string", "viralHookStartTime": number } ] }`;
-              };
+              updateStageStatus('prompt1_song', 'running', { promptSent: prompt1Text }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[STAGE 2/11] Executing Prompt 1 (Song Recommendation)...`, type: 'info' }
+              ]);
 
-              const historyList = readSongsHistory();
+              const result1 = await generateWithFallback(prompt1Text);
+              const rawText1 = result1.response.text();
+              let parsedJson1 = {};
+              try { parsedJson1 = JSON.parse(rawText1); } catch (e) { parsedJson1 = { raw: rawText1 }; }
+
+              updateStageStatus('prompt1_song', 'completed', { rawResponse: rawText1, parsedJson: parsedJson1 }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[LLM] Prompt 1 executed. Candidates received.`, type: 'success' }
+              ]);
+
+              // ----------------------------------------------------
+              // STAGE 3: AUDIO MEMORY VERIFICATION
+              // ----------------------------------------------------
               const audioMemory = readAudioMemory();
-              const prompt1 = buildPrompt1(vibeFilter, promptSource, historyList, audioMemory);
-              let vibeText = 'Random Selection';
-              if (vibeFilter === 'trending') vibeText = 'Trending Hits';
-              else if (vibeFilter === 'sad') vibeText = 'Sad/Emotional';
-              else if (vibeFilter === 'sad_trending') vibeText = 'Sad + Trending';
-              else if (vibeFilter === 'chatpatee') vibeText = 'Chatpatee/Upbeat';
-              else if (vibeFilter === 'devotional') vibeText = 'Devotional/Spiritual';
-              else if (vibeFilter === 'retro_remix') vibeText = 'Retro Remix';
+              const historyList = readSongsHistory();
 
-              updateWorkflowStatus({
-                stage: 'audio_memory_verification',
-                logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Active category filter option configured: "${vibeText}"`, type: 'info' },
-                  promptSource ? { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Vibe filter overridden by specific source: "${promptSource}"`, type: 'warn' } : null,
-                  { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Dispatching Song Recommendation query (Prompt 1).`, type: 'info' }
-                ].filter(Boolean),
-                executionData: {
-                  vibe: vibeText,
-                  prompt1
-                }
-              });
+              updateStageStatus('audio_memory_verification', 'running', { inputData: { dbTotalSongs: audioMemory.length } }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[STAGE 3/11] Audio Memory Verification starting...`, type: 'info' }
+              ]);
 
-              const normalizeName = (name) => name ? name.toLowerCase().trim() : '';
-              let normalizedHistory = historyList.map(normalizeName);
-              
-              let responseData1;
+              let songsList = parsedJson1.songs || (parsedJson1.songName ? [parsedJson1] : []);
               let selectedSong = null;
               let attempt = 0;
-              let currentPrompt = prompt1;
-              
+              let currentPrompt1 = prompt1Text;
+
               while (attempt < 5) {
-                try {
-                  const result1 = await generateWithFallback(currentPrompt);
-                  responseData1 = JSON.parse(result1.response.text());
-                } catch (llmErr) {
-                  console.warn('[LLM Fallback] Gemini API rate limited. Filtering unplayed songs:', llmErr.message);
-                  updateWorkflowStatus({
-                    logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-SAFEGUARD] Gemini API busy. Selecting unplayed song from audio memory filter.`, type: 'warn' }]
-                  });
-                  let pool = [
-                    { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
-                    { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
-                    { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 },
-                    { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 },
-                    { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
-                    { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
-                  ];
-
-                  if (promptSource) {
-                    selectedSong = {
-                      songName: promptSource,
-                      youtubeSearchQuery: `${promptSource} official audio`,
-                      viralHookStartTime: 15
-                    };
-                  } else {
-                    const unplayed = pool.filter(s => !normalizedHistory.includes(normalizeName(s.songName)));
-                    selectedSong = unplayed.length > 0 ? unplayed[0] : pool[historyList.length % pool.length];
-                  }
-
-                  responseData1 = { songs: [selectedSong] };
-                  break;
-                }
-                
-                // Transition to audio memory verification stage
-                updateWorkflowStatus({
-                  stage: 'audio_memory_verification',
-                  executionData: {
-                    dbTotalSongs: audioMemory.length
-                  },
-                  logs: [
-                    { timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Parsing song recommendations from LLM response.`, type: 'info' },
-                    { timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Querying Audio Memory pool. Found ${audioMemory.length} logged records.`, type: 'info' }
-                  ]
-                });
-                
-                let songsList = [];
-                if (responseData1.songs && Array.isArray(responseData1.songs)) {
-                  songsList = responseData1.songs;
-                } else if (responseData1.songName) {
-                  songsList = [{
-                    songName: responseData1.songName,
-                    youtubeSearchQuery: responseData1.youtubeSearchQuery || responseData1.songName,
-                    viralHookStartTime: Number(responseData1.viralHookStartTime) || 0
-                  }];
-                }
-                
-                // Silently filter out blocklisted songs before candidate evaluation
-                if (!promptSource) {
-                  songsList = songsList.filter(c => c && c.songName && !normalizedHistory.includes(normalizeName(c.songName)));
-                }
-
-                // Try to find a valid song in the list
                 for (const candidate of songsList) {
                   if (!candidate.songName) continue;
-                  
-                  // If the user explicitly requested a specific song/source, bypass all blocklists and collision checks immediately
                   if (promptSource) {
-                    selectedSong = {
-                      songName: promptSource,
-                      youtubeSearchQuery: candidate.youtubeSearchQuery || `${promptSource} trending reels audio`,
-                      viralHookStartTime: Number(candidate.viralHookStartTime) || 25
-                    };
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Explicit song requested ("${selectedSong.songName}"). Bypassing history checks.`, type: 'success' }]
-                    });
+                    selectedSong = { songName: promptSource, youtubeSearchQuery: `${promptSource} official audio`, viralHookStartTime: 15 };
                     break;
                   }
-                  
                   const name = candidate.songName.toLowerCase().trim();
-                  const matches = audioMemory.filter(item => item.songName.toLowerCase().trim() === name);
-                  
-                  if (matches.length === 0) {
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Candidate "${candidate.songName}" is brand new. Verification passed.`, type: 'success' }]
-                    });
-                    selectedSong = candidate;
-                    break;
-                  } else {
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] "${candidate.songName}" has historical plays. Verifying timestamp spacing...`, type: 'info' }]
-                    });
-                    // Song exists in memory, verify if new timestamp is at least 20s away from all matches
-                    let tooClose = false;
-                    let collisionTimestamp = null;
-                    for (const item of matches) {
-                      const diff = Math.abs(candidate.viralHookStartTime - item.timestamp);
-                      if (diff < 20) {
-                        tooClose = true;
-                        collisionTimestamp = item.timestamp;
-                        break;
-                      }
-                    }
-                    
-                    if (tooClose) {
-                      updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Collision! Suggested start ${candidate.viralHookStartTime}s is too close to historical entry ${collisionTimestamp}s (gap < 20s).`, type: 'warn' }]
-                      });
-                    } else {
-                      updateWorkflowStatus({
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[DATABASE] Verification passed for "${candidate.songName}" at ${candidate.viralHookStartTime}s (spacing valid).`, type: 'success' }]
-                      });
-                      selectedSong = candidate;
-                      break;
-                    }
-                  }
+                  const matches = audioMemory.filter(item => item.songName && item.songName.toLowerCase().trim() === name);
+                  const tooClose = matches.some(item => Math.abs(candidate.viralHookStartTime - item.timestamp) < 20);
+                  if (!tooClose) { selectedSong = candidate; break; }
                 }
-                
-                if (selectedSong) {
-                  break;
-                }
-                
-                updateWorkflowStatus({
-                  logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[LLM-RETRY] Suggested songs were already in Audio Memory at similar timestamps. Re-requesting...`, type: 'warn' }]
-                });
-                console.log(`[Gemini] Rejected all suggested song options due to Audio Memory collisions. Retrying...`);
-                
-                const blockedSongsText = audioMemory.slice(-10).map(item => `"${item.songName}" (at ${item.timestamp}s)`).join(', ');
-                currentPrompt += `\nWARNING: Do not suggest any of these song/timestamp combinations as they are already used: ${blockedSongsText}. Provide completely different suggestions.`;
+                if (selectedSong) break;
                 attempt++;
+                const retryRes = await generateWithFallback(currentPrompt1 += "\nCollision detected, suggest fresh.");
+                try { songsList = JSON.parse(retryRes.response.text()).songs; } catch(e) { songsList = []; }
               }
 
-              // Fallback if no song was successfully selected
-              if (!selectedSong) {
-                const curatedPool = [
-                  { songName: "Tauba Tauba", youtubeSearchQuery: "Tauba Tauba Karan Aujla official audio", viralHookStartTime: 34 },
-                  { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 },
-                  { songName: "Jamna Paar", youtubeSearchQuery: "Jamna Paar Tony Kakkar official audio", viralHookStartTime: 15 },
-                  { songName: "Gypsy", youtubeSearchQuery: "Gypsy GD Kaur official audio", viralHookStartTime: 15 },
-                  { songName: "Achyutam Keshavam", youtubeSearchQuery: "Achyutam Keshavam official audio", viralHookStartTime: 15 }
-                ];
+              if (!selectedSong) selectedSong = { songName: "Kitab", youtubeSearchQuery: "Kitab female version official audio", viralHookStartTime: 15 };
 
-                if (vibeFilter === 'sad' || vibeFilter === 'sad_trending') {
-                  curatedPool.unshift(
-                    { songName: "Choo Lo", youtubeSearchQuery: "Choo Lo The Local Train official audio", viralHookStartTime: 20 },
-                    { songName: "Tu Hai Kahan", youtubeSearchQuery: "Tu Hai Kahan Raffey Anwar official audio", viralHookStartTime: 15 }
-                  );
-                }
+              updateStageStatus('audio_memory_verification', 'completed', { approvedSong: selectedSong.songName }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO MEMORY] Song Approved: "${selectedSong.songName}".`, type: 'success' }
+              ]);
 
-                const lastSongName = historyList.length > 0 ? normalizeName(historyList[historyList.length - 1]) : '';
-                const availablePool = curatedPool.filter(s => normalizeName(s.songName) !== lastSongName);
+              // ----------------------------------------------------
+              // STAGE 4: PROMPT 2 (LYRICS)
+              // ----------------------------------------------------
+              let prompt2Text = activePrompt2Text.replace(/\[SONG_NAME\]/g, selectedSong.songName);
+              updateStageStatus('prompt2_lyrics', 'running', { promptSent: prompt2Text }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[STAGE 4/11] Executing Prompt 2 (Lyrics Extraction)...`, type: 'info' }
+              ]);
 
-                const unplayedPool = availablePool.filter(s => s && s.songName && !normalizedHistory.includes(normalizeName(s.songName)));
-                
-                if (unplayedPool.length > 0) {
-                  selectedSong = unplayedPool[Math.floor(Math.random() * unplayedPool.length)];
-                } else {
-                  const nextIdx = historyList.length % availablePool.length;
-                  selectedSong = availablePool[nextIdx];
-                }
-              }
+              const result2 = await generateWithFallback(prompt2Text);
+              const parsedJson2 = JSON.parse(result2.response.text());
+              const parsedLyrics = parsedJson2.syncedLyrics.split('\n').filter(l => l.includes('[')).map(l => ({ time: 0, text: l }));
 
-              if (!promptSource && selectedSong.songName) {
-                let currentHistory = readSongsHistory();
-                currentHistory.push(selectedSong.songName);
-                if (currentHistory.length > 50) currentHistory.shift();
-                writeSongsHistory(currentHistory);
-              }
+              updateStageStatus('prompt2_lyrics', 'completed', { syncedLyrics: parsedJson2.syncedLyrics }, [
+                { timestamp: new Date().toLocaleTimeString(), message: `[LLM] Prompt 2 executed. Transcribed LRC.`, type: 'success' }
+              ]);
 
-              updateWorkflowStatus({
-                logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Suggestion complete: "${selectedSong.songName}"`, type: 'success' },
-                  { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Drop time start: ${selectedSong.viralHookStartTime}s. YouTube Search: "${selectedSong.youtubeSearchQuery}"`, type: 'info' }
-                ],
-                executionData: {
-                  songName: selectedSong.songName,
-                  youtubeSearchQuery: selectedSong.youtubeSearchQuery,
-                  viralHookStartTime: selectedSong.viralHookStartTime
-                }
-              });
-
-              // 2. yt-dlp to download and trim
-              const uniqueId = Date.now();
+              // ----------------------------------------------------
+              // STAGE 5: AUDIO DOWNLOAD & TRIMMING
+              // ----------------------------------------------------
               const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
-              if (!fs.existsSync(UPLOADS_DIR)) {
-                fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-              }
+              if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
               const outputPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp3`);
+              const trimmedPath = path.join(UPLOADS_DIR, `viral_reel_trimmed_${uniqueId}.mp3`);
+              const ffmpegBin = ffmpegStatic || 'ffmpeg';
+
               const possiblePaths = [
                 path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp'),
                 path.join(os.homedir(), '.local', 'bin', 'yt-dlp'),
                 '/opt/render/.local/bin/yt-dlp',
                 '/usr/local/bin/yt-dlp',
-                '/usr/bin/yt-dlp',
-                '/Library/Frameworks/Python.framework/Versions/3.11/bin/yt-dlp'
+                '/usr/bin/yt-dlp'
               ];
               const rawYtDlp = possiblePaths.find(p => fs.existsSync(p)) || 'yt-dlp';
               const ytDlpPath = `"${rawYtDlp}"`;
-              
-              if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
-                try { fs.chmodSync(ffmpegStatic, 0o755); } catch (e) {}
-              }
-              const ffmpegOpt = ffmpegStatic ? `--ffmpeg-location "${ffmpegStatic}"` : '';
-              const ffmpegBin = ffmpegStatic || 'ffmpeg';
-              const flags = `-x --audio-format mp3 ${ffmpegOpt} --no-playlist --no-check-certificates --geo-bypass -o "${outputPath}"`;
-              // Ensure clean official audio search without 'short' suffix to download the exact song audio
-              const cleanSearchTerm = selectedSong.youtubeSearchQuery.replace(/\s+short$/i, '');
-              const query = `"ytsearch1:${cleanSearchTerm} official audio"`;
-              const searchCmd = `${ytDlpPath} ${query} ${flags}`;
-              
-              updateWorkflowStatus({
-                logs: [
-                  { timestamp: new Date().toLocaleTimeString(), message: `[AUDIO] Downloading audio stream natively via Node.js for "${selectedSong.youtubeSearchQuery}"...`, type: 'info' }
-                ],
-                executionData: {
-                  youtubeCmd: searchCmd
-                }
-              });
 
-              const proceedToTrim = () => {
-                const trimmedPath = path.join(UPLOADS_DIR, `viral_reel_trimmed_${uniqueId}.mp3`);
-                const trimCmd = `"${ffmpegBin}" -y -i "${outputPath}" -ss ${selectedSong.viralHookStartTime} -t 15 -c copy "${trimmedPath}"`;
-                
-                updateWorkflowStatus({
-                  logs: [
-                    { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Audio stream downloaded successfully.`, type: 'success' },
-                    { timestamp: new Date().toLocaleTimeString(), message: `[SHELL] Executing ffmpeg to trim 15s clip starting at ${selectedSong.viralHookStartTime}s.`, type: 'info' },
-                    { timestamp: new Date().toLocaleTimeString(), message: `[CMD] ${trimCmd}`, type: 'info' }
-                  ],
-                  executionData: {
-                    trimCmd
-                  }
-                });
-
-                exec(trimCmd, async (trimErr, trimStdout, trimStderr) => {
-                  if (trimErr) {
-                    updateWorkflowStatus({
-                      status: 'failed',
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[ERROR] ffmpeg audio trimming failed: ${trimErr.message}`, type: 'error' }]
-                    });
-                    res.statusCode = 500;
-                    res.end(JSON.stringify({ error: 'Failed to trim audio' }));
-                    return;
-                  }
-
-                  // Fallback: If trimmed file is essentially empty (e.g., < 5000 bytes), the hook time was out of bounds.
-                  // Re-trim from the beginning.
-                  if (fs.existsSync(trimmedPath) && fs.statSync(trimmedPath).size < 5000) {
-                    const fallbackTrimCmd = `"${ffmpegBin}" -y -i "${outputPath}" -ss 0 -t 15 -c copy "${trimmedPath}"`;
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM-WARNING] Trimmed file too small. Hook out-of-bounds? Re-trimming from 0s.`, type: 'warn' }]
-                    });
-                    await new Promise((resolve) => {
-                      exec(fallbackTrimCmd, (err) => {
-                        resolve();
-                      });
-                    });
-                  }
-
-                  updateWorkflowStatus({
-                    logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Audio trimmed and validated. File size: ${fs.statSync(trimmedPath).size} bytes.`, type: 'success' }]
-                  });
-
-                  // 3. Second Call: Feed the EXACT downloaded audio to Gemini for perfect timestamps
-                  try {
-                    const audioBytes = fs.readFileSync(trimmedPath);
-                    const audioBase64 = audioBytes.toString('base64');
-                    
-                    let prompt2 = customPrompt2;
-                    if (!prompt2) {
-                      const songNameStr = selectedSong?.songName || 'Selected Track';
-                      if (screenshotLyrics) {
-                        prompt2 = `Listen to this 15-second audio clip for the song "${songNameStr}". Your goal is to transcribe the lyrics exactly as they are sung in the audio, using the reference lyrics extracted from a screenshot of the song to guide you:
-Reference Lyrics:
-"""
-${screenshotLyrics}
-"""
-CRITICAL SONG MATCHING RULE: The song title is "${songNameStr}". You MUST generate/transcribe lyrics strictly for "${songNameStr}". Under NO circumstances should you return lyrics for "Tauba Tauba" or any other song unless the song title is explicitly "Tauba Tauba".
-CRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.
-Return the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms] mapping exactly to the audio timing.
-IMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫
-
-Return JSON format exactly like this: { "syncedLyrics": "string" }`;
-                      } else {
-                        prompt2 = `Listen to this 15-second audio clip for the song "${songNameStr}". Transcribe the lyrics exactly as they are sung in the audio.
-CRITICAL SONG MATCHING RULE: The song title is "${songNameStr}". You MUST generate/transcribe lyrics strictly for "${songNameStr}". Under NO circumstances should you return lyrics for "Tauba Tauba" or any other song unless the song title is explicitly "Tauba Tauba".
-CRITICAL LANGUAGE RULE: You MUST write the lyrics in HINGLISH ONLY (Hindi/Haryanvi words written using the English alphabet). Do NOT use Devanagari script.
-Return the lyrics in strict LRC format. Every single line MUST start with a timestamp [mm:ss.ms].
-IMPORTANT TYPOGRAPHY RULE: Break the lyrics down into 10 to 13 short lines. Each line should have only 1 to 4 words. The very last line MUST just be 2 to 4 aesthetic emojis chosen ONLY from this specific Reel Emoji Library: ✨ 🤍 💕 🫣 🫠 😭 💔 💫 🍷 😋 🙄 😫 🤙. Do NOT use any other emojis (no fire, loud, or celebration emojis). For example: [00:14.00] 😭🤍💫
-
-Return JSON format exactly like this: { "syncedLyrics": "string" }`;
-                      }
-                    }
-
-                    updateWorkflowStatus({
-                      stage: 'lyrics_analysis',
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Sending trimmed audio for transcription & timestamping (Prompt 2).`, type: 'info' }],
-                      executionData: {
-                        prompt2
-                      }
-                    });
-
-                    let responseData2 = {};
-                    try {
-                      const inlineData = { inlineData: { data: audioBase64, mimeType: "audio/mp3" } };
-                      const result2 = await generateWithFallback(prompt2, inlineData);
-                      responseData2 = JSON.parse(result2.response.text());
-                    } catch (transcribeErr) {
-                      console.warn('[LLM Safeguard] Audio transcription error:', transcribeErr.message);
-                      responseData2 = {};
-                    }
-
-                    // Validate Gemini syncedLyrics response
-                    const isValidLrc = responseData2.syncedLyrics && typeof responseData2.syncedLyrics === 'string' && responseData2.syncedLyrics.includes('[') && !responseData2.syncedLyrics.includes("Tere bina dil lagda nahi");
-                    
-                    if (!isValidLrc) {
-                      const songTitle = selectedSong?.songName || promptSource || 'Song';
-                      responseData2.syncedLyrics = getFallbackLyrics(songTitle);
-                    }
-                    
-                    updateWorkflowStatus({
-                      logs: [
-                        { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Audio transcript processed successfully.`, type: 'success' },
-                        { timestamp: new Date().toLocaleTimeString(), message: `[PARSER] Slicing transcript line breaks and validating LRC timestamps.`, type: 'info' }
-                      ],
-                      executionData: {
-                        syncedLyrics: responseData2.syncedLyrics
-                      }
-                    });
-
-                    // 4. Fourth Call: Generate Viral Hashtags & Strategy (Prompt 4)
-                    try {
-                      let prompt4 = customPrompt4 || customPrompt3;
-                      if (prompt4) {
-                        if (prompt4.includes('[SONG_NAME]') || prompt4.includes('[LYRICS]')) {
-                          prompt4 = prompt4
-                            .replace(/\[SONG_NAME\]/g, selectedSong.songName || '')
-                            .replace(/\[LYRICS\]/g, responseData2.syncedLyrics || '');
-                        } else {
-                          prompt4 = `Selected Song: "${selectedSong.songName}"\nLyrics snippet:\n"${responseData2.syncedLyrics}"\n\n${prompt4}`;
-                        }
-                      } else {
-                        prompt4 = `You are an Instagram Reels virality expert. Based on the selected song name "${selectedSong.songName}" and the lyrics snippet:
-"${responseData2.syncedLyrics}"
-Generate a list of 8-10 highly targeted viral hashtags. You MUST find and extract relevant keywords, emotions, themes, and song specific terms directly from the song name "${selectedSong.songName}" and the lyrics (the reel composition) to include in the hashtags, combined with standard high-reach aesthetic tags (e.g. #explorepage, #viralreels, #feelitreelit, #trendingreels).
-Return JSON format exactly like this:
-{
-  "viralHashtags": "string"
-}`;
-                      }
-
-                      updateWorkflowStatus({
-                        stage: 'viral_strategy',
-                        logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Generating Viral Strategy & Hashtags (Prompt 4).`, type: 'info' }]
-                      });
-
-                      const result4 = await generateWithFallback(prompt4);
-                      const responseData4 = JSON.parse(result4.response.text());
-                      if (responseData4.viralHashtags) {
-                        viralHashtags = responseData4.viralHashtags;
-                      }
-                      
-                      updateWorkflowStatus({
-                        executionData: { viralHashtags },
-                        logs: [
-                          { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Viral strategy & hashtags generated successfully.`, type: 'success' }
-                        ]
-                      });
-                    } catch (prompt4Err) {
-                      console.error('Failed to generate Prompt 4 details:', prompt4Err.message);
-                      updateWorkflowStatus({
-                        logs: [
-                          { timestamp: new Date().toLocaleTimeString(), message: `[API-WARNING] Prompt 4 generation failed: ${prompt4Err.message}. Using high-engagement defaults.`, type: 'warn' }
-                        ]
-                      });
-                    }
-
-                    // 5. Visual Planning & Asset Selection (Prompt 3)
-                    updateWorkflowStatus({
-                      stage: 'visual_planning',
-                      logs: [
-                        { timestamp: new Date().toLocaleTimeString(), message: `[GEMINI] Executing AI Visual Specs & Layout Styling (Prompt 3).`, type: 'info' },
-                        { timestamp: new Date().toLocaleTimeString(), message: `[VISUAL] Mapping ${parsedLyrics.length} lyric cues to typographic layers.`, type: 'info' },
-                        { timestamp: new Date().toLocaleTimeString(), message: `[STYLE] Setting layout: 1080x1920 Portrait. Styling: 'Caveat' Font, weight 500, HSL Pink accents, 15px gap.`, type: 'info' }
-                      ]
-                    });
-
-                    updateWorkflowStatus({
-                      stage: 'asset_selection',
-                      logs: [
-                        { timestamp: new Date().toLocaleTimeString(), message: `[ASSET] Retrieving Google Fonts 'Caveat' styles. Background color constraint: Solid black (#000000).`, type: 'info' }
-                      ]
-                    });
-
-                    // 5. Reel Composition (Puppeteer launching)
-                    updateWorkflowStatus({
-                      stage: 'reel_composition',
-                      logs: [
-                        { timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Launching headless browser for canvas frame generation.`, type: 'info' }
-                      ]
-                    });
-
-                    const launchOptions = {
-                      headless: true,
-                      args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-gpu'
-                      ]
-                    };
-                    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-                      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-                    }
-                    const browser = await puppeteer.launch(launchOptions);
-                    const page = await browser.newPage();
-                    await page.setViewport({ width: 540, height: 960 });
-
-                    const htmlContent = `
-                      <html>
-                        <head>
-                          <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-                          <style>
-                            * { margin: 0; padding: 0; box-sizing: border-box; }
-                            body {
-                              background: black;
-                              display: flex;
-                              flex-direction: column;
-                              align-items: center;
-                              justify-content: center;
-                              height: 100vh;
-                              font-family: 'Caveat', cursive;
-                              overflow: hidden;
-                              text-transform: uppercase;
-                            }
-                            #lyrics-container {
-                              display: flex;
-                              flex-direction: column;
-                              align-items: center;
-                              gap: 6px;
-                              text-align: center;
-                              padding: 0 30px;
-                            }
-                            .lyric-line {
-                              color: #f094c4;
-                              font-size: 38px;
-                              font-weight: 700;
-                              letter-spacing: 0.04em;
-                              line-height: 1.3;
-                            }
-                            #watermark {
-                              position: absolute;
-                              bottom: 18px;
-                              color: rgba(255,255,255,0.25);
-                              font-size: 13px;
-                              font-weight: 500;
-                              letter-spacing: 0.25em;
-                              text-transform: uppercase;
-                            }
-                          </style>
-                        </head>
-                        <body>
-                          <div id="lyrics-container"></div>
-                          <div id="watermark">AAISUUSYNC</div>
-                          <script>
-                            const lyrics = ${JSON.stringify(parsedLyrics)};
-                            const container = document.getElementById('lyrics-container');
-                            lyrics.forEach(l => {
-                              const div = document.createElement('div');
-                              div.className = 'lyric-line';
-                              div.innerText = l.text;
-                              container.appendChild(div);
-                            });
-                          </script>
-                        </body>
-                      </html>
-                    `;
-
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Navigating viewport to canvas. Halting for fonts loading...`, type: 'info' }],
-                      executionData: {
-                        puppeteerHtml: htmlContent
-                      }
-                    });
-
-                    await page.setContent(htmlContent, { waitUntil: 'domcontentloaded', timeout: 60000 });
-                    try {
-                      await Promise.race([
-                        page.evaluateHandle('document.fonts.ready'),
-                        new Promise(resolve => setTimeout(resolve, 3000))
-                      ]);
-                    } catch (e) {
-                      console.warn('[Puppeteer] Font load wait warning:', e.message);
-                    }
-
-                    const fps = 5;
-                    const duration = 15;
-                    const totalFrames = fps * duration;
-
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Custom font confirmed loaded. Capturing ${totalFrames} frames (static)...`, type: 'info' }]
-                    });
-
-                    // Static image — capture ONE screenshot and copy for all frames
-                    const firstFramePath = path.join(framesDir, 'frame_000.jpg');
-                    await page.screenshot({ 
-                      path: firstFramePath,
-                      type: 'jpeg',
-                      quality: 85
-                    });
-
-                    for (let f = 1; f < totalFrames; f++) {
-                      fs.copyFileSync(firstFramePath, path.join(framesDir, `frame_${String(f).padStart(3, '0')}.jpg`));
-                      
-                      if (f % 30 === 0 || f === totalFrames - 1) {
-                        updateWorkflowStatus({
-                          logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Captured frame ${f + 1}/${totalFrames}`, type: 'info' }],
-                          executionData: {
-                            renderingProgress: f + 1
-                          }
-                        });
-                      }
-                    }
-                    await browser.close();
-
-                    updateWorkflowStatus({
-                      stage: 'rendering',
-                      logs: [
-                        { timestamp: new Date().toLocaleTimeString(), message: `[PUPPETEER] Headless browser closed. Canvas composition complete.`, type: 'success' },
-                        { timestamp: new Date().toLocaleTimeString(), message: `[SHELL] Initializing ffmpeg rendering pipeline to stitch screenshots and trimmed audio.`, type: 'info' }
-                      ]
-                    });
-
-                    const videoPath = path.join(UPLOADS_DIR, `viral_reel_${uniqueId}.mp4`);
-                    const createVideoCmd = `"${ffmpegBin}" -y -framerate ${fps} -i "${path.join(framesDir, 'frame_%03d.jpg')}" -i "${trimmedPath}" -c:v libx264 -pix_fmt yuv420p -c:a aac -b:a 192k -t 15 "${videoPath}"`;
-                    
-                    updateWorkflowStatus({
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[CMD] ${createVideoCmd}`, type: 'info' }],
-                      executionData: {
-                        ffmpegCmd: createVideoCmd
-                      }
-                    });
-
-                    exec(createVideoCmd, async (err, stdout, stderr) => {
-                      // Cleanup frames
-                      fs.rmSync(framesDir, { recursive: true, force: true });
-                      
-                      if (err) {
-                        updateWorkflowStatus({
-                          status: 'failed',
-                          logs: [
-                            { timestamp: new Date().toLocaleTimeString(), message: `[ERROR] ffmpeg video stitching failed: ${err.message}`, type: 'error' },
-                            { timestamp: new Date().toLocaleTimeString(), message: `[STDERR] ${stderr}`, type: 'error' }
-                          ]
-                        });
-                        res.statusCode = 500;
-                        res.end(JSON.stringify({ error: 'Failed to mux video: ' + err.message }));
-                        return;
-                      }
-
-                      const finalVideoUrl = `/uploads/viral_reel_${uniqueId}.mp4`;
-                      const finalAudioUrl = `/uploads/viral_reel_trimmed_${uniqueId}.mp3`;
-                      const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
-
-                      const viralReachHashtags = '#explore #foryou #viralreels #aesthetic #trending';
-
-                      updateWorkflowStatus({
-                        status: 'completed',
-                        stage: 'final_output',
-                        logs: [
-                          { timestamp: new Date().toLocaleTimeString(), message: `[FFMPEG] Stitching completed successfully.`, type: 'success' },
-                          { timestamp: new Date().toLocaleTimeString(), message: `[SYSTEM] Rendering metrics: 1080x1920, 10 FPS, H.264 video, AAC audio.`, type: 'info' },
-                          { timestamp: new Date().toLocaleTimeString(), message: `[SUCCESS] Reel generated successfully in ${elapsedSec}s!`, type: 'success' }
-                        ],
-                        executionData: {
-                          videoUrl: finalVideoUrl,
-                          audioUrl: finalAudioUrl,
-                          totalElapsedTime: elapsedSec + 's',
-                          viralReachHashtags: viralReachHashtags
-                        }
-                      });
-
-                      // Append to Audio Memory database
-                      try {
-                        const currentMem = readAudioMemory();
-                        currentMem.push({
-                          songName: selectedSong.songName,
-                          timestamp: selectedSong.viralHookStartTime,
-                          trimDuration: 15,
-                          date: new Date().toISOString()
-                        });
-                        writeAudioMemory(currentMem);
-                        console.log(`[Audio Memory] Saved song: "${selectedSong.songName}" at ${selectedSong.viralHookStartTime}s`);
-                      } catch (memErr) {
-                        console.error('Failed to append to Audio Memory:', memErr.message);
-                      }
-
-                      // Return payload
-                      res.setHeader('Content-Type', 'application/json');
-                      res.end(JSON.stringify({
-                        songName: selectedSong.songName,
-                        lyrics: responseData2.syncedLyrics,
-                        audioUrl: finalAudioUrl,
-                        videoUrl: finalVideoUrl,
-                        viralHashtags: viralHashtags,
-                        viralReachHashtags: viralReachHashtags
-                      }));
-                    });
-                  } catch (audioErr) {
-                    updateWorkflowStatus({
-                      status: 'failed',
-                      logs: [{ timestamp: new Date().toLocaleTimeString(), message: `[ERROR] Lyrics transcription failed: ${audioErr.message}`, type: 'error' }]
-                    });
-                    res.statusCode = 500;
-                    res.end(JSON.stringify({ error: 'Audio transcription failed: ' + audioErr.message }));
-                  }
-                });
-              };
-
-            const fallbackCmds = [
-              searchCmd,
-              `"${path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp')}" ${query} ${flags}`,
-              `export PATH=$PATH:$HOME/.local/bin:/opt/render/.local/bin && yt-dlp ${query} ${flags}`,
-              `python3 -m pip install --user yt-dlp && python3 -m yt_dlp ${query} ${flags}`,
-              `npx -y --package=yt-dlp-exec yt-dlp ${query} ${flags}`
-            ];
+              const cleanSearchTerm = selectedSong.youtubeSearchQuery ? selectedSong.youtubeSearchQuery.replace(/\s+short$/i, '') : selectedSong.songName;
+              const searchCmd = `${ytDlpPath} "ytsearch1:${cleanSearchTerm} official audio" -x --audio-format mp3 --no-playlist -o "${outputPath}"`;
+              const trimCmd = `"${ffmpegBin}" -y -i "${outputPath}" -ss ${selectedSong.viralHookStartTime || 15} -t 15 -c copy "${trimmedPath}"`;
 
             const useFallbackAudioStream = () => {
               const presetDir = path.join(process.cwd(), 'public', 'uploads', 'preset_audios');
